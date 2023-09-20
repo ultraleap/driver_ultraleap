@@ -1,0 +1,39 @@
+cmake_minimum_required(VERSION 3.26)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
+
+project(driver_ultraleap)
+
+set(CMAKE_CXX_STANDARD 23)
+
+set(LeapSDK_DIR ${CMAKE_SOURCE_DIR}/3rdparty/LeapSDK/lib/cmake/LeapSDK)
+find_package(OpenVR REQUIRED)
+find_package(LeapSDK 5 REQUIRED)
+
+add_library(driver_ultraleap SHARED
+        src/HmdDriverFactory.cpp
+        src/LeapDeviceProvider.cpp
+        src/LeapDeviceProvider.h
+        src/DriverLog.cpp
+        src/DriverLog.h
+        src/LeapDeviceDriver.cpp
+        src/LeapDeviceDriver.h
+        src/VrMath.h
+        src/LeapHandDriver.cpp
+        src/LeapHandDriver.h
+        src/OvrProperties.h)
+target_link_libraries(driver_ultraleap
+        PUBLIC OpenVR::OpenVR
+        PRIVATE LeapSDK::LeapC)
+set_target_properties(driver_ultraleap PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/ultraleap/bin/win64)
+
+# Copy the required LeapC.dll to the output folder.
+add_custom_command(
+        TARGET driver_ultraleap POST_BUILD
+        COMMENT "Copying DLL: LeapC.dll"
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:LeapSDK::LeapC> $<TARGET_FILE_DIR:driver_ultraleap>)
+
+# Copy the resource and manifest to the output folder.
+add_custom_command(
+        TARGET driver_ultraleap POST_BUILD
+        COMMENT "Copying Manifest & Resources"
+        COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/ultraleap ${CMAKE_BINARY_DIR}/ultraleap/)

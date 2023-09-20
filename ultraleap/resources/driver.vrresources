@@ -1,0 +1,10 @@
+{
+  "jsonid": "vrresources",
+  "statusicons": {
+    "Leap Motion Controller 2": {
+      "Prop_NamedIconPathDeviceOff_String": "{ultraleap}/icons/left_hand_status_off.png",
+      "Prop_NamedIconPathDeviceReady_String": "{ultraleap}/icons/left_hand_status_ready.png",
+      "Prop_NamedIconPathDeviceStandby_String": "{ultraleap}/icons/left_hand_status_standby.png"
+    }
+  }
+}

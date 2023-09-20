@@ -1,0 +1,9 @@
+{
+	"alwaysActivate": true,
+	"name" : "ultraleap",
+	"directory" : "",
+	"resourceOnly" : false,
+	"other_presence"  : [
+	    "2936.*"
+	]
+}
