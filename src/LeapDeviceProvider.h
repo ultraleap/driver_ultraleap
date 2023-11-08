@@ -27,9 +27,10 @@ class LeapDeviceProvider : public vr::IServerTrackedDeviceProvider {
     void DeviceLost(uint32_t deviceId, const LEAP_DEVICE_EVENT* event);
     void TrackingFrame(uint32_t deviceId, const LEAP_TRACKING_EVENT* event);
     void TrackingModeChanged(uint32_t deviceId, const LEAP_TRACKING_MODE_EVENT* event);
+    bool HasConnectedDevice();
 
-    static void NotifyDeviceDisconnected(const std::shared_ptr<LeapDeviceDriver>& device);
-    static void NotifyDeviceConnected(const std::shared_ptr<LeapDeviceDriver>& device);
+    static void NotifyDeviceDisconnected(uint32_t deviceId);
+    static void NotifyDeviceConnected(uint32_t deviceId);
 
     LEAP_CONNECTION   leapConnection;
     std::atomic<bool> isRunning   = false;

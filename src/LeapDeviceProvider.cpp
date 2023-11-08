@@ -1,5 +1,7 @@
 #include "LeapDeviceProvider.h"
 
+#include <algorithm>
+
 #if defined(_WIN32)
 #include <ShlObj_core.h>
 #else
@@ -200,7 +202,7 @@ void LeapDeviceProvider::DeviceDetected(const uint32_t deviceId, const LEAP_DEVI
     }
 
     // If this is the first device, construct the two hand-controllers.
-    if (devices.empty()) {
+    if (!HasConnectedDevice()) {
         leftHand = std::make_unique<LeapHandDriver>(eLeapHandType_Left);
         rightHand = std::make_unique<LeapHandDriver>(eLeapHandType_Right);
 
@@ -221,8 +223,9 @@ void LeapDeviceProvider::DeviceDetected(const uint32_t deviceId, const LEAP_DEVI
         // Check if this device has been seen before and if so, track the new id we've seen it on.
         for (auto [_, device] : devices) {
             if (leapSerial == device->GetSerialNumber()) {
-                NotifyDeviceConnected(device);
+                NotifyDeviceConnected(device->GetId());
                 devices.insert({event->device.id, device});
+                device->UpdateDevice(leapDevice, leapDeviceInfo);
                 return;
             }
         }
@@ -243,27 +246,40 @@ void LeapDeviceProvider::DeviceDetected(const uint32_t deviceId, const LEAP_DEVI
 void LeapDeviceProvider::DeviceLost(const uint32_t deviceId, const LEAP_DEVICE_EVENT* event) {
     // WARNING!
     // In this context, deviceId will be 0 as this is a system message, for the ID of the affected device, use event->device.id.
-    NotifyDeviceDisconnected(devices.at(event->device.id));
+    auto lostDevice = devices.at(event->device.id);
+    lostDevice->Disconnect();
+    NotifyDeviceDisconnected(lostDevice->GetId());
 
     // If all devices are now disconnected, indicate that the hands are no-longer trackable.
-    if (devices.empty()) {}
+    if (!HasConnectedDevice()) {
+        NotifyDeviceDisconnected(leftHand->GetId());
+        NotifyDeviceDisconnected(rightHand->GetId());
+    }
 }
 
-void LeapDeviceProvider::NotifyDeviceConnected(const std::shared_ptr<LeapDeviceDriver>& device) {
+bool LeapDeviceProvider::HasConnectedDevice() {
+    if (devices.empty()) {
+        return false;
+    }
+    return std::ranges::any_of(devices, [](auto deviceIndex) {
+        return deviceIndex.second->IsDeviceConnected();
+    });
+}
+
+void LeapDeviceProvider::NotifyDeviceConnected(uint32_t deviceId) {
     // Mark this device as running correctly and connected, but with no valid pose.
     vr::DriverPose_t pose{0};
     pose.result            = vr::TrackingResult_Running_OK;
     pose.poseIsValid       = false;
     pose.deviceIsConnected = true;
-    vr::VRServerDriverHost()->TrackedDevicePoseUpdated(device->GetId(), pose, sizeof(pose));
-    //device.
+    vr::VRServerDriverHost()->TrackedDevicePoseUpdated(deviceId, pose, sizeof(pose));
 }
 
-void LeapDeviceProvider::NotifyDeviceDisconnected(const std::shared_ptr<LeapDeviceDriver>& device) {
+void LeapDeviceProvider::NotifyDeviceDisconnected(uint32_t deviceId) {
     // Indicate that this device is no longer connected with a pose that has `deviceIsConnected` set to false.
     vr::DriverPose_t pose{0};
     pose.result            = vr::TrackingResult_Running_OK;
     pose.poseIsValid       = false;
     pose.deviceIsConnected = false;
-    vr::VRServerDriverHost()->TrackedDevicePoseUpdated(device->GetId(), pose, sizeof(pose));
+    vr::VRServerDriverHost()->TrackedDevicePoseUpdated(deviceId, pose, sizeof(pose));
 }

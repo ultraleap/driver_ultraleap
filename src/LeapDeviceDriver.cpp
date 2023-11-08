@@ -96,6 +96,17 @@ vr::DriverPose_t LeapDeviceDriver::GetPose() {
     return trackerPose;
 }
 
+void LeapDeviceDriver::UpdateDevice(LEAP_DEVICE newDevice, LEAP_DEVICE_INFO newDeviceInfo) {
+    leapDevice = newDevice;
+    leapDeviceInfo = newDeviceInfo;
+}
+
+void LeapDeviceDriver::Disconnect() {
+    LeapCloseDevice(leapDevice);
+    leapDevice = nullptr;
+}
+
+
 void LeapDeviceDriver::SetDeviceModelProperties(const OvrProperties& properties) const {
     switch (leapDeviceInfo.pid) {
     case eLeapDevicePID_Peripheral: {
