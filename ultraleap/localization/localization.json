@@ -1,0 +1,11 @@
+[
+  {
+    "language_tag": "en_US",
+    "LMC": "Leap Motion Controller",
+    "LMC2": "Leap Motion Controller 2",
+    "SIR170": "Ultraleap StereoIR 170",
+    "3Di": "Ultraleap 3Di",
+    "LeftHand": "Left Hand",
+    "RightHand": "Right Hand"
+  }
+]

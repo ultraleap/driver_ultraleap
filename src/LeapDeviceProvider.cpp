@@ -6,25 +6,27 @@
 #include <pthread.h>
 #endif
 
-#include "DriverLog.h"
+#include "OvrUtils.h"
 
 vr::EVRInitError LeapDeviceProvider::Init(vr::IVRDriverContext* pDriverContext) {
     VR_INIT_SERVER_DRIVER_CONTEXT(pDriverContext);
 
     // Initialise logging subsystem.
-    DriverLog::Init();
+    OvrLogging::Init();
 
     // Initialize the LeapC Connection
     {
         eLeapRS result = LeapCreateConnection(nullptr, &leapConnection);
         if (LEAP_FAILED(result)) {
             OVR_LOG("Failed to create connection to Ultraleap tracking service: {}", result);
+            return vr::VRInitError_Driver_Failed;
         }
 
         result = LeapOpenConnection(leapConnection);
         if (LEAP_FAILED(result)) {
             LeapDestroyConnection(leapConnection);
             OVR_LOG("Failed to open connection to Ultraleap tracking service: {}", result);
+            return vr::VRInitError_Driver_Failed;
         }
 
         // Start the service thread.
@@ -199,22 +201,22 @@ void LeapDeviceProvider::DeviceDetected(const uint32_t deviceId, const LEAP_DEVI
 
     // If this is the first device, construct the two hand-controllers.
     if (devices.empty()) {
-//        leftHand = std::make_unique<LeapHandDriver>(eLeapHandType_Left);
-//        rightHand = std::make_unique<LeapHandDriver>(eLeapHandType_Right);
-//
-//        if (!vr::VRServerDriverHost()->TrackedDeviceAdded(
-//                "LeftHand",
-//                vr::ETrackedDeviceClass::TrackedDeviceClass_Controller,
-//                leftHand.get())) {
-//            OVR_LOG("Failed to add Ultraleap left hand controller");
-//        }
-//
-//        if (!vr::VRServerDriverHost()->TrackedDeviceAdded(
-//                "RightHand",
-//                vr::ETrackedDeviceClass::TrackedDeviceClass_Controller,
-//                rightHand.get())) {
-//            OVR_LOG("Failed to add Ultraleap right hand controller");
-//        }
+        leftHand = std::make_unique<LeapHandDriver>(eLeapHandType_Left);
+        rightHand = std::make_unique<LeapHandDriver>(eLeapHandType_Right);
+
+        if (!vr::VRServerDriverHost()->TrackedDeviceAdded(
+                "LeftHand",
+                vr::ETrackedDeviceClass::TrackedDeviceClass_Controller,
+                leftHand.get())) {
+            OVR_LOG("Failed to add Ultraleap left hand controller");
+        }
+
+        if (!vr::VRServerDriverHost()->TrackedDeviceAdded(
+                "RightHand",
+                vr::ETrackedDeviceClass::TrackedDeviceClass_Controller,
+                rightHand.get())) {
+            OVR_LOG("Failed to add Ultraleap right hand controller");
+        }
     } else {
         // Check if this device has been seen before and if so, track the new id we've seen it on.
         for (auto [_, device] : devices) {
@@ -232,7 +234,6 @@ void LeapDeviceProvider::DeviceDetected(const uint32_t deviceId, const LEAP_DEVI
             leapSerial.c_str(),
             vr::ETrackedDeviceClass::TrackedDeviceClass_TrackingReference,
             device.get())) {
-        NotifyDeviceConnected(device);
         devices.insert({event->device.id, std::move(device)});
     } else {
         OVR_LOG("Failed to add new Ultraleap device: {}", leapSerial);
@@ -243,6 +244,9 @@ void LeapDeviceProvider::DeviceLost(const uint32_t deviceId, const LEAP_DEVICE_E
     // WARNING!
     // In this context, deviceId will be 0 as this is a system message, for the ID of the affected device, use event->device.id.
     NotifyDeviceDisconnected(devices.at(event->device.id));
+
+    // If all devices are now disconnected, indicate that the hands are no-longer trackable.
+    if (devices.empty()) {}
 }
 
 void LeapDeviceProvider::NotifyDeviceConnected(const std::shared_ptr<LeapDeviceDriver>& device) {
@@ -252,6 +256,7 @@ void LeapDeviceProvider::NotifyDeviceConnected(const std::shared_ptr<LeapDeviceD
     pose.poseIsValid       = false;
     pose.deviceIsConnected = true;
     vr::VRServerDriverHost()->TrackedDevicePoseUpdated(device->GetId(), pose, sizeof(pose));
+    //device.
 }
 
 void LeapDeviceProvider::NotifyDeviceDisconnected(const std::shared_ptr<LeapDeviceDriver>& device) {

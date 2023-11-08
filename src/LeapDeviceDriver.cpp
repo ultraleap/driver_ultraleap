@@ -1,6 +1,6 @@
 #include "LeapDeviceDriver.h"
 
-#include "OvrProperties.h"
+#include "OvrUtils.h"
 #include "VrMath.h"
 
 LeapDeviceDriver::LeapDeviceDriver(LEAP_DEVICE leapDevice, LEAP_DEVICE_INFO leapDeviceInfo, std::string leapSerial)
@@ -19,7 +19,6 @@ vr::EVRInitError LeapDeviceDriver::Activate(uint32_t unObjectId) {
 
     // Setup manufacture/device information.
     properties.Set(vr::Prop_ManufacturerName_String, "Ultraleap");
-    properties.Set(vr::Prop_ManufacturerSerialNumber_String, leapSerial);
 
     // Set up the base-station properties as a tracking reference point.
     properties.Set(vr::Prop_CanWirelessIdentify_Bool, false);
@@ -32,12 +31,6 @@ vr::EVRInitError LeapDeviceDriver::Activate(uint32_t unObjectId) {
 
     // Setup details of the FoV and range depending on device type.
     SetDeviceModelProperties(properties);
-
-//    // TODO: List icon paths etc.
-    properties.Set(vr::Prop_ResourceRoot_String, "ultraleap");
-    properties.Set(vr::Prop_NamedIconPathDeviceOff_String, "{ultraleap}/icons/left_hand_status_off.png");
-    properties.Set(vr::Prop_NamedIconPathDeviceReady_String, "{ultraleap}/icons/left_hand_status_ready.png");
-    properties.Set(vr::Prop_NamedIconPathDeviceStandby_String, "{ultraleap}/icons/left_hand_status_standby.png");
 
     // Return initialization success
     return vr::VRInitError_None;
@@ -106,7 +99,8 @@ vr::DriverPose_t LeapDeviceDriver::GetPose() {
 void LeapDeviceDriver::SetDeviceModelProperties(const OvrProperties& properties) const {
     switch (leapDeviceInfo.pid) {
     case eLeapDevicePID_Peripheral: {
-        properties.Set(vr::Prop_ModelNumber_String, "Leap Motion Controller");
+        OVR_LOG("Setting device as LMC");
+        properties.Set(vr::Prop_ModelNumber_String, "LMC");
         properties.Set(vr::Prop_FieldOfViewLeftDegrees_Float, 140.0f / 2.0f);
         properties.Set(vr::Prop_FieldOfViewRightDegrees_Float, 140.0f / 2.0f);
         properties.Set(vr::Prop_FieldOfViewTopDegrees_Float, 120.0f / 2.0f);
@@ -117,7 +111,8 @@ void LeapDeviceDriver::SetDeviceModelProperties(const OvrProperties& properties)
     }
     case eLeapDevicePID_Rigel:
     case eLeapDevicePID_SIR170: {
-        properties.Set(vr::Prop_ModelNumber_String, "Ultraleap StereoIR 170");
+        OVR_LOG("Setting device as SIR-170");
+        properties.Set(vr::Prop_ModelNumber_String, "SIR170");
         properties.Set(vr::Prop_FieldOfViewLeftDegrees_Float, 170.0f / 2.0f);
         properties.Set(vr::Prop_FieldOfViewRightDegrees_Float, 170.0f / 2.0f);
         properties.Set(vr::Prop_FieldOfViewTopDegrees_Float, 170.0f / 2.0f);
@@ -126,7 +121,8 @@ void LeapDeviceDriver::SetDeviceModelProperties(const OvrProperties& properties)
         properties.Set(vr::Prop_TrackingRangeMaximumMeters_Float, 1.0f);
     }
     case eLeapDevicePID_3Di: {
-        properties.Set(vr::Prop_ModelNumber_String, "Leap Motion Controller");
+        OVR_LOG("Setting device as 3Di");
+        properties.Set(vr::Prop_ModelNumber_String, "3Di");
         properties.Set(vr::Prop_FieldOfViewLeftDegrees_Float, 170.0f / 2.0f);
         properties.Set(vr::Prop_FieldOfViewRightDegrees_Float, 170.0f / 2.0f);
         properties.Set(vr::Prop_FieldOfViewTopDegrees_Float, 170.0f / 2.0f);
@@ -136,7 +132,8 @@ void LeapDeviceDriver::SetDeviceModelProperties(const OvrProperties& properties)
         break;
     }
     case eLeapDevicePID_LMC2: {
-        properties.Set(vr::Prop_ModelNumber_String, "Leap Motion Controller 2");
+        OVR_LOG("Setting device as LMC2");
+        properties.Set(vr::Prop_ModelNumber_String, "LMC2");
         properties.Set(vr::Prop_FieldOfViewLeftDegrees_Float, 160.0f / 2.0f);
         properties.Set(vr::Prop_FieldOfViewRightDegrees_Float, 160.0f / 2.0f);
         properties.Set(vr::Prop_FieldOfViewTopDegrees_Float, 160.0f / 2.0f);
@@ -146,7 +143,7 @@ void LeapDeviceDriver::SetDeviceModelProperties(const OvrProperties& properties)
         break;
     }
     default: {
-        properties.Set(vr::Prop_ModelNumber_String, "Generic Ultraleap Device");
+        OVR_LOG("Setting device as Unknown");
     }
     }
 }

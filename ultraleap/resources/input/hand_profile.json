@@ -1,0 +1,23 @@
+{
+  "jsonid": "input_profile",
+  "controller_type": "UltraleapHand",
+
+  "input_bindingui_mode": "controller_handed ",
+
+  "input_source": {
+    "/input/pinch": {
+      "type": "trigger",
+      "click": true,
+      "value": true
+    },
+    "/input/grab": {
+      "type": "trigger",
+      "click": true,
+      "value": true
+    },
+    "/input/raw": {
+      "type": "pose",
+      "Test": false
+    }
+  }
+}

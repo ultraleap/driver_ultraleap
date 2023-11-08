@@ -1,6 +1,6 @@
 #include "LeapHandDriver.h"
 
-#include "OvrProperties.h"
+#include "OvrUtils.h"
 
 LeapHandDriver::LeapHandDriver(eLeapHandType hand) : hand{hand} {
 }
@@ -11,23 +11,17 @@ vr::EVRInitError LeapHandDriver::Activate(uint32_t unObjectId) {
     auto properties = OvrProperties::FromDeviceId(id);
     properties.Set(vr::Prop_ControllerType_String, "UltraleapHand");
     properties.Set(vr::Prop_ControllerHandSelectionPriority_Int32, 0);
-    //properties.Set(vr::Prop_InputProfilePath_String, "TODO");
+    properties.Set(vr::Prop_InputProfilePath_String, "{ultraleap}/input/hand_profile.json");
     properties.Set(vr::Prop_ManufacturerName_String, "Ultraleap");
     properties.Set(vr::Prop_DeviceProvidesBatteryStatus_Bool, false);
 
     // Setup properties that are different per hand
     if (hand == eLeapHandType_Left) {
         properties.Set(vr::Prop_ControllerRoleHint_Int32, vr::TrackedControllerRole_LeftHand);
-        properties.Set(vr::Prop_ModeLabel_String, "LeftHand");
-        properties.Set(vr::Prop_NamedIconPathDeviceOff_String, "{ultraleap}/icons/left_hand_status_off.png");
-        properties.Set(vr::Prop_NamedIconPathDeviceReady_String, "{ultraleap}/icons/left_hand_status_ready.png");
-        properties.Set(vr::Prop_NamedIconPathDeviceStandby_String, "{ultraleap}/icons/left_hand_status_standby.png");
+        properties.Set(vr::Prop_ModelNumber_String, "LeftHand");
     } else {
         properties.Set(vr::Prop_ControllerRoleHint_Int32, vr::TrackedControllerRole_RightHand);
-        properties.Set(vr::Prop_ModeLabel_String, "RightHand");
-        properties.Set(vr::Prop_NamedIconPathDeviceOff_String, "{ultraleap}/icons/right_hand_status_off.png");
-        properties.Set(vr::Prop_NamedIconPathDeviceReady_String, "{ultraleap}/icons/right_hand_status_ready.png");
-        properties.Set(vr::Prop_NamedIconPathDeviceStandby_String, "{ultraleap}/icons/right_hand_status_standby.png");
+        properties.Set(vr::Prop_ModelNumber_String, "RightHand");
     }
 
     return vr::VRInitError_None;

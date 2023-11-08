@@ -1,10 +1,56 @@
 {
   "jsonid": "vrresources",
   "statusicons": {
-    "Leap Motion Controller 2": {
-      "Prop_NamedIconPathDeviceOff_String": "{ultraleap}/icons/left_hand_status_off.png",
-      "Prop_NamedIconPathDeviceReady_String": "{ultraleap}/icons/left_hand_status_ready.png",
-      "Prop_NamedIconPathDeviceStandby_String": "{ultraleap}/icons/left_hand_status_standby.png"
+    "LMC": {
+      "Prop_NamedIconPathDeviceOff_String" : "{ultraleap}/icons/lmc_status_off.png",
+      "Prop_NamedIconPathDeviceReady_String" : "{ultraleap}/icons/lmc_status_ready.png",
+      "Prop_NamedIconPathDeviceReadyAlert_String" : "{ultraleap}/icons/lmc_status_ready_alert.png",
+      "Prop_NamedIconPathDeviceNotReady_String" : "{ultraleap}/icons/lmc_status_error.png",
+      "Prop_NamedIconPathDeviceStandby_String" : "{ultraleap}/icons/lmc_status_standby.png",
+      "Prop_NamedIconPathDeviceStandbyAlert_String" : "{ultraleap}/icons/lmc_status_standby_alert.png"
+    },
+    "LMC2": {
+      "Prop_NamedIconPathDeviceOff_String" : "{ultraleap}/icons/lmc2_status_off.png",
+      "Prop_NamedIconPathDeviceReady_String" : "{ultraleap}/icons/lmc2_status_ready.png",
+      "Prop_NamedIconPathDeviceReadyAlert_String" : "{ultraleap}/icons/lmc2_status_ready_alert.png",
+      "Prop_NamedIconPathDeviceNotReady_String" : "{ultraleap}/icons/lmc2_status_error.png",
+      "Prop_NamedIconPathDeviceStandby_String" : "{ultraleap}/icons/lmc2_status_standby.png",
+      "Prop_NamedIconPathDeviceStandbyAlert_String" : "{ultraleap}/icons/lmc2_status_standby_alert.png"
+    },
+    "SIR170": {
+      "Prop_NamedIconPathDeviceOff_String" : "{ultraleap}/icons/sir170_status_off.png",
+      "Prop_NamedIconPathDeviceReady_String" : "{ultraleap}/icons/sir170_status_ready.png",
+      "Prop_NamedIconPathDeviceReadyAlert_String" : "{ultraleap}/icons/sir170_status_ready_alert.png",
+      "Prop_NamedIconPathDeviceNotReady_String" : "{ultraleap}/icons/sir170_status_error.png",
+      "Prop_NamedIconPathDeviceStandby_String" : "{ultraleap}/icons/sir170_status_standby.png",
+      "Prop_NamedIconPathDeviceStandbyAlert_String" : "{ultraleap}/icons/sir170_status_standby_alert.png"
+    },
+    "3Di": {
+      "Prop_NamedIconPathDeviceOff_String" : "{ultraleap}/icons/3di_status_off.png",
+      "Prop_NamedIconPathDeviceReady_String" : "{ultraleap}/icons/3di_status_ready.png",
+      "Prop_NamedIconPathDeviceReadyAlert_String" : "{ultraleap}/icons/3di_status_ready_alert.png",
+      "Prop_NamedIconPathDeviceNotReady_String" : "{ultraleap}/icons/3di_status_error.png",
+      "Prop_NamedIconPathDeviceStandby_String" : "{ultraleap}/icons/3di_status_standby.png",
+      "Prop_NamedIconPathDeviceStandbyAlert_String" : "{ultraleap}/icons/3di_status_standby_alert.png"
+    },
+    "TrackingReference": {
+      "Alias": "lmc2"
+    },
+    "LeftHand": {
+      "Prop_NamedIconPathDeviceOff_String" : "{ultraleap}/icons/left_hand_status_off.png",
+      "Prop_NamedIconPathDeviceReady_String" : "{ultraleap}/icons/left_hand_status_ready.png",
+      "Prop_NamedIconPathDeviceReadyAlert_String" : "{ultraleap}/icons/left_hand_status_ready_alert.png",
+      "Prop_NamedIconPathDeviceNotReady_String" : "{ultraleap}/icons/left_hand_status_error.png",
+      "Prop_NamedIconPathDeviceStandby_String" : "{ultraleap}/icons/left_hand_status_standby.png",
+      "Prop_NamedIconPathDeviceStandbyAlert_String" : "{ultraleap}/icons/left_hand_status_standby_alert.png"
+    },
+    "RightHand": {
+      "Prop_NamedIconPathDeviceOff_String" : "{ultraleap}/icons/right_hand_status_off.png",
+      "Prop_NamedIconPathDeviceReady_String" : "{ultraleap}/icons/right_hand_status_ready.png",
+      "Prop_NamedIconPathDeviceReadyAlert_String" : "{ultraleap}/icons/right_hand_status_ready_alert.png",
+      "Prop_NamedIconPathDeviceNotReady_String" : "{ultraleap}/icons/right_hand_status_error.png",
+      "Prop_NamedIconPathDeviceStandby_String" : "{ultraleap}/icons/right_hand_status_standby.png",
+      "Prop_NamedIconPathDeviceStandbyAlert_String" : "{ultraleap}/icons/right_hand_status_standby_alert.png"
     }
   }
 }

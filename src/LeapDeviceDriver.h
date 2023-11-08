@@ -5,7 +5,7 @@
 #include <openvr_driver.h>
 #include <LeapC.h>
 
-#include "OvrProperties.h"
+#include "OvrUtils.h"
 
 class LeapDeviceDriver : public vr::ITrackedDeviceServerDriver {
   public:
@@ -20,6 +20,9 @@ class LeapDeviceDriver : public vr::ITrackedDeviceServerDriver {
 
     [[nodiscard]] uint32_t           GetId() const { return id; }
     [[nodiscard]] const std::string& GetSerialNumber() const { return leapSerial; }
+    [[nodiscard]] bool               IsDeviceConnected() const { return leapDevice != nullptr; }
+
+    void SetDeviceDisconnected() { leapDevice = nullptr; }
 
   private:
     void SetDeviceModelProperties(const OvrProperties& properties) const;
