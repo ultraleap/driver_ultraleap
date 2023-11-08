@@ -1,5 +1,7 @@
 #pragma once
 
+#include "LeapDevice.h"
+
 #include <memory>
 
 #include <openvr_driver.h>
@@ -7,27 +9,27 @@
 
 #include "OvrUtils.h"
 
-class LeapDeviceDriver : public vr::ITrackedDeviceServerDriver {
+class LeapDeviceDriver final : public vr::ITrackedDeviceServerDriver {
   public:
-    LeapDeviceDriver(LEAP_DEVICE leapDevice, LEAP_DEVICE_INFO leapDeviceInfo, std::string leapSerial);
+    explicit LeapDeviceDriver(const std::shared_ptr<LeapDevice>& leapDevice);
+    virtual ~LeapDeviceDriver() = default;
 
-    vr::EVRInitError    Activate(uint32_t unObjectId) override;
-    void                Deactivate() override;
-    void                EnterStandby() override;
-    [[nodiscard]] void* GetComponent(const char* pchComponentNameAndVersion) override;
-    void                DebugRequest(const char* pchRequest, char* pchResponseBuffer, uint32_t unResponseBufferSize) override;
-    [[nodiscard]] vr::DriverPose_t   GetPose() override;
-    void                             UpdateDevice(LEAP_DEVICE newDevice, LEAP_DEVICE_INFO newDeviceInfo);
-    [[nodiscard]] uint32_t           GetId() const { return id; }
-    [[nodiscard]] const std::string& GetSerialNumber() const { return leapSerial; }
-    [[nodiscard]] bool               IsDeviceConnected() const { return leapDevice != nullptr; }
-    void                             Disconnect();
+    // ITrackedDeviceServerDriver
+    auto Activate(uint32_t unObjectId) -> vr::EVRInitError override;
+    auto Deactivate() -> void override;
+    auto EnterStandby() -> void override;
+    auto GetComponent(const char* pchComponentNameAndVersion) -> void* override;
+    auto DebugRequest(const char* pchRequest, char* pchResponseBuffer, uint32_t unResponseBufferSize) -> void override;
+    auto GetPose() -> vr::DriverPose_t override;
+
+    [[nodiscard]] auto Id() const -> uint32_t { return id; }
+    [[nodiscard]] auto Device() const -> const LeapDevice* { return leapDevice.get(); }
+
+    auto SetLeapDevice(const std::shared_ptr<LeapDevice>& newDevice) { leapDevice = newDevice; }
 
   private:
-    void SetDeviceModelProperties(const OvrProperties& properties) const;
+    auto SetDeviceModelProperties(const OvrProperties& properties) const -> void;
 
-    uint32_t         id = vr::k_unTrackedDeviceIndexInvalid;
-    LEAP_DEVICE      leapDevice;
-    LEAP_DEVICE_INFO leapDeviceInfo;
-    std::string      leapSerial = "Unknown";
+    uint32_t                    id;
+    std::shared_ptr<LeapDevice> leapDevice;
 };

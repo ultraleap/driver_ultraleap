@@ -3,14 +3,11 @@
 #include "OvrUtils.h"
 #include "VrMath.h"
 
-LeapDeviceDriver::LeapDeviceDriver(LEAP_DEVICE leapDevice, LEAP_DEVICE_INFO leapDeviceInfo, std::string leapSerial)
-    : leapDevice{leapDevice}, leapDeviceInfo{leapDeviceInfo}, leapSerial{leapSerial} {
-    // Restore the link to the device info structure.
-    leapDeviceInfo.serial        = leapSerial.data();
-    leapDeviceInfo.serial_length = leapSerial.length() + 1;
+LeapDeviceDriver::LeapDeviceDriver(const std::shared_ptr<LeapDevice>& leapDevice)
+    : id(vr::k_unTrackedDeviceIndexInvalid), leapDevice{leapDevice} {
 }
 
-vr::EVRInitError LeapDeviceDriver::Activate(uint32_t unObjectId) {
+vr::EVRInitError LeapDeviceDriver::Activate(const uint32_t unObjectId) {
     // Store our id for layer use.
     id = unObjectId;
 
@@ -32,13 +29,15 @@ vr::EVRInitError LeapDeviceDriver::Activate(uint32_t unObjectId) {
     // Setup details of the FoV and range depending on device type.
     SetDeviceModelProperties(properties);
 
+    // Mark this device as running correctly and connected, but with no valid pose.
+    vr::VRServerDriverHost()->TrackedDevicePoseUpdated(id, kDeviceConnectedPose, sizeof(kDeviceConnectedPose));
+
     // Return initialization success
     return vr::VRInitError_None;
 }
 
 void LeapDeviceDriver::Deactivate() {
     id = vr::k_unTrackedDeviceIndexInvalid;
-    LeapCloseDevice(leapDevice);
 }
 
 void LeapDeviceDriver::EnterStandby() {
@@ -96,19 +95,8 @@ vr::DriverPose_t LeapDeviceDriver::GetPose() {
     return trackerPose;
 }
 
-void LeapDeviceDriver::UpdateDevice(LEAP_DEVICE newDevice, LEAP_DEVICE_INFO newDeviceInfo) {
-    leapDevice = newDevice;
-    leapDeviceInfo = newDeviceInfo;
-}
-
-void LeapDeviceDriver::Disconnect() {
-    LeapCloseDevice(leapDevice);
-    leapDevice = nullptr;
-}
-
-
 void LeapDeviceDriver::SetDeviceModelProperties(const OvrProperties& properties) const {
-    switch (leapDeviceInfo.pid) {
+    switch (leapDevice->ProductId()) {
     case eLeapDevicePID_Peripheral: {
         OVR_LOG("Setting device as LMC");
         properties.Set(vr::Prop_ModelNumber_String, "LMC");

@@ -19,6 +19,8 @@ add_library(driver_ultraleap SHARED
         src/LeapHandDriver.cpp
         src/LeapHandDriver.h
         src/OvrUtils.h
+        src/LeapDevice.cpp
+        src/LeapDevice.h
 )
 target_link_libraries(driver_ultraleap
         PUBLIC OpenVR::OpenVR

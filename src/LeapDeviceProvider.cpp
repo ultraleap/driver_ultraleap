@@ -9,9 +9,10 @@
 #endif
 
 #include "OvrUtils.h"
+#include "VrMath.h"
 
 vr::EVRInitError LeapDeviceProvider::Init(vr::IVRDriverContext* pDriverContext) {
-    VR_INIT_SERVER_DRIVER_CONTEXT(pDriverContext);
+    VR_INIT_SERVER_DRIVER_CONTEXT(pDriverContext)
 
     // Initialise logging subsystem.
     OvrLogging::Init();
@@ -46,7 +47,8 @@ void LeapDeviceProvider::Cleanup() {
         isRunning = false;
 
         // Close all remaining device handles before closing the connection.
-        devices.clear();
+        deviceSerialById.clear();
+        deviceDriverBySerial.clear();
         LeapCloseConnection(leapConnection);
     }
 
@@ -63,10 +65,10 @@ const char* const* LeapDeviceProvider::GetInterfaceVersions() {
 
 void LeapDeviceProvider::RunFrame() {
     // Update the base-station pose for each device.
-//    for (auto [leapId, device] : devices) {
-//        const auto devicePose = device->GetPose();
-//        vr::VRServerDriverHost()->TrackedDevicePoseUpdated(device->GetId(), devicePose, sizeof(devicePose));
-//    }
+    //    for (auto [leapId, device] : devices) {
+    //        const auto devicePose = device->GetPose();
+    //        vr::VRServerDriverHost()->TrackedDevicePoseUpdated(device->GetId(), devicePose, sizeof(devicePose));
+    //    }
 }
 
 bool LeapDeviceProvider::ShouldBlockStandbyMode() {
@@ -83,9 +85,8 @@ void LeapDeviceProvider::LeaveStandby() {
 
 void LeapDeviceProvider::ServiceMessageLoop() {
     SetThreadName("UltraleapTrackingThread");
-    LEAP_CONNECTION_MESSAGE msg;
 
-    for (LEAP_CONNECTION_MESSAGE msg; isRunning; ) {
+    for (LEAP_CONNECTION_MESSAGE msg; isRunning;) {
         eLeapRS result = LeapPollConnection(leapConnection, 1000, &msg);
         if (LEAP_FAILED(result)) {
             if (result != eLeapRS_Timeout) {
@@ -130,156 +131,125 @@ void LeapDeviceProvider::SetThreadName(const std::string_view& name) {
 }
 
 void LeapDeviceProvider::TrackingFrame(const uint32_t deviceId, const LEAP_TRACKING_EVENT* event) {
-    //
-    //    // Add the frame to the relevant device for latency tracking and for hands if they are present.
-    //    try {
-    //        std::shared_ptr<LeapDevice> device;
-    //        // Lock to get a device reference.
-    //        {
-    //            std::shared_lock lock{mutex};
-    //            device = devices.at(deviceId);
-    //        }
-    //
-    //        // Construct a frame with the correct OpenXR timestamps, latency and device pointer.
-    //        Frame frame{
-    //            clockRebaser.RebaseToXrTime(event->info.timestamp),
-    //            clockRebaser.RebaseToXrTime(LeapGetNow()) - frame.timestamp,
-    //            device,
-    //        };
-    //
-    //        // Only copy the frame data if there are hands in it.
-    //        if (event->nHands > 0) {
-    //            // Create a copy of the tracking frame
-    //            const size_t handsSize = sizeof(LEAP_HAND) * event->nHands;
-    //            const size_t frameSize = sizeof(*event) + (handsSize);
-    //
-    //            // Copy the frame data and the hands array.
-    //            frame.data  = std::shared_ptr<LEAP_TRACKING_EVENT>{reinterpret_cast<LEAP_TRACKING_EVENT*>(new
-    //            uint8_t[frameSize])}, *frame.data = *event; frame.data->pHands = reinterpret_cast<LEAP_HAND*>(frame.data.get() +
-    //            1); std::copy(event->pHands, event->pHands + event->nHands, frame.data->pHands);
-    //
-    //        }
-    //
-    //        // Add the frame.
-    //        device->AddFrame(std::move(frame));
-    //    } catch (const std::out_of_range& err) {
-    //        // Received a frame for a device we are not actively tracking: Ignore.
-    //    }
+    auto leftHandPose  = kDeviceConnectedPose;
+    auto rightHandPose = kDeviceConnectedPose;
+
+    // Process all the hands that are seen in the frame.
+    for (auto i = 0; i < event->nHands; ++i) {
+        const auto& hand = event->pHands[i];
+        auto&       pose = hand.type == eLeapHandType_Left ? leftHandPose : rightHandPose;
+
+        // Space transform from LeapC -> OpenVR Space;
+        pose.qWorldFromDriverRotation = HmdQuaternion_FromEulerAngles(0.0, M_PI / 2.0f, M_PI);
+        pose.qDriverFromHeadRotation  = HmdQuaternion_Identity;
+
+        pose.vecPosition[0] = hand.palm.position.x;
+        pose.vecPosition[1] = hand.palm.position.y;
+        pose.vecPosition[2] = hand.palm.position.z;
+        pose.qRotation      = {
+            hand.palm.orientation.w,
+            hand.palm.orientation.x,
+            hand.palm.orientation.y,
+            hand.palm.orientation.z,
+        };
+        pose.result            = vr::TrackingResult_Running_OK;
+        pose.poseIsValid       = true;
+        pose.deviceIsConnected = true;
+
+        (hand.type == eLeapHandType_Left ? leftHandPose : rightHandPose) = pose;
+    }
+
+    if (leftHand != nullptr) {
+        vr::VRServerDriverHost()->TrackedDevicePoseUpdated(leftHand->Id(), leftHandPose, sizeof(leftHandPose));
+    }
+
+    if (rightHand != nullptr) {
+        vr::VRServerDriverHost()->TrackedDevicePoseUpdated(rightHand->Id(), rightHandPose, sizeof(rightHandPose));
+    }
 }
 
 void LeapDeviceProvider::TrackingModeChanged(const uint32_t deviceId, const LEAP_TRACKING_MODE_EVENT* event) {
     if (event->current_tracking_mode != eLeapTrackingMode_HMD) {
         OVR_LOG("Device is not currently in HMD mode, setting to HMD");
-        LeapSetTrackingMode(leapConnection, eLeapTrackingMode_HMD);
+        LeapSetTrackingModeEx(leapConnection, DeviceDriverFromLeapId(deviceId).Device()->Handle(), eLeapTrackingMode_HMD);
     }
 }
 
-void LeapDeviceProvider::DeviceDetected(const uint32_t deviceId, const LEAP_DEVICE_EVENT* event) {
+void LeapDeviceProvider::DeviceDetected(const uint32_t /*deviceId*/, const LEAP_DEVICE_EVENT* event) {
     // WARNING!
     // In this context, deviceId will be 0 as this is a system message, for the ID of the affected device, use event->device.id.
 
-    // Open the device handle.
-    LEAP_DEVICE leapDevice;
-    auto        result = LeapOpenDevice(event->device, &leapDevice);
-    if (LEAP_FAILED(result)) {
-        OVR_LOG("Failed to open Ultraleap device: {}", result);
-    }
+    // Construct and open the device and track the serial number.
+    auto leapDevice = std::make_shared<LeapDevice>(event->device);
+    deviceSerialById.insert({event->device.id, leapDevice->SerialNumber()});
 
-    // Retrieve the serial number.
-    std::string      leapSerial = "Unknown";
-    LEAP_DEVICE_INFO leapDeviceInfo{sizeof(leapDeviceInfo)};
-
-    result = LeapGetDeviceInfo(leapDevice, &leapDeviceInfo);
-    if (LEAP_SUCCEEDED(result)) {
-        leapSerial.resize(leapDeviceInfo.serial_length - 1);
-        leapDeviceInfo.serial = leapSerial.data();
-        result                = LeapGetDeviceInfo(leapDevice, &leapDeviceInfo);
-        if (LEAP_FAILED(result)) {
-            OVR_LOG("Failed to read Ultraleap tracking device serial: {}", result);
+    // Create a device if it's the first time we've seen this serial, otherwise just notify that it's now active again.
+    if (!deviceDriverBySerial.contains(leapDevice->SerialNumber())) {
+        LeapDeviceDriver leapDeviceDriver{leapDevice};
+        if (!vr::VRServerDriverHost()->TrackedDeviceAdded(
+                leapDevice->SerialNumber().c_str(),
+                vr::ETrackedDeviceClass::TrackedDeviceClass_TrackingReference,
+                &leapDeviceDriver)) {
+            OVR_LOG("Failed to add new Ultraleap device: {}", leapDevice->SerialNumber());
         }
+        deviceDriverBySerial.insert({leapDevice->SerialNumber(), leapDeviceDriver});
     } else {
-        OVR_LOG("Failed to read Ultraleap device serial length: {}", result);
+        // Update the driver for this device to reference the new underlying device.
+        auto& leapDeviceDriver = deviceDriverBySerial.at(leapDevice->SerialNumber());
+        leapDeviceDriver.SetLeapDevice(leapDevice);
+
+        vr::VRServerDriverHost()->TrackedDevicePoseUpdated(
+            leapDeviceDriver.Id(),
+            kDeviceConnectedPose,
+            sizeof(kDeviceConnectedPose));
     }
 
     // If this is the first device, construct the two hand-controllers.
-    if (!HasConnectedDevice()) {
-        leftHand = std::make_unique<LeapHandDriver>(eLeapHandType_Left);
-        rightHand = std::make_unique<LeapHandDriver>(eLeapHandType_Right);
-
-        if (!vr::VRServerDriverHost()->TrackedDeviceAdded(
-                "LeftHand",
-                vr::ETrackedDeviceClass::TrackedDeviceClass_Controller,
-                leftHand.get())) {
-            OVR_LOG("Failed to add Ultraleap left hand controller");
-        }
-
-        if (!vr::VRServerDriverHost()->TrackedDeviceAdded(
-                "RightHand",
-                vr::ETrackedDeviceClass::TrackedDeviceClass_Controller,
-                rightHand.get())) {
-            OVR_LOG("Failed to add Ultraleap right hand controller");
-        }
-    } else {
-        // Check if this device has been seen before and if so, track the new id we've seen it on.
-        for (auto [_, device] : devices) {
-            if (leapSerial == device->GetSerialNumber()) {
-                NotifyDeviceConnected(device->GetId());
-                devices.insert({event->device.id, device});
-                device->UpdateDevice(leapDevice, leapDeviceInfo);
-                return;
-            }
-        }
-    }
-
-    // Otherwise, construct and add a new device.
-    auto device = std::make_shared<LeapDeviceDriver>(leapDevice, leapDeviceInfo, leapSerial);
-    if (vr::VRServerDriverHost()->TrackedDeviceAdded(
-            leapSerial.c_str(),
-            vr::ETrackedDeviceClass::TrackedDeviceClass_TrackingReference,
-            device.get())) {
-        devices.insert({event->device.id, std::move(device)});
-    } else {
-        OVR_LOG("Failed to add new Ultraleap device: {}", leapSerial);
+    if (deviceSerialById.size() == 1 && leftHand == nullptr && rightHand == nullptr) {
+        CreateHandControllers();
     }
 }
 
-void LeapDeviceProvider::DeviceLost(const uint32_t deviceId, const LEAP_DEVICE_EVENT* event) {
+void LeapDeviceProvider::DeviceLost(const uint32_t /*deviceId*/, const LEAP_DEVICE_EVENT* event) {
     // WARNING!
     // In this context, deviceId will be 0 as this is a system message, for the ID of the affected device, use event->device.id.
-    auto lostDevice = devices.at(event->device.id);
-    lostDevice->Disconnect();
-    NotifyDeviceDisconnected(lostDevice->GetId());
+
+    // Mark the associated driver as disconnected.
+    vr::VRServerDriverHost()->TrackedDevicePoseUpdated(
+        DeviceDriverFromLeapId(event->device.id).Id(),
+        kDeviceDisconnectedPose,
+        sizeof(kDeviceDisconnectedPose));
+
+    // Remove the device.
+    deviceSerialById.erase(event->device.id);
 
     // If all devices are now disconnected, indicate that the hands are no-longer trackable.
-    if (!HasConnectedDevice()) {
-        NotifyDeviceDisconnected(leftHand->GetId());
-        NotifyDeviceDisconnected(rightHand->GetId());
+    if (deviceSerialById.empty()) {
+        DisconnectHandControllers();
     }
 }
 
-bool LeapDeviceProvider::HasConnectedDevice() {
-    if (devices.empty()) {
-        return false;
+void LeapDeviceProvider::CreateHandControllers() {
+    leftHand  = std::make_unique<LeapHandDriver>(eLeapHandType_Left);
+    rightHand = std::make_unique<LeapHandDriver>(eLeapHandType_Right);
+
+    if (!vr::VRServerDriverHost()
+             ->TrackedDeviceAdded("LeftHand", vr::ETrackedDeviceClass::TrackedDeviceClass_Controller, leftHand.get())) {
+        OVR_LOG("Failed to add Ultraleap left hand controller");
     }
-    return std::ranges::any_of(devices, [](auto deviceIndex) {
-        return deviceIndex.second->IsDeviceConnected();
-    });
+
+    if (!vr::VRServerDriverHost()
+             ->TrackedDeviceAdded("RightHand", vr::ETrackedDeviceClass::TrackedDeviceClass_Controller, rightHand.get())) {
+        OVR_LOG("Failed to add Ultraleap right hand controller");
+    }
 }
 
-void LeapDeviceProvider::NotifyDeviceConnected(uint32_t deviceId) {
-    // Mark this device as running correctly and connected, but with no valid pose.
-    vr::DriverPose_t pose{0};
-    pose.result            = vr::TrackingResult_Running_OK;
-    pose.poseIsValid       = false;
-    pose.deviceIsConnected = true;
-    vr::VRServerDriverHost()->TrackedDevicePoseUpdated(deviceId, pose, sizeof(pose));
+void LeapDeviceProvider::DisconnectHandControllers() const {
+    OVR_LOG("Disconnecting Devices");
+    vr::VRServerDriverHost()->TrackedDevicePoseUpdated(leftHand->Id(), kDeviceDisconnectedPose, sizeof(kDeviceDisconnectedPose));
+    vr::VRServerDriverHost()->TrackedDevicePoseUpdated(rightHand->Id(), kDeviceDisconnectedPose, sizeof(kDeviceDisconnectedPose));
 }
 
-void LeapDeviceProvider::NotifyDeviceDisconnected(uint32_t deviceId) {
-    // Indicate that this device is no longer connected with a pose that has `deviceIsConnected` set to false.
-    vr::DriverPose_t pose{0};
-    pose.result            = vr::TrackingResult_Running_OK;
-    pose.poseIsValid       = false;
-    pose.deviceIsConnected = false;
-    vr::VRServerDriverHost()->TrackedDevicePoseUpdated(deviceId, pose, sizeof(pose));
+auto LeapDeviceProvider::DeviceDriverFromLeapId(const uint32_t deviceId) -> LeapDeviceDriver& {
+    return deviceDriverBySerial.at(deviceSerialById.at(deviceId));
 }

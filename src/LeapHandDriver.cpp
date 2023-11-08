@@ -2,7 +2,7 @@
 
 #include "OvrUtils.h"
 
-LeapHandDriver::LeapHandDriver(eLeapHandType hand) : hand{hand} {
+LeapHandDriver::LeapHandDriver(const eLeapHandType hand) : id{vr::k_unTrackedDeviceIndexInvalid}, hand{hand} {
 }
 
 vr::EVRInitError LeapHandDriver::Activate(uint32_t unObjectId) {

@@ -1,17 +1,12 @@
 #pragma once
 
 #include <array>
+#include <format>
 #include <string>
 #include <string_view>
 
 #include <openvr_driver.h>
 
-#pragma once
-
-#include <format>
-#include <string>
-
-#include <openvr_driver.h>
 #include "LeapC.h"
 
 #define OVR_LOG(...) OvrLogging::Log(__VA_ARGS__)
@@ -117,101 +112,101 @@ template <> struct [[maybe_unused]] std::formatter<LEAP_VERSION> {
 
 class OvrProperties {
   public:
-    [[maybe_unused]] static OvrProperties FromDeviceId(vr::TrackedDeviceIndex_t deviceId) {
+    [[maybe_unused]] static auto FromDeviceId(const vr::TrackedDeviceIndex_t deviceId) -> OvrProperties {
         return OvrProperties{vr::VRProperties()->TrackedDeviceToPropertyContainer(deviceId)};
     }
 
-    [[maybe_unused]] void Set(vr::ETrackedDeviceProperty property, const char* value) const {
+    [[maybe_unused]] auto Set(const vr::ETrackedDeviceProperty property, const char* value) const -> void {
         vr::VRProperties()->SetStringProperty(handle, property, value);
     }
 
-    [[maybe_unused]] void Set(vr::ETrackedDeviceProperty property, const std::string& value) const {
+    [[maybe_unused]] auto Set(const vr::ETrackedDeviceProperty property, const std::string& value) const -> void {
         vr::VRProperties()->SetStringProperty(handle, property, value.c_str());
     }
 
-    [[maybe_unused]] void Set(vr::ETrackedDeviceProperty property, const std::string_view& value) const {
+    [[maybe_unused]] auto Set(const vr::ETrackedDeviceProperty property, const std::string_view& value) const -> void {
         vr::VRProperties()->SetStringProperty(handle, property, std::string{value}.c_str());
     }
 
-    [[maybe_unused]] void Set(vr::ETrackedDeviceProperty property, bool value) const {
+    [[maybe_unused]] auto Set(const vr::ETrackedDeviceProperty property, const bool value) const -> void {
         vr::VRProperties()->SetBoolProperty(handle, property, value);
     }
 
-    [[maybe_unused]] void Set(vr::ETrackedDeviceProperty property, float value) const {
+    [[maybe_unused]] auto Set(const vr::ETrackedDeviceProperty property, const float value) const -> void {
         vr::VRProperties()->SetFloatProperty(handle, property, value);
     }
 
-    [[maybe_unused]] void Set(vr::ETrackedDeviceProperty property, double value) const {
+    [[maybe_unused]] auto Set(const vr::ETrackedDeviceProperty property, const double value) const -> void {
         vr::VRProperties()->SetDoubleProperty(handle, property, value);
     }
 
-    [[maybe_unused]] void Set(vr::ETrackedDeviceProperty property, int32_t value) const {
+    [[maybe_unused]] auto Set(const vr::ETrackedDeviceProperty property, const int32_t value) const -> void {
         vr::VRProperties()->SetInt32Property(handle, property, value);
     }
 
-    [[maybe_unused]] void Set(vr::ETrackedDeviceProperty property, uint64_t value) const {
+    [[maybe_unused]] auto Set(const vr::ETrackedDeviceProperty property, const uint64_t value) const -> void {
         vr::VRProperties()->SetUint64Property(handle, property, value);
     }
 
-    [[maybe_unused]] void Set(vr::ETrackedDeviceProperty property, vr::HmdVector2_t value) const {
+    [[maybe_unused]] auto Set(const vr::ETrackedDeviceProperty property, const vr::HmdVector2_t value) const -> void {
         vr::VRProperties()->SetVec2Property(handle, property, value);
     }
 
-    [[maybe_unused]] void Set(vr::ETrackedDeviceProperty property, vr::HmdVector3_t value) const {
+    [[maybe_unused]] auto Set(const vr::ETrackedDeviceProperty property, const vr::HmdVector3_t value) const -> void {
         vr::VRProperties()->SetVec3Property(handle, property, value);
     }
 
-    [[maybe_unused]] void Set(vr::ETrackedDeviceProperty property, vr::HmdVector4_t value) const {
+    [[maybe_unused]] auto Set(const vr::ETrackedDeviceProperty property, const vr::HmdVector4_t value) const -> void {
         vr::VRProperties()->SetVec4Property(handle, property, value);
     }
 
-    [[maybe_unused]] void SetError(vr::ETrackedDeviceProperty property, vr::ETrackedPropertyError error) const {
+    [[maybe_unused]] auto SetError(const vr::ETrackedDeviceProperty property, const vr::ETrackedPropertyError error) const -> void {
         vr::VRProperties()->SetPropertyError(handle, property, error);
     }
 
-    [[maybe_unused]] void Erase(vr::ETrackedDeviceProperty property) const {
+    [[maybe_unused]] auto Erase(const vr::ETrackedDeviceProperty property) const -> void {
         vr::VRProperties()->EraseProperty(handle, property);
     }
 
   private:
-    explicit OvrProperties(vr::PropertyContainerHandle_t handle) : handle{handle} {};
+    explicit OvrProperties(const vr::PropertyContainerHandle_t handle) : handle{handle} {};
 
     vr::PropertyContainerHandle_t handle;
 };
 
 class OvrSettings {
   public:
-    [[maybe_unused]] [[nodiscard]] static std::string GetString(std::string_view key) {
+    [[maybe_unused]] [[nodiscard]] static auto GetString(const std::string_view key) -> std::string {
         std::array<char, 4096> value{};
         vr::VRSettings()->GetString(kUltraleapSection, std::string{key}.c_str(), value.data(), value.size());
         return std::string{value.data()};
     }
 
-    [[maybe_unused]] [[nodiscard]] static float GetFloat(std::string_view key) {
+    [[maybe_unused]] [[nodiscard]] static auto GetFloat(const std::string_view key) -> float {
         return vr::VRSettings()->GetFloat(kUltraleapSection, std::string{key}.c_str());
     }
 
-    [[maybe_unused]] [[nodiscard]] static int32_t GetInt32(std::string_view key) {
+    [[maybe_unused]] [[nodiscard]] static auto GetInt32(const std::string_view key) -> int32_t {
         return vr::VRSettings()->GetInt32(kUltraleapSection, std::string{key}.c_str());
     }
 
-    [[maybe_unused]] [[nodiscard]] static bool GetBool(std::string_view key) {
+    [[maybe_unused]] [[nodiscard]] static auto GetBool(const std::string_view key) -> bool {
         return vr::VRSettings()->GetBool(kUltraleapSection, std::string{key}.c_str());
     }
 
-    [[maybe_unused]] static void Set(std::string_view key, std::string_view value) {
+    [[maybe_unused]] static auto Set(const std::string_view key, const std::string_view value) -> void {
         vr::VRSettings()->SetString(kUltraleapSection, std::string{key}.c_str(), std::string{value}.c_str());
     }
 
-    [[maybe_unused]] static void Set(std::string_view key, float value) {
+    [[maybe_unused]] static auto Set(const std::string_view key, const float value) -> void {
         vr::VRSettings()->SetFloat(kUltraleapSection, std::string{key}.c_str(), value);
     }
 
-    [[maybe_unused]] static void Set(std::string_view key, int32_t value) {
+    [[maybe_unused]] static auto Set(const std::string_view key, const int32_t value) -> void {
         vr::VRSettings()->SetInt32(kUltraleapSection, std::string{key}.c_str(), value);
     }
 
-    [[maybe_unused]] static void Set(std::string_view key, bool value) {
+    [[maybe_unused]] static auto Set(const std::string_view key, const bool value) -> void {
         vr::VRSettings()->SetBool(kUltraleapSection, std::string{key}.c_str(), value);
     }
 
@@ -219,4 +214,14 @@ class OvrSettings {
     static constexpr auto kUltraleapSection = "driver_ultraleap";
 };
 
+constexpr vr::DriverPose_t kDeviceConnectedPose{
+    .result            = vr::TrackingResult_Running_OK,
+    .poseIsValid       = false,
+    .deviceIsConnected = true,
+};
 
+constexpr vr::DriverPose_t kDeviceDisconnectedPose{
+    .result = vr::TrackingResult_Running_OK,
+    .poseIsValid = false,
+    .deviceIsConnected = false,
+};
