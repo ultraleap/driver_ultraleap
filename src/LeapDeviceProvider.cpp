@@ -157,6 +157,9 @@ auto LeapDeviceProvider::TrackingFrame(const uint32_t /*deviceId*/, const LEAP_T
         pose.poseIsValid = true;
         pose.deviceIsConnected = true;
 
+        // Calculate the time offset from this frame's timestamp.
+        pose.poseTimeOffset = static_cast<float>(event->info.timestamp - LeapGetNow()) * std::micro::num / std::micro::den;
+
         (hand.type == eLeapHandType_Left ? leftHandPose : rightHandPose) = pose;
     }
 
