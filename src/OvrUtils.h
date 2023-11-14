@@ -13,7 +13,7 @@
 
 class OvrLogging {
   public:
-    static void                          Init() { pLogFile = vr::VRDriverLog(); }
+    static void Init() { pLogFile = vr::VRDriverLog(); }
     template <typename... T> static void Log(std::format_string<T...> fmt, T&&... args) {
         pLogFile->Log(std::format(fmt, std::forward<T>(args)...).c_str());
     }
@@ -215,8 +215,8 @@ class OvrSettings {
 };
 
 constexpr vr::DriverPose_t kDeviceConnectedPose{
-    .result            = vr::TrackingResult_Running_OK,
-    .poseIsValid       = false,
+    .result = vr::TrackingResult_Running_OK,
+    .poseIsValid = false,
     .deviceIsConnected = true,
 };
 

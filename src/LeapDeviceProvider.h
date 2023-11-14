@@ -10,7 +10,7 @@
 #include "LeapDeviceDriver.h"
 #include "LeapHandDriver.h"
 
-class LeapDeviceProvider : public vr::IServerTrackedDeviceProvider {
+class LeapDeviceProvider final : public vr::IServerTrackedDeviceProvider {
   public:
     LeapDeviceProvider() = default;
     virtual ~LeapDeviceProvider() = default;
@@ -33,17 +33,21 @@ class LeapDeviceProvider : public vr::IServerTrackedDeviceProvider {
     auto TrackingFrame(uint32_t deviceId, const LEAP_TRACKING_EVENT* event) -> void;
     auto TrackingModeChanged(uint32_t deviceId, const LEAP_TRACKING_MODE_EVENT* event) -> void;
 
+    auto CreateDeviceDriver(const std::shared_ptr<LeapDevice>& leapDevice) -> void;
+    auto UpdateDeviceDriverWithNewDevice(const std::shared_ptr<LeapDevice>& leapDevice) const -> void;
+    auto DisconnectDeviceDriver(uint32_t deviceId) -> void;
+
     auto CreateHandControllers() -> void;
     auto DisconnectHandControllers() const -> void;
 
-    auto DeviceDriverFromLeapId(uint32_t deviceId) -> LeapDeviceDriver&;
+    auto DeviceDriverFromLeapId(uint32_t deviceId) const -> const std::shared_ptr<LeapDeviceDriver>&;
 
-    LEAP_CONNECTION   leapConnection;
-    std::atomic<bool> isRunning   = false;
+    LEAP_CONNECTION leapConnection = nullptr;
+    std::atomic<bool> isRunning = false;
     std::atomic<bool> isConnected = false;
 
-    std::map<uint32_t, std::string>         deviceSerialById;
-    std::map<std::string, LeapDeviceDriver> deviceDriverBySerial;
+    std::map<uint32_t, std::string> deviceSerialById;
+    std::map<std::string, std::shared_ptr<LeapDeviceDriver>> deviceDriverBySerial;
 
     std::unique_ptr<LeapHandDriver> leftHand;
     std::unique_ptr<LeapHandDriver> rightHand;

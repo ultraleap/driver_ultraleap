@@ -4,7 +4,8 @@
 #include "VrMath.h"
 
 LeapDeviceDriver::LeapDeviceDriver(const std::shared_ptr<LeapDevice>& leapDevice)
-    : id(vr::k_unTrackedDeviceIndexInvalid), leapDevice{leapDevice} {
+    : id(vr::k_unTrackedDeviceIndexInvalid),
+      leapDevice{leapDevice} {
 }
 
 vr::EVRInitError LeapDeviceDriver::Activate(const uint32_t unObjectId) {
@@ -66,30 +67,30 @@ vr::DriverPose_t LeapDeviceDriver::GetPose() {
     // Initialise our tracker structure.
     vr::DriverPose_t trackerPose{0};
     trackerPose.qWorldFromDriverRotation.w = 1.f;
-    trackerPose.qDriverFromHeadRotation.w  = 1.0f;
+    trackerPose.qDriverFromHeadRotation.w = 1.0f;
 
     // Get the HMD pose as the tracker is mounted there in most scenarios.
     vr::TrackedDevicePose_t hmdPose{};
     vr::VRServerDriverHost()->GetRawTrackedDevicePoses(0.0f, &hmdPose, 1);
-    const auto hmdPosition    = HmdVector3_From34Matrix(hmdPose.mDeviceToAbsoluteTracking);
+    const auto hmdPosition = HmdVector3_From34Matrix(hmdPose.mDeviceToAbsoluteTracking);
     const auto hmdOrientation = HmdQuaternion_FromMatrix(hmdPose.mDeviceToAbsoluteTracking);
 
     // Configurable tracker position.
-    const auto trackerTilt   = vr::HmdQuaternion_t{1.0f, 0.0f, 0.0f, 0.0f};
+    const auto trackerTilt = vr::HmdQuaternion_t{1.0f, 0.0f, 0.0f, 0.0f};
     const auto trackerOffset = vr::HmdVector3_t{0.0f, 0.0f, -0.08f};
 
     // Apply the offsets and update the position.
     const auto trackerOrientation = hmdOrientation * trackerTilt;
-    const auto trackerPosition    = hmdPosition + (trackerOffset * hmdOrientation);
-    trackerPose.qRotation         = trackerOrientation;
-    trackerPose.vecPosition[0]    = trackerPosition.v[0];
-    trackerPose.vecPosition[1]    = trackerPosition.v[1];
-    trackerPose.vecPosition[2]    = trackerPosition.v[2];
+    const auto trackerPosition = hmdPosition + (trackerOffset * hmdOrientation);
+    trackerPose.qRotation = trackerOrientation;
+    trackerPose.vecPosition[0] = trackerPosition.v[0];
+    trackerPose.vecPosition[1] = trackerPosition.v[1];
+    trackerPose.vecPosition[2] = trackerPosition.v[2];
 
     // Set the tracking status.
-    trackerPose.poseIsValid       = hmdPose.bPoseIsValid;
+    trackerPose.poseIsValid = hmdPose.bPoseIsValid;
     trackerPose.deviceIsConnected = true; // TODO: Update this if the device is lost? (Surely we just remove it?)
-    trackerPose.result            = vr::TrackingResult_Running_OK;
+    trackerPose.result = vr::TrackingResult_Running_OK;
 
     // Return the pose of the tracking device.
     return trackerPose;

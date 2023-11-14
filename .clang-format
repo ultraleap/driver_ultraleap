@@ -8,39 +8,20 @@ SortIncludes: Never
 
 BreakBeforeBinaryOperators: NonAssignment
 BreakConstructorInitializers: BeforeColon
-BreakConstructorInitializersBeforeComma: false
-ConstructorInitializerAllOnOneLineOrOnePerLine: true
+
+# Alignment
 AlignOperands: AlignAfterOperator
-AlignAfterOpenBracket: AlwaysBreak
-AlignConsecutiveMacros:
-  Enabled: true
-  AlignCompound: true
-  PadOperators: true
-  AcrossEmptyLines: false
-  AcrossComments: false
+AlignAfterOpenBracket: BlockIndent
+AlignConsecutiveMacros: None
+AlignConsecutiveDeclarations: None
+AlignConsecutiveAssignments: None
+AlignConsecutiveBitFields: Consecutive
 AlignTrailingComments: true
-AlignConsecutiveDeclarations:
-  Enabled: true
-  AlignCompound: true
-  PadOperators: true
-  AcrossEmptyLines: false
-  AcrossComments: false
-AlignConsecutiveAssignments:
-  Enabled: true
-  AlignCompound: true
-  PadOperators: true
-  AcrossEmptyLines: false
-  AcrossComments: false
-AlignConsecutiveBitFields:
-  Enabled: true
-  AlignCompound: true
-  PadOperators: true
-  AcrossEmptyLines: false
-  AcrossComments: false
 AlignEscapedNewlines: Left
 IndentPPDirectives: None
 PointerAlignment: Left
 
+# Single line statements
 AllowShortIfStatementsOnASingleLine: Never
 AllowShortCaseLabelsOnASingleLine: true
 AllowShortBlocksOnASingleLine: Never
@@ -48,12 +29,13 @@ AllowShortFunctionsOnASingleLine: InlineOnly
 AllowShortLambdasOnASingleLine: All
 AllowShortLoopsOnASingleLine: false
 
+# Packing
+PackConstructorInitializers: CurrentLine
 BinPackArguments: false
 BinPackParameters: false
 BreakBeforeBraces: Attach
 Cpp11BracedListStyle: true
 SpaceBeforeParens: ControlStatements
-
 ExperimentalAutoDetectBinPacking: false
 AllowAllParametersOfDeclarationOnNextLine: false
 AllowAllArgumentsOnNextLine: false

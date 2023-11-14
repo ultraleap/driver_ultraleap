@@ -1,12 +1,10 @@
 #pragma once
 
-#include "LeapDevice.h"
-
 #include <memory>
 
 #include <openvr_driver.h>
-#include <LeapC.h>
 
+#include "LeapDevice.h"
 #include "OvrUtils.h"
 
 class LeapDeviceDriver final : public vr::ITrackedDeviceServerDriver {
@@ -30,6 +28,6 @@ class LeapDeviceDriver final : public vr::ITrackedDeviceServerDriver {
   private:
     auto SetDeviceModelProperties(const OvrProperties& properties) const -> void;
 
-    uint32_t                    id;
+    uint32_t id;
     std::shared_ptr<LeapDevice> leapDevice;
 };
