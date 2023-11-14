@@ -38,10 +38,22 @@ add_custom_command(
         #BYPRODUCTS $<TARGET_FILE_DIR:driver_ultraleap>/$<TARGET_FILE_NAME:LeapSDK::LeapC>
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:LeapSDK::LeapC> $<TARGET_FILE_DIR:driver_ultraleap>)
 
-# Copy the resource and manifest to the output folder.
+# Copy the localization, resources and manifests.
 add_custom_command(
         TARGET driver_ultraleap POST_BUILD
-        COMMENT "Copying Manifest & Resources"
-        DEPENDS ${CMAKE_SOURCE_DIR}/ultraleap
-        BYPRODUCTS ${CMAKE_BINARY_DIR}/ultraleap
-        COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/ultraleap ${CMAKE_BINARY_DIR}/ultraleap/)
+        COMMENT "Copying Driver Manifest"
+        DEPENDS ${CMAKE_SOURCE_DIR}/driver.vrdrivermanifest
+        BYPRODUCTS ${CMAKE_BINARY_DIR}/ultraleap/driver.vrdrivermanifest
+        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/driver.vrdrivermanifest ${CMAKE_BINARY_DIR}/ultraleap/driver.vrdrivermanifest)
+add_custom_command(
+        TARGET driver_ultraleap POST_BUILD
+        COMMENT "Copying Localization"
+        DEPENDS ${CMAKE_SOURCE_DIR}/localization
+        BYPRODUCTS ${CMAKE_BINARY_DIR}/ultraleap/localization
+        COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/localization ${CMAKE_BINARY_DIR}/ultraleap/localization)
+add_custom_command(
+        TARGET driver_ultraleap POST_BUILD
+        COMMENT "Copying Resources"
+        DEPENDS ${CMAKE_SOURCE_DIR}/resources
+        BYPRODUCTS ${CMAKE_BINARY_DIR}/ultraleap/resources
+        COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/resources ${CMAKE_BINARY_DIR}/ultraleap/resources)
