@@ -6,6 +6,7 @@ project(driver_ultraleap)
 set(CMAKE_CXX_STANDARD 23)
 
 set(LeapSDK_DIR ${CMAKE_SOURCE_DIR}/3rdparty/LeapSDK/lib/cmake/LeapSDK)
+set(OpenVR_ROOT ${CMAKE_SOURCE_DIR}/3rdparty/OpenVR)
 find_package(OpenVR REQUIRED)
 find_package(LeapSDK 5 REQUIRED)
 
@@ -15,7 +16,6 @@ add_library(driver_ultraleap SHARED
         src/LeapDeviceProvider.h
         src/LeapDeviceDriver.cpp
         src/LeapDeviceDriver.h
-        src/VrMath.h
         src/LeapHandDriver.cpp
         src/LeapHandDriver.h
         src/OvrUtils.h
@@ -25,6 +25,9 @@ add_library(driver_ultraleap SHARED
 target_link_libraries(driver_ultraleap
         PUBLIC OpenVR::OpenVR
         PRIVATE LeapSDK::LeapC)
+target_include_directories(driver_ultraleap
+        PRIVATE ${OpenVR_INCLUDE_DIR}/../samples/drivers/utils/vrmath/
+)
 set_target_properties(driver_ultraleap PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/ultraleap/bin/win64)
 
 # Copy the required LeapC.dll to the output folder.

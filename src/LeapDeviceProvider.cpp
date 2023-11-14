@@ -9,7 +9,7 @@
 #endif
 
 #include "OvrUtils.h"
-#include "VrMath.h"
+#include "vrmath.h"
 
 auto LeapDeviceProvider::Init(vr::IVRDriverContext* pDriverContext) -> vr::EVRInitError {
     VR_INIT_SERVER_DRIVER_CONTEXT(pDriverContext)

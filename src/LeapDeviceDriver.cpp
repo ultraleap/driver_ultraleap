@@ -1,7 +1,7 @@
 #include "LeapDeviceDriver.h"
 
 #include "OvrUtils.h"
-#include "VrMath.h"
+#include "vrmath.h"
 
 LeapDeviceDriver::LeapDeviceDriver(const std::shared_ptr<LeapDevice>& leapDevice)
     : id(vr::k_unTrackedDeviceIndexInvalid),
