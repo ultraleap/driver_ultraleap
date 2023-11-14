@@ -182,7 +182,7 @@ auto LeapDeviceProvider::DeviceDetected(const uint32_t /*deviceId*/, const LEAP_
     if (!deviceDriverBySerial.contains(leapDevice->SerialNumber())) {
         CreateDeviceDriver(leapDevice);
     } else {
-        UpdateDeviceDriverWithNewDevice(leapDevice);
+        ReconnectDeviceDriver(leapDevice);
     }
 
     // If this is the first device, construct the two hand-controllers.
@@ -217,15 +217,19 @@ auto LeapDeviceProvider::CreateDeviceDriver(const std::shared_ptr<LeapDevice>& l
         )) {
         OVR_LOG("Failed to add new Ultraleap device: {}", leapDevice->SerialNumber());
     }
+
+    OVR_LOG("Added {} device with Serial: {}", leapDevice->ProductId(), leapDevice->SerialNumber());
 }
 
-auto LeapDeviceProvider::UpdateDeviceDriverWithNewDevice(const std::shared_ptr<LeapDevice>& leapDevice) const -> void {
+auto LeapDeviceProvider::ReconnectDeviceDriver(const std::shared_ptr<LeapDevice>& leapDevice) const -> void {
     // Update the driver for this device to reference the new underlying device.
     auto& leapDeviceDriver = deviceDriverBySerial.at(leapDevice->SerialNumber());
     leapDeviceDriver->SetLeapDevice(leapDevice);
 
     // Register that the device is now connected again.
     vr::VRServerDriverHost()->TrackedDevicePoseUpdated(leapDeviceDriver->Id(), kDeviceConnectedPose, sizeof(kDeviceConnectedPose));
+
+    OVR_LOG("Reconnected device with serial: {}", leapDevice->SerialNumber());
 }
 
 auto LeapDeviceProvider::DisconnectDeviceDriver(const uint32_t deviceId) -> void {
@@ -236,8 +240,12 @@ auto LeapDeviceProvider::DisconnectDeviceDriver(const uint32_t deviceId) -> void
         sizeof(kDeviceDisconnectedPose)
     );
 
-    // Remove the device.
+
+    // Remove the device by remember and log the serial number
+    const auto serial = deviceSerialById.at(deviceId);
     deviceSerialById.erase(deviceId);
+
+    OVR_LOG("Disconnected device with serial: {}", deviceSerialById.at(deviceId));
 }
 
 auto LeapDeviceProvider::CreateHandControllers() -> void {
@@ -253,12 +261,13 @@ auto LeapDeviceProvider::CreateHandControllers() -> void {
              ->TrackedDeviceAdded("RightHand", vr::ETrackedDeviceClass::TrackedDeviceClass_Controller, rightHand.get())) {
         OVR_LOG("Failed to add Ultraleap right hand controller");
     }
+    OVR_LOG("Added virtual hand devices");
 }
 
 auto LeapDeviceProvider::DisconnectHandControllers() const -> void {
-    OVR_LOG("Disconnecting Devices");
     vr::VRServerDriverHost()->TrackedDevicePoseUpdated(leftHand->Id(), kDeviceDisconnectedPose, sizeof(kDeviceDisconnectedPose));
     vr::VRServerDriverHost()->TrackedDevicePoseUpdated(rightHand->Id(), kDeviceDisconnectedPose, sizeof(kDeviceDisconnectedPose));
+    OVR_LOG("Disconnected virtual hand devices");
 }
 
 auto LeapDeviceProvider::DeviceDriverFromLeapId(const uint32_t deviceId) const -> const std::shared_ptr<LeapDeviceDriver>& {

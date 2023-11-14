@@ -34,7 +34,7 @@ class LeapDeviceProvider final : public vr::IServerTrackedDeviceProvider {
     auto TrackingModeChanged(uint32_t deviceId, const LEAP_TRACKING_MODE_EVENT* event) const -> void;
 
     auto CreateDeviceDriver(const std::shared_ptr<LeapDevice>& leapDevice) -> void;
-    auto UpdateDeviceDriverWithNewDevice(const std::shared_ptr<LeapDevice>& leapDevice) const -> void;
+    auto ReconnectDeviceDriver(const std::shared_ptr<LeapDevice>& leapDevice) const -> void;
     auto DisconnectDeviceDriver(uint32_t deviceId) -> void;
 
     auto CreateHandControllers() -> void;
