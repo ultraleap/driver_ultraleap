@@ -30,8 +30,8 @@ class LeapDeviceProvider final : public vr::IServerTrackedDeviceProvider {
     auto SetThreadName(const std::string_view& name) -> void;
     auto DeviceDetected(uint32_t deviceId, const LEAP_DEVICE_EVENT* event) -> void;
     auto DeviceLost(uint32_t deviceId, const LEAP_DEVICE_EVENT* event) -> void;
-    auto TrackingFrame(uint32_t deviceId, const LEAP_TRACKING_EVENT* event) -> void;
-    auto TrackingModeChanged(uint32_t deviceId, const LEAP_TRACKING_MODE_EVENT* event) -> void;
+    auto TrackingFrame(uint32_t deviceId, const LEAP_TRACKING_EVENT* event) const -> void;
+    auto TrackingModeChanged(uint32_t deviceId, const LEAP_TRACKING_MODE_EVENT* event) const -> void;
 
     auto CreateDeviceDriver(const std::shared_ptr<LeapDevice>& leapDevice) -> void;
     auto UpdateDeviceDriverWithNewDevice(const std::shared_ptr<LeapDevice>& leapDevice) const -> void;

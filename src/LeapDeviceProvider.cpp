@@ -83,8 +83,7 @@ auto LeapDeviceProvider::ServiceMessageLoop() -> void {
     SetThreadName("UltraleapTrackingThread");
 
     for (LEAP_CONNECTION_MESSAGE msg; isRunning;) {
-        eLeapRS result = LeapPollConnection(leapConnection, 1000, &msg);
-        if (LEAP_FAILED(result)) {
+        if (auto result = LeapPollConnection(leapConnection, 1000, &msg); LEAP_FAILED(result)) {
             if (result != eLeapRS_Timeout) {
                 OVR_LOG("Failed to poll tracking connection: {}", result);
             }
@@ -92,13 +91,13 @@ auto LeapDeviceProvider::ServiceMessageLoop() -> void {
         }
 
         switch (msg.type) {
+        default: continue;
         case eLeapEventType_Connection: isConnected = true; break;
         case eLeapEventType_ConnectionLost: isConnected = false; break;
         case eLeapEventType_Device: DeviceDetected(msg.device_id, msg.device_event); break;
         case eLeapEventType_DeviceLost: DeviceLost(msg.device_id, msg.device_event); break;
         case eLeapEventType_Tracking: TrackingFrame(msg.device_id, msg.tracking_event); break;
         case eLeapEventType_TrackingMode: TrackingModeChanged(msg.device_id, msg.tracking_mode_event); break;
-        default: continue;
         }
     }
 }
@@ -106,13 +105,13 @@ auto LeapDeviceProvider::ServiceMessageLoop() -> void {
 auto LeapDeviceProvider::SetThreadName(const std::string_view& name) -> void {
     // Set the thread name (This has to utilize a platform specific method).
 #if defined(_WIN32)
-    auto narrowName = std::string{name};
-    auto length = MultiByteToWideChar(CP_ACP, 0, narrowName.c_str(), static_cast<int>(narrowName.length()), nullptr, 0);
+    const auto narrowName = std::string{name};
+    const auto length = MultiByteToWideChar(CP_ACP, 0, narrowName.c_str(), static_cast<int>(narrowName.length()), nullptr, 0);
     auto wideName = std::wstring(length, 0);
-    if (MultiByteToWideChar(CP_ACP, 0, narrowName.c_str(), static_cast<int>(narrowName.length()), wideName.data(), length) == 0) {
+    if (MultiByteToWideChar(CP_ACP, 0, narrowName.c_str(), static_cast<int>(narrowName.length()), wideName.data(), length) == 0
+        || SetThreadDescription(serviceThread.native_handle(), wideName.c_str()) != S_OK) {
         OVR_LOG("Failed to set thread name to \"{}\"", name);
     }
-    SetThreadDescription(serviceThread.native_handle(), wideName.c_str());
 #elif defined(__APPLE__)
     // Can only set the current thread name on MacOS
     if (std::this_thread::get_id() != serviceThread.get_id()) {
@@ -126,7 +125,7 @@ auto LeapDeviceProvider::SetThreadName(const std::string_view& name) -> void {
 #endif
 }
 
-auto LeapDeviceProvider::TrackingFrame(const uint32_t deviceId, const LEAP_TRACKING_EVENT* event) -> void {
+auto LeapDeviceProvider::TrackingFrame(const uint32_t /*deviceId*/, const LEAP_TRACKING_EVENT* event) const -> void {
     auto leftHandPose = kDeviceConnectedPose;
     auto rightHandPose = kDeviceConnectedPose;
 
@@ -164,7 +163,7 @@ auto LeapDeviceProvider::TrackingFrame(const uint32_t deviceId, const LEAP_TRACK
     }
 }
 
-auto LeapDeviceProvider::TrackingModeChanged(const uint32_t deviceId, const LEAP_TRACKING_MODE_EVENT* event) -> void {
+auto LeapDeviceProvider::TrackingModeChanged(const uint32_t deviceId, const LEAP_TRACKING_MODE_EVENT* event) const -> void {
     if (event->current_tracking_mode != eLeapTrackingMode_HMD) {
         OVR_LOG("Device is not currently in HMD mode, setting to HMD");
         LeapSetTrackingModeEx(leapConnection, DeviceDriverFromLeapId(deviceId)->Device()->Handle(), eLeapTrackingMode_HMD);
@@ -205,7 +204,7 @@ auto LeapDeviceProvider::DeviceLost(const uint32_t /*deviceId*/, const LEAP_DEVI
 
 auto LeapDeviceProvider::CreateDeviceDriver(const std::shared_ptr<LeapDevice>& leapDevice) -> void {
     // Track the device by serial-number
-    auto [leapDeviceDriver, inserted] = deviceDriverBySerial.emplace(
+    auto [leapDeviceDriver, _] = deviceDriverBySerial.emplace(
         leapDevice->SerialNumber(),
         std::make_shared<LeapDeviceDriver>(leapDevice)
     );

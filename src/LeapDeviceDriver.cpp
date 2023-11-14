@@ -13,7 +13,7 @@ auto LeapDeviceDriver::Activate(const uint32_t unObjectId) -> vr::EVRInitError {
     id = unObjectId;
 
     // Set up our property container and some utility functions.
-    auto properties = OvrProperties::FromDeviceId(id);
+    const auto properties = OvrPropertiesWrapper::FromDeviceId(id);
 
     // Setup manufacture/device information.
     properties.Set(vr::Prop_ManufacturerName_String, "Ultraleap");
@@ -45,16 +45,14 @@ auto LeapDeviceDriver::EnterStandby() -> void {
 }
 
 auto LeapDeviceDriver::GetComponent(const char* pchComponentNameAndVersion) -> void* {
-    const auto componentNameAndVersion = std::string_view{pchComponentNameAndVersion};
-
-    if (componentNameAndVersion == vr::ITrackedDeviceServerDriver_Version) {
+    if (std::string_view{pchComponentNameAndVersion} == vr::ITrackedDeviceServerDriver_Version) {
         return dynamic_cast<vr::ITrackedDeviceServerDriver*>(this);
     }
 
     return nullptr;
 }
 
-auto LeapDeviceDriver::DebugRequest(const char* pchRequest, char* pchResponseBuffer, uint32_t unResponseBufferSize) -> void {
+auto LeapDeviceDriver::DebugRequest(const char* pchRequest, char* pchResponseBuffer, const uint32_t unResponseBufferSize) -> void {
     if (id != vr::k_unTrackedDeviceIndexInvalid) {
         // TODO: Implement any required debugging here, for now just clear the buffer.
         if (unResponseBufferSize > 0) {
@@ -76,16 +74,16 @@ auto LeapDeviceDriver::GetPose() -> vr::DriverPose_t {
     const auto hmdOrientation = HmdQuaternion_FromMatrix(hmdPose.mDeviceToAbsoluteTracking);
 
     // Configurable tracker position.
-    const auto trackerTilt = vr::HmdQuaternion_t{1.0f, 0.0f, 0.0f, 0.0f};
-    const auto trackerOffset = vr::HmdVector3_t{0.0f, 0.0f, -0.08f};
+    constexpr auto trackerTilt = vr::HmdQuaternion_t{1.0f, 0.0f, 0.0f, 0.0f};
+    constexpr auto trackerOffset = vr::HmdVector3_t{0.0f, 0.0f, -0.08f};
 
     // Apply the offsets and update the position.
     const auto trackerOrientation = hmdOrientation * trackerTilt;
-    const auto trackerPosition = hmdPosition + (trackerOffset * hmdOrientation);
+    const auto [v] = hmdPosition + trackerOffset * hmdOrientation;
     trackerPose.qRotation = trackerOrientation;
-    trackerPose.vecPosition[0] = trackerPosition.v[0];
-    trackerPose.vecPosition[1] = trackerPosition.v[1];
-    trackerPose.vecPosition[2] = trackerPosition.v[2];
+    trackerPose.vecPosition[0] = v[0];
+    trackerPose.vecPosition[1] = v[1];
+    trackerPose.vecPosition[2] = v[2];
 
     // Set the tracking status.
     trackerPose.poseIsValid = hmdPose.bPoseIsValid;
@@ -96,7 +94,7 @@ auto LeapDeviceDriver::GetPose() -> vr::DriverPose_t {
     return trackerPose;
 }
 
-auto LeapDeviceDriver::SetDeviceModelProperties(const OvrProperties& properties) const -> void {
+auto LeapDeviceDriver::SetDeviceModelProperties(const OvrPropertiesWrapper& properties) const -> void {
     switch (leapDevice->ProductId()) {
     case eLeapDevicePID_Peripheral: {
         OVR_LOG("Setting device as LMC");

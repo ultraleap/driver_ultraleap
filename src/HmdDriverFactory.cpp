@@ -15,13 +15,11 @@
 LeapDeviceProvider sDeviceProvider{};
 
 OVR_EXPORT void* HmdDriverFactory(const char* pInterfaceName, int* pReturnCode) {
-    const auto interfaceName = std::string_view{pInterfaceName};
-
-    if (interfaceName == vr::IServerTrackedDeviceProvider_Version) {
+    if (std::string_view{pInterfaceName} == vr::IServerTrackedDeviceProvider_Version) {
         return &sDeviceProvider;
     }
 
-    // Indicate if there interface is not one which is supported
+    // Indicate that there are no other supported interfaces than IServerTrackedDeviceProvider
     if (pReturnCode) {
         *pReturnCode = vr::VRInitError_Init_InterfaceNotFound;
     }

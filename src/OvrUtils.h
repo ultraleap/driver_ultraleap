@@ -3,7 +3,6 @@
 #include <array>
 #include <format>
 #include <string>
-#include <string_view>
 
 #include <openvr_driver.h>
 
@@ -23,9 +22,9 @@ class OvrLogging {
 };
 
 template <> struct [[maybe_unused]] std::formatter<eLeapDevicePID> {
-    [[maybe_unused]] constexpr auto parse(std::format_parse_context& ctx) { return ctx.begin(); }
+    [[maybe_unused]] static constexpr auto parse(std::format_parse_context& ctx) { return ctx.begin(); }
 
-    [[maybe_unused]] auto format(const eLeapDevicePID& input, std::format_context& ctx) {
+    [[maybe_unused]] static auto format(const eLeapDevicePID& input, std::format_context& ctx) {
         return std::format_to(ctx.out(), "{}", [](const eLeapDevicePID& devicePid) constexpr {
             switch (devicePid) {
             case eLeapDevicePID_Peripheral: return "Leap Motion Controller";
@@ -40,9 +39,9 @@ template <> struct [[maybe_unused]] std::formatter<eLeapDevicePID> {
 };
 
 template <> struct [[maybe_unused]] std::formatter<eLeapRS> {
-    [[maybe_unused]] constexpr auto parse(std::format_parse_context& ctx) { return ctx.begin(); }
+    [[maybe_unused]] static constexpr auto parse(std::format_parse_context& ctx) { return ctx.begin(); }
 
-    [[maybe_unused]] auto format(const eLeapRS& input, std::format_context& ctx) {
+    [[maybe_unused]] static auto format(const eLeapRS& input, std::format_context& ctx) {
         return std::format_to(ctx.out(), "{}", [](const eLeapRS& r) constexpr {
             switch (r) {
             case eLeapRS_Success: return "eLeapRS_Success";
@@ -72,9 +71,9 @@ template <> struct [[maybe_unused]] std::formatter<eLeapRS> {
 };
 
 template <> struct [[maybe_unused]] std::formatter<eLeapEventType> {
-    [[maybe_unused]] constexpr auto parse(std::format_parse_context& ctx) { return ctx.begin(); }
+    [[maybe_unused]] static constexpr auto parse(std::format_parse_context& ctx) { return ctx.begin(); }
 
-    [[maybe_unused]] auto format(const eLeapEventType& input, std::format_context& ctx) {
+    [[maybe_unused]] static auto format(const eLeapEventType& input, std::format_context& ctx) {
         return std::format_to(ctx.out(), "{}", [](const eLeapEventType& e) constexpr {
             switch (e) {
             case eLeapEventType_None: return "eLeapEventType_None";
@@ -103,17 +102,17 @@ template <> struct [[maybe_unused]] std::formatter<eLeapEventType> {
 };
 
 template <> struct [[maybe_unused]] std::formatter<LEAP_VERSION> {
-    [[maybe_unused]] constexpr auto parse(std::format_parse_context& ctx) { return ctx.begin(); }
+    [[maybe_unused]] static constexpr auto parse(std::format_parse_context& ctx) { return ctx.begin(); }
 
-    [[maybe_unused]] auto format(const LEAP_VERSION& input, std::format_context& ctx) {
+    [[maybe_unused]] static auto format(const LEAP_VERSION& input, std::format_context& ctx) {
         return std::format_to(ctx.out(), "{}.{}.{}", input.major, input.minor, input.patch);
     }
 };
 
-class OvrProperties {
+class OvrPropertiesWrapper {
   public:
-    [[maybe_unused]] static auto FromDeviceId(const vr::TrackedDeviceIndex_t deviceId) -> OvrProperties {
-        return OvrProperties{vr::VRProperties()->TrackedDeviceToPropertyContainer(deviceId)};
+    [[maybe_unused]] static auto FromDeviceId(const vr::TrackedDeviceIndex_t deviceId) -> OvrPropertiesWrapper {
+        return OvrPropertiesWrapper{vr::VRProperties()->TrackedDeviceToPropertyContainer(deviceId)};
     }
 
     [[maybe_unused]] auto Set(const vr::ETrackedDeviceProperty property, const char* value) const -> void {
@@ -169,7 +168,7 @@ class OvrProperties {
     }
 
   private:
-    explicit OvrProperties(const vr::PropertyContainerHandle_t handle) : handle{handle} {};
+    explicit OvrPropertiesWrapper(const vr::PropertyContainerHandle_t handle) : handle{handle} {};
 
     vr::PropertyContainerHandle_t handle;
 };

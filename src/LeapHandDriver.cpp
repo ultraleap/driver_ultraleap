@@ -8,7 +8,7 @@ LeapHandDriver::LeapHandDriver(const eLeapHandType hand) : id{vr::k_unTrackedDev
 auto LeapHandDriver::Activate(const uint32_t unObjectId) -> vr::EVRInitError {
     id = unObjectId;
 
-    auto properties = OvrProperties::FromDeviceId(id);
+    const auto properties = OvrPropertiesWrapper::FromDeviceId(id);
     properties.Set(vr::Prop_ControllerType_String, "UltraleapHand");
     properties.Set(vr::Prop_ControllerHandSelectionPriority_Int32, 0);
     properties.Set(vr::Prop_InputProfilePath_String, "{ultraleap}/input/hand_profile.json");
@@ -35,9 +35,7 @@ auto LeapHandDriver::EnterStandby() -> void {
 }
 
 auto LeapHandDriver::GetComponent(const char* pchComponentNameAndVersion) -> void* {
-    const auto componentNameAndVersion = std::string_view{pchComponentNameAndVersion};
-
-    if (componentNameAndVersion == vr::ITrackedDeviceServerDriver_Version) {
+    if (std::string_view{pchComponentNameAndVersion} == vr::ITrackedDeviceServerDriver_Version) {
         return dynamic_cast<vr::ITrackedDeviceServerDriver*>(this);
     }
 
