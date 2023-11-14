@@ -6,7 +6,7 @@
 
 class LeapDevice {
   public:
-    explicit LeapDevice(LEAP_DEVICE_REF leapDeviceReference);
+    LeapDevice(LEAP_CONNECTION leapConnection, LEAP_DEVICE_REF leapDeviceReference);
     ~LeapDevice();
 
     [[nodiscard]] auto SerialNumber() const -> const std::string& { return leapSerial; }
@@ -19,6 +19,6 @@ class LeapDevice {
 
   private:
     LEAP_DEVICE leapDevice;
-    LEAP_DEVICE_INFO leapDeviceInfo{};
+    LEAP_DEVICE_INFO leapDeviceInfo;
     std::string leapSerial;
 };

@@ -18,7 +18,13 @@ auto LeapDeviceProvider::Init(vr::IVRDriverContext* pDriverContext) -> vr::EVRIn
     OvrLogging::Init();
 
     // Initialize the LeapC Connection
-    if (auto result = LeapCreateConnection(nullptr, &leapConnection); LEAP_FAILED(result)) {
+    constexpr LEAP_CONNECTION_CONFIG connectionConfig{
+        sizeof(connectionConfig),
+        eLeapConnectionConfig_MultiDeviceAware,
+        nullptr,
+        eLeapTrackingOrigin_DeviceCenter,
+    };
+    if (auto result = LeapCreateConnection(&connectionConfig, &leapConnection); LEAP_FAILED(result)) {
         OVR_LOG("Failed to create connection to Ultraleap tracking service: {}", result);
         return vr::VRInitError_Driver_Failed;
     }
@@ -43,7 +49,7 @@ auto LeapDeviceProvider::Cleanup() -> void {
         isRunning = false;
 
         // Close all remaining device handles before closing the connection.
-        deviceSerialById.clear();
+        leapDeviceById.clear();
         deviceDriverBySerial.clear();
         LeapCloseConnection(leapConnection);
     }
@@ -138,9 +144,9 @@ auto LeapDeviceProvider::TrackingFrame(const uint32_t /*deviceId*/, const LEAP_T
         pose.qWorldFromDriverRotation = HmdQuaternion_FromEulerAngles(0.0, M_PI / 2.0f, M_PI);
         pose.qDriverFromHeadRotation = HmdQuaternion_Identity;
 
-        pose.vecPosition[0] = hand.palm.position.x;
-        pose.vecPosition[1] = hand.palm.position.y;
-        pose.vecPosition[2] = hand.palm.position.z;
+        pose.vecPosition[0] = 0.001f * hand.palm.position.x;
+        pose.vecPosition[1] = 0.001f * hand.palm.position.y;
+        pose.vecPosition[2] = 0.001f * hand.palm.position.z;
         pose.qRotation = {
             hand.palm.orientation.w,
             hand.palm.orientation.x,
@@ -165,8 +171,9 @@ auto LeapDeviceProvider::TrackingFrame(const uint32_t /*deviceId*/, const LEAP_T
 
 auto LeapDeviceProvider::TrackingModeChanged(const uint32_t deviceId, const LEAP_TRACKING_MODE_EVENT* event) const -> void {
     if (event->current_tracking_mode != eLeapTrackingMode_HMD) {
-        OVR_LOG("Device is not currently in HMD mode, setting to HMD");
-        LeapSetTrackingModeEx(leapConnection, DeviceDriverFromLeapId(deviceId)->Device()->Handle(), eLeapTrackingMode_HMD);
+        const auto& leapDevice = leapDeviceById.at(deviceId);
+        OVR_LOG("Device {} is not currently in HMD mode, setting to HMD", leapDevice->SerialNumber());
+        LeapSetTrackingModeEx(leapConnection, leapDevice->Handle(), eLeapTrackingMode_HMD);
     }
 }
 
@@ -175,8 +182,8 @@ auto LeapDeviceProvider::DeviceDetected(const uint32_t /*deviceId*/, const LEAP_
     // In this context, deviceId will be 0 as this is a system message, for the ID of the affected device, use event->device.id.
 
     // Construct and open the device and track the serial number.
-    const auto leapDevice = std::make_shared<LeapDevice>(event->device);
-    deviceSerialById.insert({event->device.id, leapDevice->SerialNumber()});
+    const auto leapDevice = std::make_shared<LeapDevice>(leapConnection, event->device);
+    leapDeviceById.insert({event->device.id, leapDevice});
 
     // Create a device if it's the first time we've seen this serial, otherwise just notify that it's now active again.
     if (!deviceDriverBySerial.contains(leapDevice->SerialNumber())) {
@@ -186,7 +193,7 @@ auto LeapDeviceProvider::DeviceDetected(const uint32_t /*deviceId*/, const LEAP_
     }
 
     // If this is the first device, construct the two hand-controllers.
-    if (deviceSerialById.size() == 1 && leftHand == nullptr && rightHand == nullptr) {
+    if (leapDeviceById.size() == 1 && leftHand == nullptr && rightHand == nullptr) {
         CreateHandControllers();
     }
 }
@@ -197,7 +204,7 @@ auto LeapDeviceProvider::DeviceLost(const uint32_t /*deviceId*/, const LEAP_DEVI
     DisconnectDeviceDriver(event->device.id);
 
     // If all devices are now disconnected, indicate that the hands are no-longer trackable.
-    if (deviceSerialById.empty()) {
+    if (leapDeviceById.empty()) {
         DisconnectHandControllers();
     }
 }
@@ -240,12 +247,10 @@ auto LeapDeviceProvider::DisconnectDeviceDriver(const uint32_t deviceId) -> void
         sizeof(kDeviceDisconnectedPose)
     );
 
-
-    // Remove the device by remember and log the serial number
-    const auto serial = deviceSerialById.at(deviceId);
-    deviceSerialById.erase(deviceId);
-
-    OVR_LOG("Disconnected device with serial: {}", deviceSerialById.at(deviceId));
+    // Remove the device by remember and log the serial number.
+    const auto serialNumber = leapDeviceById.at(deviceId)->SerialNumber();
+    leapDeviceById.erase(deviceId);
+    OVR_LOG("Disconnected device with serial: {}", serialNumber);
 }
 
 auto LeapDeviceProvider::CreateHandControllers() -> void {
@@ -271,7 +276,7 @@ auto LeapDeviceProvider::DisconnectHandControllers() const -> void {
 }
 
 auto LeapDeviceProvider::DeviceDriverFromLeapId(const uint32_t deviceId) const -> const std::shared_ptr<LeapDeviceDriver>& {
-    const auto& serialNumber = deviceSerialById.at(deviceId);
+    const auto& serialNumber = leapDeviceById.at(deviceId)->SerialNumber();
     const auto& leapDeviceDriver = deviceDriverBySerial.at(serialNumber);
     return leapDeviceDriver;
 }

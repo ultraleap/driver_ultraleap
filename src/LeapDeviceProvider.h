@@ -46,7 +46,7 @@ class LeapDeviceProvider final : public vr::IServerTrackedDeviceProvider {
     std::atomic<bool> isRunning = false;
     std::atomic<bool> isConnected = false;
 
-    std::map<uint32_t, std::string> deviceSerialById;
+    std::map<uint32_t, std::shared_ptr<LeapDevice>> leapDeviceById;
     std::map<std::string, std::shared_ptr<LeapDeviceDriver>> deviceDriverBySerial;
 
     std::unique_ptr<LeapHandDriver> leftHand;
