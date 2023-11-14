@@ -5,7 +5,7 @@
 LeapHandDriver::LeapHandDriver(const eLeapHandType hand) : id{vr::k_unTrackedDeviceIndexInvalid}, hand{hand} {
 }
 
-vr::EVRInitError LeapHandDriver::Activate(uint32_t unObjectId) {
+auto LeapHandDriver::Activate(const uint32_t unObjectId) -> vr::EVRInitError {
     id = unObjectId;
 
     auto properties = OvrProperties::FromDeviceId(id);
@@ -27,14 +27,14 @@ vr::EVRInitError LeapHandDriver::Activate(uint32_t unObjectId) {
     return vr::VRInitError_None;
 }
 
-void LeapHandDriver::Deactivate() {
+auto LeapHandDriver::Deactivate() -> void {
     id = vr::k_unTrackedDeviceIndexInvalid;
 }
 
-void LeapHandDriver::EnterStandby() {
+auto LeapHandDriver::EnterStandby() -> void {
 }
 
-void* LeapHandDriver::GetComponent(const char* pchComponentNameAndVersion) {
+auto LeapHandDriver::GetComponent(const char* pchComponentNameAndVersion) -> void* {
     const auto componentNameAndVersion = std::string_view{pchComponentNameAndVersion};
 
     if (componentNameAndVersion == vr::ITrackedDeviceServerDriver_Version) {
@@ -44,7 +44,7 @@ void* LeapHandDriver::GetComponent(const char* pchComponentNameAndVersion) {
     return nullptr;
 }
 
-void LeapHandDriver::DebugRequest(const char* pchRequest, char* pchResponseBuffer, uint32_t unResponseBufferSize) {
+auto LeapHandDriver::DebugRequest(const char* pchRequest, char* pchResponseBuffer, const uint32_t unResponseBufferSize) -> void {
     if (id != vr::k_unTrackedDeviceIndexInvalid) {
         // TODO: Implement any required debugging here, for now just clear the buffer.
         if (unResponseBufferSize > 0) {
@@ -53,6 +53,6 @@ void LeapHandDriver::DebugRequest(const char* pchRequest, char* pchResponseBuffe
     }
 }
 
-vr::DriverPose_t LeapHandDriver::GetPose() {
-    return vr::DriverPose_t();
+auto LeapHandDriver::GetPose() -> vr::DriverPose_t {
+    return {};
 }

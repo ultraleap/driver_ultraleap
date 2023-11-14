@@ -8,7 +8,7 @@ LeapDeviceDriver::LeapDeviceDriver(const std::shared_ptr<LeapDevice>& leapDevice
       leapDevice{leapDevice} {
 }
 
-vr::EVRInitError LeapDeviceDriver::Activate(const uint32_t unObjectId) {
+auto LeapDeviceDriver::Activate(const uint32_t unObjectId) -> vr::EVRInitError {
     // Store our id for layer use.
     id = unObjectId;
 
@@ -37,14 +37,14 @@ vr::EVRInitError LeapDeviceDriver::Activate(const uint32_t unObjectId) {
     return vr::VRInitError_None;
 }
 
-void LeapDeviceDriver::Deactivate() {
+auto LeapDeviceDriver::Deactivate() -> void {
     id = vr::k_unTrackedDeviceIndexInvalid;
 }
 
-void LeapDeviceDriver::EnterStandby() {
+auto LeapDeviceDriver::EnterStandby() -> void {
 }
 
-void* LeapDeviceDriver::GetComponent(const char* pchComponentNameAndVersion) {
+auto LeapDeviceDriver::GetComponent(const char* pchComponentNameAndVersion) -> void* {
     const auto componentNameAndVersion = std::string_view{pchComponentNameAndVersion};
 
     if (componentNameAndVersion == vr::ITrackedDeviceServerDriver_Version) {
@@ -54,7 +54,7 @@ void* LeapDeviceDriver::GetComponent(const char* pchComponentNameAndVersion) {
     return nullptr;
 }
 
-void LeapDeviceDriver::DebugRequest(const char* pchRequest, char* pchResponseBuffer, uint32_t unResponseBufferSize) {
+auto LeapDeviceDriver::DebugRequest(const char* pchRequest, char* pchResponseBuffer, uint32_t unResponseBufferSize) -> void {
     if (id != vr::k_unTrackedDeviceIndexInvalid) {
         // TODO: Implement any required debugging here, for now just clear the buffer.
         if (unResponseBufferSize > 0) {
@@ -63,7 +63,7 @@ void LeapDeviceDriver::DebugRequest(const char* pchRequest, char* pchResponseBuf
     }
 }
 
-vr::DriverPose_t LeapDeviceDriver::GetPose() {
+auto LeapDeviceDriver::GetPose() -> vr::DriverPose_t {
     // Initialise our tracker structure.
     vr::DriverPose_t trackerPose{0};
     trackerPose.qWorldFromDriverRotation.w = 1.f;
@@ -96,7 +96,7 @@ vr::DriverPose_t LeapDeviceDriver::GetPose() {
     return trackerPose;
 }
 
-void LeapDeviceDriver::SetDeviceModelProperties(const OvrProperties& properties) const {
+auto LeapDeviceDriver::SetDeviceModelProperties(const OvrProperties& properties) const -> void {
     switch (leapDevice->ProductId()) {
     case eLeapDevicePID_Peripheral: {
         OVR_LOG("Setting device as LMC");

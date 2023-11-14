@@ -13,8 +13,8 @@
 
 class OvrLogging {
   public:
-    static void Init() { pLogFile = vr::VRDriverLog(); }
-    template <typename... T> static void Log(std::format_string<T...> fmt, T&&... args) {
+    static auto Init() -> void { pLogFile = vr::VRDriverLog(); }
+    template <typename... T> static auto Log(std::format_string<T...> fmt, T&&... args) -> void {
         pLogFile->Log(std::format(fmt, std::forward<T>(args)...).c_str());
     }
 
