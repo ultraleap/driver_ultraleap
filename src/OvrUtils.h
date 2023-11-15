@@ -5,6 +5,7 @@
 #include <string>
 
 #include <openvr_driver.h>
+#include <vrmath.h>
 
 #include "LeapC.h"
 
@@ -222,5 +223,36 @@ constexpr vr::DriverPose_t kDeviceConnectedPose{
 constexpr vr::DriverPose_t kDeviceDisconnectedPose{
     .result = vr::TrackingResult_Running_OK,
     .poseIsValid = false,
+    .deviceIsConnected = false,
+};
+
+constexpr vr::DriverPose_t kDeviceErrorPose{
+    .result = vr::TrackingResult_Uninitialized,
+    .poseIsValid = false,
+    .deviceIsConnected = false,
+};
+
+constexpr vr::DriverPose_t kDefaultPose{
+    // Timestamp
+    .poseTimeOffset = 0,
+
+    // Reference space transforms.
+    .qWorldFromDriverRotation = {1.0f, 0, 0, 0},
+    .vecWorldFromDriverTranslation = {0, 0, 0},
+    .qDriverFromHeadRotation = {1.0f, 0, 0, 0},
+    .vecDriverFromHeadTranslation = {0, 0, 0},
+
+    // Spatial Position.
+    .vecPosition = {0, 0, 0},
+    .vecVelocity = {0, 0, 0},
+    .qRotation = {1.0f, 0, 0, 0},
+    .vecAngularVelocity = {0, 0, 0},
+    .vecAngularAcceleration = {0, 0, 0},
+
+    // Status & Timestamps.
+    .result = vr::TrackingResult_Uninitialized,
+    .poseIsValid = true,
+    .willDriftInYaw = false,
+    .shouldApplyHeadModel = false,
     .deviceIsConnected = false,
 };

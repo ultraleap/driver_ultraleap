@@ -102,6 +102,7 @@ auto LeapDeviceProvider::ServiceMessageLoop() -> void {
         case eLeapEventType_ConnectionLost: isConnected = false; break;
         case eLeapEventType_Device: DeviceDetected(msg.device_id, msg.device_event); break;
         case eLeapEventType_DeviceLost: DeviceLost(msg.device_id, msg.device_event); break;
+        case eLeapEventType_DeviceStatusChange: DeviceStatusChanged(msg.device_id, msg.device_status_change_event); break;
         case eLeapEventType_Tracking: TrackingFrame(msg.device_id, msg.tracking_event); break;
         case eLeapEventType_TrackingMode: TrackingModeChanged(msg.device_id, msg.tracking_mode_event); break;
         }
@@ -209,6 +210,16 @@ auto LeapDeviceProvider::DeviceLost(const uint32_t /*deviceId*/, const LEAP_DEVI
     // If all devices are now disconnected, indicate that the hands are no-longer trackable.
     if (leapDeviceById.empty()) {
         DisconnectHandControllers();
+    }
+}
+
+auto LeapDeviceProvider::DeviceStatusChanged(uint32_t deviceId, const LEAP_DEVICE_STATUS_CHANGE_EVENT* event) -> void {
+    // Check for any of the error statuses and set a device error in that instance.
+    if (event->status >= eLeapDeviceStatus_UnknownFailure) {
+        vr::VRServerDriverHost()->TrackedDevicePoseUpdated(
+            DeviceDriverFromLeapId(event->device.id)->Id(),
+            kDeviceErrorPose,
+            sizeof(kDeviceErrorPose));
     }
 }
 
