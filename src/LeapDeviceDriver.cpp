@@ -117,6 +117,7 @@ auto LeapDeviceDriver::SetDeviceModelProperties(const OvrPropertiesWrapper& prop
         properties.Set(vr::Prop_FieldOfViewBottomDegrees_Float, 170.0f / 2.0f);
         properties.Set(vr::Prop_TrackingRangeMinimumMeters_Float, 0.1f);
         properties.Set(vr::Prop_TrackingRangeMaximumMeters_Float, 1.0f);
+        break;
     }
     case eLeapDevicePID_3Di: {
         OVR_LOG("Setting device as 3Di");

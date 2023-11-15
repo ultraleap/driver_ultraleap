@@ -15,7 +15,7 @@ auto LeapHandDriver::Activate(const uint32_t unObjectId) -> vr::EVRInitError {
     properties.Set(vr::Prop_ManufacturerName_String, "Ultraleap");
     properties.Set(vr::Prop_DeviceProvidesBatteryStatus_Bool, false);
 
-    // Setup properties that are different per hand
+    // Setup properties that are different per hand.
     if (hand == eLeapHandType_Left) {
         properties.Set(vr::Prop_ControllerRoleHint_Int32, vr::TrackedControllerRole_LeftHand);
         properties.Set(vr::Prop_ModelNumber_String, "LeftHand");

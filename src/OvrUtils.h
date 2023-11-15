@@ -112,6 +112,8 @@ template <> struct [[maybe_unused]] std::formatter<LEAP_VERSION> {
 
 class OvrPropertiesWrapper {
   public:
+    operator vr::PropertyContainerHandle_t() const { return this->handle; }
+
     [[maybe_unused]] static auto FromDeviceId(const vr::TrackedDeviceIndex_t deviceId) -> OvrPropertiesWrapper {
         return OvrPropertiesWrapper{vr::VRProperties()->TrackedDeviceToPropertyContainer(deviceId)};
     }

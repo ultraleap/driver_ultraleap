@@ -140,20 +140,39 @@ auto LeapDeviceProvider::TrackingFrame(const uint32_t /*deviceId*/, const LEAP_T
     for (auto i = 0; i < event->nHands; ++i) {
         const auto& hand = event->pHands[i];
         auto& pose = hand.type == eLeapHandType_Left ? leftHandPose : rightHandPose;
+        auto& handDriver = hand.type == eLeapHandType_Left ? leftHand : rightHand;
+
+        // Get the HMD position for the timestamp of the frame.
+        const auto timeOffset = static_cast<float>(event->info.timestamp - LeapGetNow()) * std::micro::num / std::micro::den;
+        vr::TrackedDevicePose_t hmdPose{};
+        vr::VRServerDriverHost()->GetRawTrackedDevicePoses(timeOffset, &hmdPose, 1);
+        // TODO: Handle if the device is not tracking correctly.
+
+        // Get HMD position and orientation.
+        const auto hmdPosition = HmdVector3_From34Matrix(hmdPose.mDeviceToAbsoluteTracking);
+        const auto hmdOrientation = HmdQuaternion_FromMatrix(hmdPose.mDeviceToAbsoluteTracking);
+
+        pose.qDriverFromHeadRotation = HmdQuaternion_Identity;
+        pose.vecDriverFromHeadTranslation[0] = 0;
+        pose.vecDriverFromHeadTranslation[1] = 0;
+        pose.vecDriverFromHeadTranslation[2] = 0;
 
         // Space transform from LeapC -> OpenVR Space;
-        pose.qWorldFromDriverRotation = HmdQuaternion_FromEulerAngles(0.0, M_PI / 2.0f, M_PI);
-        pose.qDriverFromHeadRotation = HmdQuaternion_Identity;
+        pose.qWorldFromDriverRotation = hmdOrientation * HmdQuaternion_FromEulerAngles(0.0, M_PI / 2.0f, M_PI);
+        auto [offsetPosition] = hmdPosition + vr::HmdVector3_t{0, 0, -0.08f} * hmdOrientation;
+        std::ranges::copy(offsetPosition, pose.vecWorldFromDriverTranslation);
 
         pose.vecPosition[0] = 0.001f * hand.palm.position.x;
         pose.vecPosition[1] = 0.001f * hand.palm.position.y;
         pose.vecPosition[2] = 0.001f * hand.palm.position.z;
+
         pose.qRotation = {
             hand.palm.orientation.w,
             hand.palm.orientation.x,
             hand.palm.orientation.y,
             hand.palm.orientation.z,
         };
+
         pose.result = vr::TrackingResult_Running_OK;
         pose.poseIsValid = true;
         pose.deviceIsConnected = true;
