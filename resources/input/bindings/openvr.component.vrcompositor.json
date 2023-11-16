@@ -30,34 +30,16 @@
           }
         },
         {
-          "path": "/user/hand/left/input/pinch",
+          "path": "/user/hand/right/input/pinch",
           "mode": "button",
           "parameters": {
-            "click_activate_threshold": "0.9",
-            "click_deactivate_threshold": "0.8",
+            "click_activate_threshold": "1",
+            "click_deactivate_threshold": "0.9",
             "haptic_amplitude": "0"
           },
           "inputs": {
             "click": {
-              "output": "/actions/lasermouse/in/lockmouseposition"
-            }
-          }
-        },
-        {
-          "path": "/user/hand/right/input/pinch",
-          "mode": "button",
-          "inputs": {
-            "click": {
               "output": "/actions/lasermouse/in/leftclick"
-            }
-          }
-        },
-        {
-          "path": "/user/hand/right/input/pinch",
-          "mode": "button",
-          "inputs": {
-            "click": {
-              "output": "/actions/lasermouse/in/lockmouseposition"
             }
           }
         }
@@ -68,6 +50,11 @@
         {
           "path": "/user/hand/left/input/pinch",
           "mode": "button",
+          "parameters": {
+            "click_activate_threshold": "1",
+            "click_deactivate_threshold": "0.9",
+            "haptic_amplitude": "0"
+          },
           "inputs": {
             "click": {
               "output": "/actions/lasermouse_secondary/in/switchlaserhand"
@@ -77,6 +64,11 @@
         {
           "path": "/user/hand/right/input/pinch",
           "mode": "button",
+          "parameters": {
+            "click_activate_threshold": "1",
+            "click_deactivate_threshold": "0.9",
+            "haptic_amplitude": "0"
+          },
           "inputs": {
             "click": {
               "output": "/actions/lasermouse_secondary/in/switchlaserhand"
@@ -92,7 +84,7 @@
   "category": "steamvr_input",
   "controller_type": "ultraleap_hand",
   "description": "",
-  "name": "Default SteamVR Dashboard bindings for Ultraleap hands",
+  "name": "Ultraleap",
   "options": {
   },
   "simulated_actions": []
