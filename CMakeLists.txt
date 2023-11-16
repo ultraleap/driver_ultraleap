@@ -47,12 +47,6 @@ add_custom_command(
         COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/driver.vrdrivermanifest ${CMAKE_BINARY_DIR}/ultraleap/driver.vrdrivermanifest)
 add_custom_command(
         TARGET driver_ultraleap POST_BUILD
-        COMMENT "Copying Localization"
-        DEPENDS ${CMAKE_SOURCE_DIR}/localization
-        BYPRODUCTS ${CMAKE_BINARY_DIR}/ultraleap/localization
-        COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/localization ${CMAKE_BINARY_DIR}/ultraleap/localization)
-add_custom_command(
-        TARGET driver_ultraleap POST_BUILD
         COMMENT "Copying Resources"
         DEPENDS ${CMAKE_SOURCE_DIR}/resources
         BYPRODUCTS ${CMAKE_BINARY_DIR}/ultraleap/resources
