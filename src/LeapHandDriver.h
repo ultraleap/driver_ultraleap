@@ -28,4 +28,12 @@ class LeapHandDriver final : public vr::ITrackedDeviceServerDriver {
 
     vr::VRInputComponentHandle_t inputPinch;
     vr::VRInputComponentHandle_t inputGrip;
+
+    vr::VRInputComponentHandle_t inputSkeleton;
+    vr::VRInputComponentHandle_t inputThumbFinger;
+    vr::VRInputComponentHandle_t inputIndexFinger;
+    vr::VRInputComponentHandle_t inputMiddleFinger;
+    vr::VRInputComponentHandle_t inputRingFinger;
+    vr::VRInputComponentHandle_t inputPinkyFinger;
+    ;
 };

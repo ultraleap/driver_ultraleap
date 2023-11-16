@@ -25,6 +25,45 @@
     "/input/raw": {
       "type": "pose",
       "binding_image_point" : [0, 0]
+    },
+
+    "/input/skeleton/left" : {
+      "type" : "skeleton",
+      "skeleton": "/skeleton/hand/left",
+      "side" : "left",
+      "binding_image_point" : [ 0, 0 ]
+    },
+    "/input/skeleton/right" : {
+      "type" : "skeleton",
+      "skeleton": "/skeleton/hand/right",
+      "side" : "right",
+      "binding_image_point" : [ 0, 0 ]
+    },
+
+    "/input/finger/thumb" : {
+      "type" : "trigger",
+      "binding_image_point" : [ 0, 0 ],
+      "order" : 100
+    },
+    "/input/finger/index" : {
+      "type" : "trigger",
+      "binding_image_point" : [ 0, 0 ],
+      "order" : 101
+    },
+    "/input/finger/middle" : {
+      "type" : "trigger",
+      "binding_image_point" : [ 0, 0 ],
+      "order" : 102
+    },
+    "/input/finger/ring" : {
+      "type" : "trigger",
+      "binding_image_point" : [ 0, 0 ],
+      "order" : 103
+    },
+    "/input/finger/pinky" : {
+      "type" : "trigger",
+      "binding_image_point" : [ 0, 0 ],
+      "order" : 104
     }
   },
   "default_bindings": [

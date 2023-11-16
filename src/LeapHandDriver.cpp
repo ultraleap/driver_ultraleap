@@ -54,9 +54,53 @@ auto LeapHandDriver::Activate(const uint32_t unObjectId) -> vr::EVRInitError {
         vr::VRScalarUnits_NormalizedOneSided
     );
 
-    // Immediatly set default values for the inputs.
-    vr::VRDriverInput()->UpdateScalarComponent(inputPinch, 0, 0);
-    vr::VRDriverInput()->UpdateScalarComponent(inputGrip, 0, 0);
+    // Setup hand-skeleton to have full tracking with no supplied transforms.
+    // TODO: Add inputs for finger curl.
+    vr::VRDriverInput()->CreateSkeletonComponent(
+        properties,
+        handType == eLeapHandType_Left ? "/input/skeleton/left" : "/input/skeleton/right",
+        handType == eLeapHandType_Left ? "/skeleton/hand/left" : "/skeleton/hand/right",
+        "/pose/raw",
+        vr::VRSkeletalTracking_Full,
+        nullptr,
+        0,
+        &inputSkeleton
+    );
+    vr::VRDriverInput()->CreateScalarComponent(
+        properties,
+        "/input/finger/thumb",
+        &inputThumbFinger,
+        vr::VRScalarType_Absolute,
+        vr::VRScalarUnits_NormalizedOneSided
+    );
+    vr::VRDriverInput()->CreateScalarComponent(
+        properties,
+        "/input/finger/index",
+        &inputIndexFinger,
+        vr::VRScalarType_Absolute,
+        vr::VRScalarUnits_NormalizedOneSided
+    );
+    vr::VRDriverInput()->CreateScalarComponent(
+        properties,
+        "/input/finger/middle",
+        &inputMiddleFinger,
+        vr::VRScalarType_Absolute,
+        vr::VRScalarUnits_NormalizedOneSided
+    );
+    vr::VRDriverInput()->CreateScalarComponent(
+        properties,
+        "/input/finger/ring",
+        &inputRingFinger,
+        vr::VRScalarType_Absolute,
+        vr::VRScalarUnits_NormalizedOneSided
+    );
+    vr::VRDriverInput()->CreateScalarComponent(
+        properties,
+        "/input/finger/pinky",
+        &inputPinkyFinger,
+        vr::VRScalarType_Absolute,
+        vr::VRScalarUnits_NormalizedOneSided
+    );
 
     return vr::VRInitError_None;
 }
@@ -98,12 +142,11 @@ auto LeapHandDriver::UpdateHandFromFrame(const LEAP_TRACKING_EVENT* frame) -> vo
     // Find a hand that matches the correct chirality/
     const auto hands = std::span(frame->pHands, frame->nHands);
     if (const auto handIter = std::ranges::find_if(hands, [&](auto h) { return h.type == handType; }); handIter != hands.end()) {
-        const auto leapHand = *handIter;
+        const auto hand = *handIter;
 
         // Get the HMD position for the timestamp of the frame.
         pose.result = vr::TrackingResult_Running_OK;
-        const auto hmdPose = HmdPose::Get(timeOffset);
-        if (hmdPose.IsValid()) {
+        if (const auto hmdPose = HmdPose::Get(timeOffset); hmdPose.IsValid()) {
             pose.poseIsValid = true;
             pose.qDriverFromHeadRotation = HmdQuaternion_Identity;
             pose.vecDriverFromHeadTranslation[0] = 0;
@@ -115,15 +158,15 @@ auto LeapHandDriver::UpdateHandFromFrame(const LEAP_TRACKING_EVENT* frame) -> vo
             auto [offsetPosition] = hmdPose.Position() + vr::HmdVector3_t{0, 0, -0.08f} * hmdPose.Orientation();
             std::ranges::copy(offsetPosition, pose.vecWorldFromDriverTranslation);
 
-            pose.vecPosition[0] = 0.001f * leapHand.arm.next_joint.x;
-            pose.vecPosition[1] = 0.001f * leapHand.arm.next_joint.y;
-            pose.vecPosition[2] = 0.001f * leapHand.arm.next_joint.z;
+            pose.vecPosition[0] = 0.001f * hand.arm.next_joint.x;
+            pose.vecPosition[1] = 0.001f * hand.arm.next_joint.y;
+            pose.vecPosition[2] = 0.001f * hand.arm.next_joint.z;
 
             pose.qRotation = {
-                leapHand.arm.rotation.w,
-                leapHand.arm.rotation.x,
-                leapHand.arm.rotation.y,
-                leapHand.arm.rotation.z,
+                hand.arm.rotation.w,
+                hand.arm.rotation.x,
+                hand.arm.rotation.y,
+                hand.arm.rotation.z,
             };
         } else {
             pose.poseIsValid = false;
@@ -131,8 +174,15 @@ auto LeapHandDriver::UpdateHandFromFrame(const LEAP_TRACKING_EVENT* frame) -> vo
 
         // Update input components.
         // TODO: Do hystersis etc.
-        vr::VRDriverInput()->UpdateScalarComponent(inputPinch, leapHand.pinch_strength, timeOffset);
-        vr::VRDriverInput()->UpdateScalarComponent(inputGrip, leapHand.grab_strength, timeOffset);
+        vr::VRDriverInput()->UpdateScalarComponent(inputPinch, hand.pinch_strength, timeOffset);
+        vr::VRDriverInput()->UpdateScalarComponent(inputGrip, hand.grab_strength, timeOffset);
+
+        // Update finger curl.
+        vr::VRDriverInput()->UpdateScalarComponent(inputThumbFinger, static_cast<float>(hand.digits[0].is_extended), timeOffset);
+        vr::VRDriverInput()->UpdateScalarComponent(inputIndexFinger, static_cast<float>(hand.digits[0].is_extended), timeOffset);
+        vr::VRDriverInput()->UpdateScalarComponent(inputMiddleFinger, static_cast<float>(hand.digits[0].is_extended), timeOffset);
+        vr::VRDriverInput()->UpdateScalarComponent(inputRingFinger, static_cast<float>(hand.digits[0].is_extended), timeOffset);
+        vr::VRDriverInput()->UpdateScalarComponent(inputPinkyFinger, static_cast<float>(hand.digits[0].is_extended), timeOffset);
     } else {
         pose.result = vr::TrackingResult_Running_OutOfRange;
         pose.poseIsValid = false;
