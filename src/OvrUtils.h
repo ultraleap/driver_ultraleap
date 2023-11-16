@@ -216,6 +216,32 @@ class OvrSettings {
     static constexpr auto kUltraleapSection = "driver_ultraleap";
 };
 
+class HmdPose {
+public:
+    static auto Get(const double timeOffset = 0) -> HmdPose {
+        HmdPose pose{};
+        vr::VRServerDriverHost()->GetRawTrackedDevicePoses(static_cast<float>(timeOffset), &pose.hmdPose, 1);
+        if (pose.hmdPose.bPoseIsValid && pose.hmdPose.eTrackingResult == vr::TrackingResult_Running_OK) {
+            pose.hmdPosition = HmdVector3_From34Matrix(pose.hmdPose.mDeviceToAbsoluteTracking);
+            pose.hmdOrientation = HmdQuaternion_FromMatrix(pose.hmdPose.mDeviceToAbsoluteTracking);
+        }
+        return pose;
+    }
+
+    auto IsValid() const -> bool { return hmdPose.bPoseIsValid; }
+    auto Position() const -> vr::HmdVector3_t { return hmdPosition; }
+    auto Orientation() const -> vr::HmdQuaternion_t { return hmdOrientation; }
+    auto Velocity() const -> vr::HmdVector3_t { return hmdPose.vVelocity; }
+    auto AngularVelocity() const -> vr::HmdVector3_t { return hmdPose.vAngularVelocity; }
+
+private:
+    HmdPose() = default;
+
+    vr::TrackedDevicePose_t hmdPose{};
+    vr::HmdVector3_t        hmdPosition{};
+    vr::HmdQuaternion_t     hmdOrientation{HmdQuaternion_Identity};
+};
+
 constexpr vr::DriverPose_t kDeviceConnectedPose{
     .result = vr::TrackingResult_Running_OK,
     .poseIsValid = false,

@@ -11,6 +11,8 @@
 #include "OvrUtils.h"
 #include "vrmath.h"
 
+#include <span>
+
 auto LeapDeviceProvider::Init(vr::IVRDriverContext* pDriverContext) -> vr::EVRInitError {
     VR_INIT_SERVER_DRIVER_CONTEXT(pDriverContext)
 
@@ -133,62 +135,11 @@ auto LeapDeviceProvider::SetThreadName(const std::string_view& name) -> void {
 }
 
 auto LeapDeviceProvider::TrackingFrame(const uint32_t /*deviceId*/, const LEAP_TRACKING_EVENT* event) const -> void {
-    auto leftHandPose = kDeviceConnectedPose;
-    auto rightHandPose = kDeviceConnectedPose;
-
-    // Process all the hands that are seen in the frame.
-    for (auto i = 0; i < event->nHands; ++i) {
-        const auto& hand = event->pHands[i];
-        auto& pose = hand.type == eLeapHandType_Left ? leftHandPose : rightHandPose;
-        auto& handDriver = hand.type == eLeapHandType_Left ? leftHand : rightHand;
-
-        // Get the HMD position for the timestamp of the frame.
-        const auto timeOffset = static_cast<float>(event->info.timestamp - LeapGetNow()) * std::micro::num / std::micro::den;
-        vr::TrackedDevicePose_t hmdPose{};
-        vr::VRServerDriverHost()->GetRawTrackedDevicePoses(timeOffset, &hmdPose, 1);
-        // TODO: Handle if the device is not tracking correctly.
-
-        // Get HMD position and orientation.
-        const auto hmdPosition = HmdVector3_From34Matrix(hmdPose.mDeviceToAbsoluteTracking);
-        const auto hmdOrientation = HmdQuaternion_FromMatrix(hmdPose.mDeviceToAbsoluteTracking);
-
-        pose.qDriverFromHeadRotation = HmdQuaternion_Identity;
-        pose.vecDriverFromHeadTranslation[0] = 0;
-        pose.vecDriverFromHeadTranslation[1] = 0;
-        pose.vecDriverFromHeadTranslation[2] = 0;
-
-        // Space transform from LeapC -> OpenVR Space;
-        pose.qWorldFromDriverRotation = hmdOrientation * HmdQuaternion_FromEulerAngles(0.0, M_PI / 2.0f, M_PI);
-        auto [offsetPosition] = hmdPosition + vr::HmdVector3_t{0, 0, -0.08f} * hmdOrientation;
-        std::ranges::copy(offsetPosition, pose.vecWorldFromDriverTranslation);
-
-        pose.vecPosition[0] = 0.001f * hand.palm.position.x;
-        pose.vecPosition[1] = 0.001f * hand.palm.position.y;
-        pose.vecPosition[2] = 0.001f * hand.palm.position.z;
-
-        pose.qRotation = {
-            hand.palm.orientation.w,
-            hand.palm.orientation.x,
-            hand.palm.orientation.y,
-            hand.palm.orientation.z,
-        };
-
-        pose.result = vr::TrackingResult_Running_OK;
-        pose.poseIsValid = true;
-        pose.deviceIsConnected = true;
-
-        // Calculate the time offset from this frame's timestamp.
-        pose.poseTimeOffset = static_cast<float>(event->info.timestamp - LeapGetNow()) * std::micro::num / std::micro::den;
-
-        (hand.type == eLeapHandType_Left ? leftHandPose : rightHandPose) = pose;
-    }
-
-    if (leftHand != nullptr) {
-        vr::VRServerDriverHost()->TrackedDevicePoseUpdated(leftHand->Id(), leftHandPose, sizeof(leftHandPose));
-    }
-
-    if (rightHand != nullptr) {
-        vr::VRServerDriverHost()->TrackedDevicePoseUpdated(rightHand->Id(), rightHandPose, sizeof(rightHandPose));
+    // Pass the tracking frame to each virtual hand driver, and update with the latest pose.
+    for (const auto handDriver : {leftHand.get(), rightHand.get()}) {
+        if (handDriver != nullptr) {
+            handDriver->UpdateHandFromFrame(event);
+        }
     }
 }
 
@@ -235,10 +186,8 @@ auto LeapDeviceProvider::DeviceLost(const uint32_t /*deviceId*/, const LEAP_DEVI
 auto LeapDeviceProvider::DeviceStatusChanged(uint32_t deviceId, const LEAP_DEVICE_STATUS_CHANGE_EVENT* event) -> void {
     // Check for any of the error statuses and set a device error in that instance.
     if (event->status >= eLeapDeviceStatus_UnknownFailure) {
-        vr::VRServerDriverHost()->TrackedDevicePoseUpdated(
-            DeviceDriverFromLeapId(event->device.id)->Id(),
-            kDeviceErrorPose,
-            sizeof(kDeviceErrorPose));
+        vr::VRServerDriverHost()
+            ->TrackedDevicePoseUpdated(DeviceDriverFromLeapId(event->device.id)->Id(), kDeviceErrorPose, sizeof(kDeviceErrorPose));
     }
 }
 

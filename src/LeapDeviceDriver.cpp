@@ -95,10 +95,10 @@ auto LeapDeviceDriver::GetPose() -> vr::DriverPose_t {
 }
 
 auto LeapDeviceDriver::SetDeviceModelProperties(const OvrPropertiesWrapper& properties) const -> void {
+    OVR_LOG("Setting device as {}", leapDevice->ProductId());
     switch (leapDevice->ProductId()) {
     case eLeapDevicePID_Peripheral: {
-        OVR_LOG("Setting device as LMC");
-        properties.Set(vr::Prop_ModelNumber_String, "LMC");
+        properties.Set(vr::Prop_ModelNumber_String, "lmc");
         properties.Set(vr::Prop_FieldOfViewLeftDegrees_Float, 140.0f / 2.0f);
         properties.Set(vr::Prop_FieldOfViewRightDegrees_Float, 140.0f / 2.0f);
         properties.Set(vr::Prop_FieldOfViewTopDegrees_Float, 120.0f / 2.0f);
@@ -107,10 +107,19 @@ auto LeapDeviceDriver::SetDeviceModelProperties(const OvrPropertiesWrapper& prop
         properties.Set(vr::Prop_TrackingRangeMaximumMeters_Float, 0.8f);
         break;
     }
+    case eLeapDevicePID_LMC2: {
+        properties.Set(vr::Prop_ModelNumber_String, "lmc2");
+        properties.Set(vr::Prop_FieldOfViewLeftDegrees_Float, 160.0f / 2.0f);
+        properties.Set(vr::Prop_FieldOfViewRightDegrees_Float, 160.0f / 2.0f);
+        properties.Set(vr::Prop_FieldOfViewTopDegrees_Float, 160.0f / 2.0f);
+        properties.Set(vr::Prop_FieldOfViewBottomDegrees_Float, 160.0f / 2.0f);
+        properties.Set(vr::Prop_TrackingRangeMinimumMeters_Float, 0.1f);
+        properties.Set(vr::Prop_TrackingRangeMaximumMeters_Float, 1.1f);
+        break;
+    }
     case eLeapDevicePID_Rigel:
     case eLeapDevicePID_SIR170: {
-        OVR_LOG("Setting device as SIR-170");
-        properties.Set(vr::Prop_ModelNumber_String, "SIR170");
+        properties.Set(vr::Prop_ModelNumber_String, "sir170");
         properties.Set(vr::Prop_FieldOfViewLeftDegrees_Float, 170.0f / 2.0f);
         properties.Set(vr::Prop_FieldOfViewRightDegrees_Float, 170.0f / 2.0f);
         properties.Set(vr::Prop_FieldOfViewTopDegrees_Float, 170.0f / 2.0f);
@@ -120,8 +129,7 @@ auto LeapDeviceDriver::SetDeviceModelProperties(const OvrPropertiesWrapper& prop
         break;
     }
     case eLeapDevicePID_3Di: {
-        OVR_LOG("Setting device as 3Di");
-        properties.Set(vr::Prop_ModelNumber_String, "3Di");
+        properties.Set(vr::Prop_ModelNumber_String, "3di");
         properties.Set(vr::Prop_FieldOfViewLeftDegrees_Float, 170.0f / 2.0f);
         properties.Set(vr::Prop_FieldOfViewRightDegrees_Float, 170.0f / 2.0f);
         properties.Set(vr::Prop_FieldOfViewTopDegrees_Float, 170.0f / 2.0f);
@@ -130,19 +138,9 @@ auto LeapDeviceDriver::SetDeviceModelProperties(const OvrPropertiesWrapper& prop
         properties.Set(vr::Prop_TrackingRangeMaximumMeters_Float, 1.0f);
         break;
     }
-    case eLeapDevicePID_LMC2: {
-        OVR_LOG("Setting device as LMC2");
-        properties.Set(vr::Prop_ModelNumber_String, "LMC2");
-        properties.Set(vr::Prop_FieldOfViewLeftDegrees_Float, 160.0f / 2.0f);
-        properties.Set(vr::Prop_FieldOfViewRightDegrees_Float, 160.0f / 2.0f);
-        properties.Set(vr::Prop_FieldOfViewTopDegrees_Float, 160.0f / 2.0f);
-        properties.Set(vr::Prop_FieldOfViewBottomDegrees_Float, 160.0f / 2.0f);
-        properties.Set(vr::Prop_TrackingRangeMinimumMeters_Float, 0.1f);
-        properties.Set(vr::Prop_TrackingRangeMaximumMeters_Float, 1.1f);
-        break;
-    }
     default: {
-        OVR_LOG("Setting device as Unknown");
+        properties.Set(vr::Prop_ModelNumber_String, "unknown");
+        break;
     }
     }
 }

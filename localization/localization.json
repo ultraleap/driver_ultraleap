@@ -1,11 +1,13 @@
 [
   {
     "language_tag": "en_US",
-    "LMC": "Leap Motion Controller",
-    "LMC2": "Leap Motion Controller 2",
-    "SIR170": "Ultraleap StereoIR 170",
-    "3Di": "Ultraleap 3Di",
-    "LeftHand": "Left Hand",
-    "RightHand": "Right Hand"
+    "lmc": "Leap Motion Controller",
+    "lmc2": "Leap Motion Controller 2",
+    "sir170": "Ultraleap StereoIR 170",
+    "3di": "Ultraleap 3Di",
+    "left_hand": "Left Hand",
+    "right_hand": "Right Hand",
+    "ultraleap_hand": "Ultraleap Tracked Hand",
+    "/input/pinch": "Pinch Gesture"
   }
 ]

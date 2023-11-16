@@ -18,7 +18,14 @@ class LeapHandDriver final : public vr::ITrackedDeviceServerDriver {
 
     [[nodiscard]] auto Id() const -> uint32_t { return id; }
 
+    auto UpdateHandFromFrame(const LEAP_TRACKING_EVENT* frame) -> void;
+
   private:
     uint32_t id;
-    eLeapHandType hand;
+    eLeapHandType handType;
+
+    vr::DriverPose_t pose;
+
+    vr::VRInputComponentHandle_t inputPinch;
+    vr::VRInputComponentHandle_t inputGrip;
 };
