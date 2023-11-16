@@ -27,7 +27,6 @@ class LeapDeviceProvider final : public vr::IServerTrackedDeviceProvider {
   private:
     // All these methods will be called by the tracking Serivce
     auto ServiceMessageLoop() -> void;
-    auto SetThreadName(const std::string_view& name) -> void;
     auto DeviceDetected(uint32_t deviceId, const LEAP_DEVICE_EVENT* event) -> void;
     auto DeviceLost(uint32_t deviceId, const LEAP_DEVICE_EVENT* event) -> void;
     auto DeviceStatusChanged(uint32_t deviceId, const LEAP_DEVICE_STATUS_CHANGE_EVENT* event) -> void;

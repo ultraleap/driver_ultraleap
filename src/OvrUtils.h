@@ -9,6 +9,8 @@
 
 #include "LeapC.h"
 
+#include <ObjectArray.h>
+
 #define OVR_LOG(...) OvrLogging::Log(__VA_ARGS__)
 
 class OvrLogging {
@@ -217,8 +219,8 @@ class OvrSettings {
 };
 
 class HmdPose {
-public:
-    static auto Get(const double timeOffset = 0) -> HmdPose {
+  public:
+    [[nodiscard]] static auto Get(const double timeOffset = 0) -> HmdPose {
         HmdPose pose{};
         vr::VRServerDriverHost()->GetRawTrackedDevicePoses(static_cast<float>(timeOffset), &pose.hmdPose, 1);
         if (pose.hmdPose.bPoseIsValid && pose.hmdPose.eTrackingResult == vr::TrackingResult_Running_OK) {
@@ -228,19 +230,46 @@ public:
         return pose;
     }
 
-    auto IsValid() const -> bool { return hmdPose.bPoseIsValid; }
-    auto Position() const -> vr::HmdVector3_t { return hmdPosition; }
-    auto Orientation() const -> vr::HmdQuaternion_t { return hmdOrientation; }
-    auto Velocity() const -> vr::HmdVector3_t { return hmdPose.vVelocity; }
-    auto AngularVelocity() const -> vr::HmdVector3_t { return hmdPose.vAngularVelocity; }
+    [[nodiscard]] auto IsValid() const -> bool { return hmdPose.bPoseIsValid; }
+    [[nodiscard]] auto Position() const -> vr::HmdVector3_t { return hmdPosition; }
+    [[nodiscard]] auto Orientation() const -> vr::HmdQuaternion_t { return hmdOrientation; }
+    [[nodiscard]] auto Velocity() const -> vr::HmdVector3_t { return hmdPose.vVelocity; }
+    [[nodiscard]] auto AngularVelocity() const -> vr::HmdVector3_t { return hmdPose.vAngularVelocity; }
 
-private:
+  private:
     HmdPose() = default;
 
     vr::TrackedDevicePose_t hmdPose{};
-    vr::HmdVector3_t        hmdPosition{};
-    vr::HmdQuaternion_t     hmdOrientation{HmdQuaternion_Identity};
+    vr::HmdVector3_t hmdPosition{};
+    vr::HmdQuaternion_t hmdOrientation{HmdQuaternion_Identity};
 };
+
+inline auto SetThreadName(std::thread& thread,const std::string_view& name) -> void {
+    // Set the thread name (This has to utilize a platform specific method).
+#if defined(_WIN32)
+    const auto narrowName = std::string{name};
+    const auto length = MultiByteToWideChar(CP_UTF8, 0, narrowName.c_str(), -1, nullptr, 0);
+    auto wideName = std::wstring(length, 0);
+    if (MultiByteToWideChar(CP_UTF8, 0, narrowName.c_str(), -1, wideName.data(), length) == 0) {
+        OVR_LOG("Thread name conversion failed");
+        return;
+    }
+    if (FAILED(SetThreadDescription(thread.native_handle(), wideName.c_str()))) {
+        OVR_LOG("Failed to set thread name to \"{}\"", name);
+    }
+#elif defined(__APPLE__)
+    // Can only set the current thread name on MacOS
+    if (std::this_thread::get_id() != thread.get_id()) {
+        OVR_LOG("Thread name can only be set for the current thread on MacOS");
+    }
+    pthread_setname_np(std::string{name}.c_str());
+#elif defined(__GNUC__) || defined(COMPILER_GCC)
+    pthread_setname_np(thread.native_handle(), std::string{name}.c_str());
+#else
+#error "SetThreadName() not implemented for current platform"
+#endif
+}
+
 
 constexpr vr::DriverPose_t kDeviceConnectedPose{
     .result = vr::TrackingResult_Running_OK,

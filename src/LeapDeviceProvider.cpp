@@ -9,9 +9,6 @@
 #endif
 
 #include "OvrUtils.h"
-#include "vrmath.h"
-
-#include <span>
 
 auto LeapDeviceProvider::Init(vr::IVRDriverContext* pDriverContext) -> vr::EVRInitError {
     VR_INIT_SERVER_DRIVER_CONTEXT(pDriverContext)
@@ -47,15 +44,14 @@ auto LeapDeviceProvider::Init(vr::IVRDriverContext* pDriverContext) -> vr::EVRIn
 
 auto LeapDeviceProvider::Cleanup() -> void {
     // Request the thread termination and close the connection to ensure that LeapPollConnection doesn't hang.
-    {
-        isRunning = false;
+    isRunning = false;
 
-        // Close all remaining device handles before closing the connection.
-        leapDeviceById.clear();
-        deviceDriverBySerial.clear();
-        LeapCloseConnection(leapConnection);
-    }
+    // Close all remaining device handles before closing the connection.
+    leapDeviceById.clear();
+    deviceDriverBySerial.clear();
+    LeapCloseConnection(leapConnection);
 
+    // Await the termination of the service thready by joining on it.
     if (serviceThread.joinable()) {
         serviceThread.join();
     }
@@ -88,7 +84,7 @@ auto LeapDeviceProvider::LeaveStandby() -> void {
 }
 
 auto LeapDeviceProvider::ServiceMessageLoop() -> void {
-    SetThreadName("UltraleapTrackingThread");
+    SetThreadName(serviceThread, "Ultraleap OpenVR Driver");
 
     for (LEAP_CONNECTION_MESSAGE msg; isRunning;) {
         if (auto result = LeapPollConnection(leapConnection, 1000, &msg); LEAP_FAILED(result)) {
@@ -109,29 +105,6 @@ auto LeapDeviceProvider::ServiceMessageLoop() -> void {
         case eLeapEventType_TrackingMode: TrackingModeChanged(msg.device_id, msg.tracking_mode_event); break;
         }
     }
-}
-
-auto LeapDeviceProvider::SetThreadName(const std::string_view& name) -> void {
-    // Set the thread name (This has to utilize a platform specific method).
-#if defined(_WIN32)
-    const auto narrowName = std::string{name};
-    const auto length = MultiByteToWideChar(CP_ACP, 0, narrowName.c_str(), static_cast<int>(narrowName.length()), nullptr, 0);
-    auto wideName = std::wstring(length, 0);
-    if (MultiByteToWideChar(CP_ACP, 0, narrowName.c_str(), static_cast<int>(narrowName.length()), wideName.data(), length) == 0
-        || SetThreadDescription(serviceThread.native_handle(), wideName.c_str()) != S_OK) {
-        OVR_LOG("Failed to set thread name to \"{}\"", name);
-    }
-#elif defined(__APPLE__)
-    // Can only set the current thread name on MacOS
-    if (std::this_thread::get_id() != serviceThread.get_id()) {
-        UL_LOG_ERROR("Thread name can only be set for the current thread on MacOS");
-    }
-    pthread_setname_np(std::string{name}.c_str());
-#elif defined(__GNUC__) || defined(COMPILER_GCC)
-    pthread_setname_np(serviceThread.native_handle(), std::string{name}.c_str());
-#else
-#error "PlatformContext::SetThreadName() not implemented for current platform"
-#endif
 }
 
 auto LeapDeviceProvider::TrackingFrame(const uint32_t /*deviceId*/, const LEAP_TRACKING_EVENT* event) const -> void {
