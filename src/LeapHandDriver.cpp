@@ -10,7 +10,13 @@ LeapHandDriver::LeapHandDriver(const eLeapHandType hand)
       handType{hand},
       pose{kDefaultPose},
       inputPinch{0},
-      inputGrip{0} {
+      inputGrip{0},
+      inputSkeleton{0},
+      inputThumbFinger{0},
+      inputIndexFinger{0},
+      inputMiddleFinger{0},
+      inputRingFinger{0},
+      inputPinkyFinger{0} {
 }
 
 auto LeapHandDriver::Activate(const uint32_t unObjectId) -> vr::EVRInitError {
@@ -55,7 +61,6 @@ auto LeapHandDriver::Activate(const uint32_t unObjectId) -> vr::EVRInitError {
     );
 
     // Setup hand-skeleton to have full tracking with no supplied transforms.
-    // TODO: Add inputs for finger curl.
     vr::VRDriverInput()->CreateSkeletonComponent(
         properties,
         handType == eLeapHandType_Left ? "/input/skeleton/left" : "/input/skeleton/right",

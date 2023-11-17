@@ -9,7 +9,17 @@
 
 #include "LeapC.h"
 
-#include <ObjectArray.h>
+// Platform specific export macros.
+#if defined(_WIN32)
+#define OVR_EXPORT extern "C" __declspec(dllexport)
+#define OVR_IMPORT extern "C" __declspec(dllimport)
+#elif defined(__GNUC__) || defined(COMPILER_GCC) || defined(__APPLE__)
+#define OVR_EXPORT extern "C" __attribute__((visibility("default")))
+#define OVR_IMPORT extern "C"
+#else
+#error "Unsupported Platform"
+#endif
+
 
 #define OVR_LOG(...) OvrLogging::Log(__VA_ARGS__)
 
@@ -243,33 +253,6 @@ class HmdPose {
     vr::HmdVector3_t hmdPosition{};
     vr::HmdQuaternion_t hmdOrientation{HmdQuaternion_Identity};
 };
-
-inline auto SetThreadName(std::thread& thread,const std::string_view& name) -> void {
-    // Set the thread name (This has to utilize a platform specific method).
-#if defined(_WIN32)
-    const auto narrowName = std::string{name};
-    const auto length = MultiByteToWideChar(CP_UTF8, 0, narrowName.c_str(), -1, nullptr, 0);
-    auto wideName = std::wstring(length, 0);
-    if (MultiByteToWideChar(CP_UTF8, 0, narrowName.c_str(), -1, wideName.data(), length) == 0) {
-        OVR_LOG("Thread name conversion failed");
-        return;
-    }
-    if (FAILED(SetThreadDescription(thread.native_handle(), wideName.c_str()))) {
-        OVR_LOG("Failed to set thread name to \"{}\"", name);
-    }
-#elif defined(__APPLE__)
-    // Can only set the current thread name on MacOS
-    if (std::this_thread::get_id() != thread.get_id()) {
-        OVR_LOG("Thread name can only be set for the current thread on MacOS");
-    }
-    pthread_setname_np(std::string{name}.c_str());
-#elif defined(__GNUC__) || defined(COMPILER_GCC)
-    pthread_setname_np(thread.native_handle(), std::string{name}.c_str());
-#else
-#error "SetThreadName() not implemented for current platform"
-#endif
-}
-
 
 constexpr vr::DriverPose_t kDeviceConnectedPose{
     .result = vr::TrackingResult_Running_OK,

@@ -8,6 +8,7 @@
 #include <pthread.h>
 #endif
 
+#include "OsUtils.h"
 #include "OvrUtils.h"
 
 auto LeapDeviceProvider::Init(vr::IVRDriverContext* pDriverContext) -> vr::EVRInitError {
@@ -84,7 +85,7 @@ auto LeapDeviceProvider::LeaveStandby() -> void {
 }
 
 auto LeapDeviceProvider::ServiceMessageLoop() -> void {
-    SetThreadName(serviceThread, "Ultraleap OpenVR Driver");
+    OsUtils::SetThreadName(serviceThread, "Ultraleap OpenVR Driver");
 
     for (LEAP_CONNECTION_MESSAGE msg; isRunning;) {
         if (auto result = LeapPollConnection(leapConnection, 1000, &msg); LEAP_FAILED(result)) {
