@@ -3,6 +3,7 @@
     "enable": true,
     "loadPriority": 0,
     "blocked_by_safe_mode": true,
+
     "my_custom_setting": "my_custom_value"
   }
 }

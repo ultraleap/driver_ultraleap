@@ -9,13 +9,11 @@
 #endif
 
 #include "OsUtils.h"
-#include "OvrUtils.h"
+#include "VrUtils.h"
+#include "VrLogging.h"
 
-auto LeapDeviceProvider::Init(vr::IVRDriverContext* pDriverContext) -> vr::EVRInitError {
-    VR_INIT_SERVER_DRIVER_CONTEXT(pDriverContext)
-
-    // Initialise logging subsystem.
-    OvrLogging::Init();
+auto LeapDeviceProvider::Init(vr::IVRDriverContext* driver_context) -> vr::EVRInitError {
+    VR_INIT_SERVER_DRIVER_CONTEXT(driver_context)
 
     // Initialize the LeapC Connection
     constexpr LEAP_CONNECTION_CONFIG connectionConfig{
@@ -24,20 +22,20 @@ auto LeapDeviceProvider::Init(vr::IVRDriverContext* pDriverContext) -> vr::EVRIn
         nullptr,
         eLeapTrackingOrigin_DeviceCenter,
     };
-    if (auto result = LeapCreateConnection(&connectionConfig, &leapConnection); LEAP_FAILED(result)) {
-        OVR_LOG("Failed to create connection to Ultraleap tracking service: {}", result);
+    if (auto result = LeapCreateConnection(&connectionConfig, &leap_connection_); LEAP_FAILED(result)) {
+        LOG_INFO("Failed to create connection to Ultraleap tracking service: {}", result);
         return vr::VRInitError_Driver_Failed;
     }
 
-    if (auto result = LeapOpenConnection(leapConnection); LEAP_FAILED(result)) {
-        LeapDestroyConnection(leapConnection);
-        OVR_LOG("Failed to open connection to Ultraleap tracking service: {}", result);
+    if (auto result = LeapOpenConnection(leap_connection_); LEAP_FAILED(result)) {
+        LeapDestroyConnection(leap_connection_);
+        LOG_INFO("Failed to open connection to Ultraleap tracking service: {}", result);
         return vr::VRInitError_Driver_Failed;
     }
 
     // Start the service thread.
-    isRunning = true;
-    serviceThread = std::thread{&LeapDeviceProvider::ServiceMessageLoop, this};
+    is_running_ = true;
+    service_thread_ = std::thread{&LeapDeviceProvider::ServiceMessageLoop, this};
 
     // Indicate that we have initialized successfully.
     return vr::VRInitError_None;
@@ -45,19 +43,19 @@ auto LeapDeviceProvider::Init(vr::IVRDriverContext* pDriverContext) -> vr::EVRIn
 
 auto LeapDeviceProvider::Cleanup() -> void {
     // Request the thread termination and close the connection to ensure that LeapPollConnection doesn't hang.
-    isRunning = false;
+    is_running_ = false;
 
     // Close all remaining device handles before closing the connection.
-    leapDeviceById.clear();
-    deviceDriverBySerial.clear();
-    LeapCloseConnection(leapConnection);
+    leap_device_by_id_.clear();
+    leap_device_driver_by_serial_.clear();
+    LeapCloseConnection(leap_connection_);
 
     // Await the termination of the service thready by joining on it.
-    if (serviceThread.joinable()) {
-        serviceThread.join();
+    if (service_thread_.joinable()) {
+        service_thread_.join();
     }
 
-    LeapDestroyConnection(leapConnection);
+    LeapDestroyConnection(leap_connection_);
 }
 
 auto LeapDeviceProvider::GetInterfaceVersions() -> const char* const* {
@@ -77,28 +75,28 @@ auto LeapDeviceProvider::ShouldBlockStandbyMode() -> bool {
 }
 
 auto LeapDeviceProvider::EnterStandby() -> void {
-    LeapSetPause(leapConnection, true);
+    LeapSetPause(leap_connection_, true);
 }
 
 auto LeapDeviceProvider::LeaveStandby() -> void {
-    LeapSetPause(leapConnection, false);
+    LeapSetPause(leap_connection_, false);
 }
 
 auto LeapDeviceProvider::ServiceMessageLoop() -> void {
-    OsUtils::SetThreadName(serviceThread, "Ultraleap OpenVR Driver");
+    OsUtils::SetThreadName(service_thread_, "Ultraleap OpenVR Driver");
 
-    for (LEAP_CONNECTION_MESSAGE msg; isRunning;) {
-        if (auto result = LeapPollConnection(leapConnection, 1000, &msg); LEAP_FAILED(result)) {
+    for (LEAP_CONNECTION_MESSAGE msg; is_running_;) {
+        if (auto result = LeapPollConnection(leap_connection_, 1000, &msg); LEAP_FAILED(result)) {
             if (result != eLeapRS_Timeout) {
-                OVR_LOG("Failed to poll tracking connection: {}", result);
+                LOG_INFO("Failed to poll tracking connection: {}", result);
             }
             continue;
         }
 
         switch (msg.type) {
         default: continue;
-        case eLeapEventType_Connection: isConnected = true; break;
-        case eLeapEventType_ConnectionLost: isConnected = false; break;
+        case eLeapEventType_Connection: is_connected_ = true; break;
+        case eLeapEventType_ConnectionLost: is_connected_ = false; break;
         case eLeapEventType_Device: DeviceDetected(msg.device_id, msg.device_event); break;
         case eLeapEventType_DeviceLost: DeviceLost(msg.device_id, msg.device_event); break;
         case eLeapEventType_DeviceStatusChange: DeviceStatusChanged(msg.device_id, msg.device_status_change_event); break;
@@ -110,18 +108,18 @@ auto LeapDeviceProvider::ServiceMessageLoop() -> void {
 
 auto LeapDeviceProvider::TrackingFrame(const uint32_t /*deviceId*/, const LEAP_TRACKING_EVENT* event) const -> void {
     // Pass the tracking frame to each virtual hand driver, and update with the latest pose.
-    for (const auto handDriver : {leftHand.get(), rightHand.get()}) {
+    for (const auto handDriver : {left_hand_.get(), right_hand_.get()}) {
         if (handDriver != nullptr) {
-            handDriver->UpdateHandFromFrame(event);
+            handDriver->UpdateFromLeapFrame(event);
         }
     }
 }
 
-auto LeapDeviceProvider::TrackingModeChanged(const uint32_t deviceId, const LEAP_TRACKING_MODE_EVENT* event) const -> void {
+auto LeapDeviceProvider::TrackingModeChanged(const uint32_t device_id, const LEAP_TRACKING_MODE_EVENT* event) const -> void {
     if (event->current_tracking_mode != eLeapTrackingMode_HMD) {
-        const auto& leapDevice = leapDeviceById.at(deviceId);
-        OVR_LOG("Device {} is not currently in HMD mode, setting to HMD", leapDevice->SerialNumber());
-        LeapSetTrackingModeEx(leapConnection, leapDevice->Handle(), eLeapTrackingMode_HMD);
+        const auto& leapDevice = leap_device_by_id_.at(device_id);
+        LOG_INFO("Device {} is not currently in HMD mode, setting to HMD", leapDevice->SerialNumber());
+        LeapSetTrackingModeEx(leap_connection_, leapDevice->Handle(), eLeapTrackingMode_HMD);
     }
 }
 
@@ -130,18 +128,18 @@ auto LeapDeviceProvider::DeviceDetected(const uint32_t /*deviceId*/, const LEAP_
     // In this context, deviceId will be 0 as this is a system message, for the ID of the affected device, use event->device.id.
 
     // Construct and open the device and track the serial number.
-    const auto leapDevice = std::make_shared<LeapDevice>(leapConnection, event->device);
-    leapDeviceById.insert({event->device.id, leapDevice});
+    const auto leapDevice = std::make_shared<LeapDevice>(leap_connection_, event->device);
+    leap_device_by_id_.insert({event->device.id, leapDevice});
 
     // Create a device if it's the first time we've seen this serial, otherwise just notify that it's now active again.
-    if (!deviceDriverBySerial.contains(leapDevice->SerialNumber())) {
+    if (!leap_device_driver_by_serial_.contains(leapDevice->SerialNumber())) {
         CreateDeviceDriver(leapDevice);
     } else {
         ReconnectDeviceDriver(leapDevice);
     }
 
     // If this is the first device, construct the two hand-controllers.
-    if (leapDeviceById.size() == 1 && leftHand == nullptr && rightHand == nullptr) {
+    if (leap_device_by_id_.size() == 1 && left_hand_ == nullptr && right_hand_ == nullptr) {
         CreateHandControllers();
     }
 }
@@ -152,12 +150,12 @@ auto LeapDeviceProvider::DeviceLost(const uint32_t /*deviceId*/, const LEAP_DEVI
     DisconnectDeviceDriver(event->device.id);
 
     // If all devices are now disconnected, indicate that the hands are no-longer trackable.
-    if (leapDeviceById.empty()) {
+    if (leap_device_by_id_.empty()) {
         DisconnectHandControllers();
     }
 }
 
-auto LeapDeviceProvider::DeviceStatusChanged(uint32_t deviceId, const LEAP_DEVICE_STATUS_CHANGE_EVENT* event) -> void {
+auto LeapDeviceProvider::DeviceStatusChanged(uint32_t device_id, const LEAP_DEVICE_STATUS_CHANGE_EVENT* event) -> void {
     // Check for any of the error statuses and set a device error in that instance.
     if (event->status >= eLeapDeviceStatus_UnknownFailure) {
         vr::VRServerDriverHost()
@@ -165,74 +163,74 @@ auto LeapDeviceProvider::DeviceStatusChanged(uint32_t deviceId, const LEAP_DEVIC
     }
 }
 
-auto LeapDeviceProvider::CreateDeviceDriver(const std::shared_ptr<LeapDevice>& leapDevice) -> void {
+auto LeapDeviceProvider::CreateDeviceDriver(const std::shared_ptr<LeapDevice>& leap_device) -> void {
     // Track the device by serial-number
-    auto [leapDeviceDriver, _] = deviceDriverBySerial.emplace(
-        leapDevice->SerialNumber(),
-        std::make_shared<LeapDeviceDriver>(leapDevice)
+    auto [leapDeviceDriver, _] = leap_device_driver_by_serial_.emplace(
+        leap_device->SerialNumber(),
+        std::make_shared<LeapDeviceDriver>(leap_device)
     );
 
     // Register the device driver.
     if (!vr::VRServerDriverHost()->TrackedDeviceAdded(
-            leapDevice->SerialNumber().c_str(),
+            leap_device->SerialNumber().c_str(),
             vr::ETrackedDeviceClass::TrackedDeviceClass_TrackingReference,
             leapDeviceDriver->second.get()
         )) {
-        OVR_LOG("Failed to add new Ultraleap device: {}", leapDevice->SerialNumber());
+        LOG_INFO("Failed to add new Ultraleap device: {}", leap_device->SerialNumber());
     }
 
-    OVR_LOG("Added {} device with Serial: {}", leapDevice->ProductId(), leapDevice->SerialNumber());
+    LOG_INFO("Added {} device with Serial: {}", leap_device->ProductId(), leap_device->SerialNumber());
 }
 
-auto LeapDeviceProvider::ReconnectDeviceDriver(const std::shared_ptr<LeapDevice>& leapDevice) const -> void {
+auto LeapDeviceProvider::ReconnectDeviceDriver(const std::shared_ptr<LeapDevice>& leap_device) const -> void {
     // Update the driver for this device to reference the new underlying device.
-    auto& leapDeviceDriver = deviceDriverBySerial.at(leapDevice->SerialNumber());
-    leapDeviceDriver->SetLeapDevice(leapDevice);
+    auto& leapDeviceDriver = leap_device_driver_by_serial_.at(leap_device->SerialNumber());
+    leapDeviceDriver->SetLeapDevice(leap_device);
 
     // Register that the device is now connected again.
     vr::VRServerDriverHost()->TrackedDevicePoseUpdated(leapDeviceDriver->Id(), kDeviceConnectedPose, sizeof(kDeviceConnectedPose));
 
-    OVR_LOG("Reconnected device with serial: {}", leapDevice->SerialNumber());
+    LOG_INFO("Reconnected device with serial: {}", leap_device->SerialNumber());
 }
 
-auto LeapDeviceProvider::DisconnectDeviceDriver(const uint32_t deviceId) -> void {
+auto LeapDeviceProvider::DisconnectDeviceDriver(const uint32_t device_id) -> void {
     // Register the device as disconnected.
     vr::VRServerDriverHost()->TrackedDevicePoseUpdated(
-        DeviceDriverFromLeapId(deviceId)->Id(),
+        DeviceDriverFromLeapId(device_id)->Id(),
         kDeviceDisconnectedPose,
         sizeof(kDeviceDisconnectedPose)
     );
 
     // Remove the device by remember and log the serial number.
-    const auto serialNumber = leapDeviceById.at(deviceId)->SerialNumber();
-    leapDeviceById.erase(deviceId);
-    OVR_LOG("Disconnected device with serial: {}", serialNumber);
+    const auto serialNumber = leap_device_by_id_.at(device_id)->SerialNumber();
+    leap_device_by_id_.erase(device_id);
+    LOG_INFO("Disconnected device with serial: {}", serialNumber);
 }
 
 auto LeapDeviceProvider::CreateHandControllers() -> void {
-    leftHand = std::make_unique<LeapHandDriver>(eLeapHandType_Left);
-    rightHand = std::make_unique<LeapHandDriver>(eLeapHandType_Right);
+    left_hand_ = std::make_unique<LeapHandDriver>(eLeapHandType_Left);
+    right_hand_ = std::make_unique<LeapHandDriver>(eLeapHandType_Right);
 
     if (!vr::VRServerDriverHost()
-             ->TrackedDeviceAdded("LeftHand", vr::ETrackedDeviceClass::TrackedDeviceClass_Controller, leftHand.get())) {
-        OVR_LOG("Failed to add Ultraleap left hand controller");
+             ->TrackedDeviceAdded("LeftHand", vr::ETrackedDeviceClass::TrackedDeviceClass_Controller, left_hand_.get())) {
+        LOG_INFO("Failed to add Ultraleap left hand controller");
     }
 
     if (!vr::VRServerDriverHost()
-             ->TrackedDeviceAdded("RightHand", vr::ETrackedDeviceClass::TrackedDeviceClass_Controller, rightHand.get())) {
-        OVR_LOG("Failed to add Ultraleap right hand controller");
+             ->TrackedDeviceAdded("RightHand", vr::ETrackedDeviceClass::TrackedDeviceClass_Controller, right_hand_.get())) {
+        LOG_INFO("Failed to add Ultraleap right hand controller");
     }
-    OVR_LOG("Added virtual hand devices");
+    LOG_INFO("Added virtual hand devices");
 }
 
 auto LeapDeviceProvider::DisconnectHandControllers() const -> void {
-    vr::VRServerDriverHost()->TrackedDevicePoseUpdated(leftHand->Id(), kDeviceDisconnectedPose, sizeof(kDeviceDisconnectedPose));
-    vr::VRServerDriverHost()->TrackedDevicePoseUpdated(rightHand->Id(), kDeviceDisconnectedPose, sizeof(kDeviceDisconnectedPose));
-    OVR_LOG("Disconnected virtual hand devices");
+    vr::VRServerDriverHost()->TrackedDevicePoseUpdated(left_hand_->Id(), kDeviceDisconnectedPose, sizeof(kDeviceDisconnectedPose));
+    vr::VRServerDriverHost()->TrackedDevicePoseUpdated(right_hand_->Id(), kDeviceDisconnectedPose, sizeof(kDeviceDisconnectedPose));
+    LOG_INFO("Disconnected virtual hand devices");
 }
 
-auto LeapDeviceProvider::DeviceDriverFromLeapId(const uint32_t deviceId) const -> const std::shared_ptr<LeapDeviceDriver>& {
-    const auto& serialNumber = leapDeviceById.at(deviceId)->SerialNumber();
-    const auto& leapDeviceDriver = deviceDriverBySerial.at(serialNumber);
+auto LeapDeviceProvider::DeviceDriverFromLeapId(const uint32_t device_id) const -> const std::shared_ptr<LeapDeviceDriver>& {
+    const auto& serialNumber = leap_device_by_id_.at(device_id)->SerialNumber();
+    const auto& leapDeviceDriver = leap_device_driver_by_serial_.at(serialNumber);
     return leapDeviceDriver;
 }

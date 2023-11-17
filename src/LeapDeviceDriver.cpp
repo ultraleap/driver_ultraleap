@@ -1,102 +1,107 @@
 #include "LeapDeviceDriver.h"
 
-#include "OvrUtils.h"
-#include "vrmath.h"
+#include "VrUtils.h"
+#include "VrLogging.h"
 
-LeapDeviceDriver::LeapDeviceDriver(const std::shared_ptr<LeapDevice>& leapDevice)
-    : id(vr::k_unTrackedDeviceIndexInvalid),
-      leapDevice{leapDevice} {
+LeapDeviceDriver::LeapDeviceDriver(const std::shared_ptr<LeapDevice>& leap_device)
+    : id_(vr::k_unTrackedDeviceIndexInvalid),
+      leap_device_{leap_device} {
 }
 
-auto LeapDeviceDriver::Activate(const uint32_t unObjectId) -> vr::EVRInitError {
+auto LeapDeviceDriver::Activate(const uint32_t object_id) -> vr::EVRInitError {
     // Store our id for layer use.
-    id = unObjectId;
+    id_ = object_id;
 
     // Set up our property container and some utility functions.
-    const auto properties = OvrPropertiesWrapper::FromDeviceId(id);
+    const auto p = VrDeviceProperties::FromDeviceId(id_);
+    try {
 
-    // Setup manufacture/device information.
-    properties.Set(vr::Prop_ManufacturerName_String, "Ultraleap");
+        // Setup manufacture/device information.
+        p.Set(vr::Prop_ManufacturerName_String, "Ultraleap");
 
-    // Set up the base-station properties as a tracking reference point.
-    properties.Set(vr::Prop_CanWirelessIdentify_Bool, false);
-    properties.Set(vr::Prop_IsOnDesktop_Bool, false);
-    properties.Set(vr::Prop_NeverTracked_Bool, false);
-    properties.Set(vr::Prop_WillDriftInYaw_Bool, false);
+        // Set up the base-station properties as a tracking reference point.
+        p.Set(vr::Prop_CanWirelessIdentify_Bool, false);
+        p.Set(vr::Prop_IsOnDesktop_Bool, false);
+        p.Set(vr::Prop_NeverTracked_Bool, false);
+        p.Set(vr::Prop_WillDriftInYaw_Bool, false);
 
-    // Don't locate the device in 3D space.
-    properties.Set(vr::Prop_NeverTracked_Bool, true);
+        // Don't locate the device in 3D space.
+        p.Set(vr::Prop_NeverTracked_Bool, true);
 
-    // Setup details of the FoV and range depending on device type.
-    SetDeviceModelProperties(properties);
+        // Setup details of the FoV and range depending on device type.
+        SetDeviceModelProperties(p);
 
-    // Mark this device as running correctly and connected, but with no valid pose.
-    vr::VRServerDriverHost()->TrackedDevicePoseUpdated(id, kDeviceConnectedPose, sizeof(kDeviceConnectedPose));
+        // Mark this device as running correctly and connected, but with no valid pose.
+        vr::VRServerDriverHost()->TrackedDevicePoseUpdated(id_, kDeviceConnectedPose, sizeof(kDeviceConnectedPose));
+    } catch (const std::runtime_error& error) {
+        LOG_INFO("Failed to initialize LeapDeviceDriver: {}", error.what());
+        return vr::VRInitError_Driver_Failed;
+    }
 
-    // Return initialization success
+    // Indicate that this driver has initialized successfully.
     return vr::VRInitError_None;
 }
 
 auto LeapDeviceDriver::Deactivate() -> void {
-    id = vr::k_unTrackedDeviceIndexInvalid;
+    id_ = vr::k_unTrackedDeviceIndexInvalid;
 }
 
 auto LeapDeviceDriver::EnterStandby() -> void {
 }
 
-auto LeapDeviceDriver::GetComponent(const char* pchComponentNameAndVersion) -> void* {
-    if (std::string_view{pchComponentNameAndVersion} == vr::ITrackedDeviceServerDriver_Version) {
+auto LeapDeviceDriver::GetComponent(const char* component_name_and_version) -> void* {
+    if (std::string_view{component_name_and_version} == vr::ITrackedDeviceServerDriver_Version) {
         return dynamic_cast<vr::ITrackedDeviceServerDriver*>(this);
     }
 
     return nullptr;
 }
 
-auto LeapDeviceDriver::DebugRequest(const char* pchRequest, char* pchResponseBuffer, const uint32_t unResponseBufferSize) -> void {
-    if (id != vr::k_unTrackedDeviceIndexInvalid) {
+auto LeapDeviceDriver::DebugRequest(const char* request, char* response_buffer, const uint32_t response_buffer_size) -> void {
+    if (id_ != vr::k_unTrackedDeviceIndexInvalid) {
         // TODO: Implement any required debugging here, for now just clear the buffer.
-        if (unResponseBufferSize > 0) {
-            std::memset(pchResponseBuffer, 0, unResponseBufferSize);
+        if (response_buffer_size > 0) {
+            std::memset(response_buffer, 0, response_buffer_size);
         }
     }
 }
 
 auto LeapDeviceDriver::GetPose() -> vr::DriverPose_t {
     // Initialise our tracker structure.
-    vr::DriverPose_t trackerPose{0};
-    trackerPose.qWorldFromDriverRotation.w = 1.f;
-    trackerPose.qDriverFromHeadRotation.w = 1.0f;
+    vr::DriverPose_t tracker_pose{0};
+    tracker_pose.qWorldFromDriverRotation.w = 1.f;
+    tracker_pose.qDriverFromHeadRotation.w = 1.0f;
 
     // Get the HMD pose as the tracker is mounted there in most scenarios.
-    vr::TrackedDevicePose_t hmdPose{};
-    vr::VRServerDriverHost()->GetRawTrackedDevicePoses(0.0f, &hmdPose, 1);
-    const auto hmdPosition = HmdVector3_From34Matrix(hmdPose.mDeviceToAbsoluteTracking);
-    const auto hmdOrientation = HmdQuaternion_FromMatrix(hmdPose.mDeviceToAbsoluteTracking);
+    vr::TrackedDevicePose_t hmd_pose{};
+    vr::VRServerDriverHost()->GetRawTrackedDevicePoses(0.0f, &hmd_pose, 1);
+    const auto hmd_position = HmdVector3_From34Matrix(hmd_pose.mDeviceToAbsoluteTracking);
+    const auto hmd_orientation = HmdQuaternion_FromMatrix(hmd_pose.mDeviceToAbsoluteTracking);
 
     // Configurable tracker position.
-    constexpr auto trackerTilt = vr::HmdQuaternion_t{1.0f, 0.0f, 0.0f, 0.0f};
-    constexpr auto trackerOffset = vr::HmdVector3_t{0.0f, 0.0f, -0.08f};
+    constexpr auto tracker_tilt = vr::HmdQuaternion_t{1.0f, 0.0f, 0.0f, 0.0f};
+    constexpr auto tracker_offset = vr::HmdVector3_t{0.0f, 0.0f, -0.08f};
 
     // Apply the offsets and update the position.
-    const auto trackerOrientation = hmdOrientation * trackerTilt;
-    const auto [v] = hmdPosition + trackerOffset * hmdOrientation;
-    trackerPose.qRotation = trackerOrientation;
-    trackerPose.vecPosition[0] = v[0];
-    trackerPose.vecPosition[1] = v[1];
-    trackerPose.vecPosition[2] = v[2];
+    const auto tracker_orientation = hmd_orientation * tracker_tilt;
+    const auto [v] = hmd_position + tracker_offset * hmd_orientation;
+    tracker_pose.qRotation = tracker_orientation;
+    tracker_pose.vecPosition[0] = v[0];
+    tracker_pose.vecPosition[1] = v[1];
+    tracker_pose.vecPosition[2] = v[2];
 
     // Set the tracking status.
-    trackerPose.poseIsValid = hmdPose.bPoseIsValid;
-    trackerPose.deviceIsConnected = true; // TODO: Update this if the device is lost? (Surely we just remove it?)
-    trackerPose.result = vr::TrackingResult_Running_OK;
+    tracker_pose.poseIsValid = hmd_pose.bPoseIsValid;
+    tracker_pose.deviceIsConnected = true; // TODO: Update this if the device is lost? (Surely we just remove it?)
+    tracker_pose.result = vr::TrackingResult_Running_OK;
 
     // Return the pose of the tracking device.
-    return trackerPose;
+    return tracker_pose;
 }
 
-auto LeapDeviceDriver::SetDeviceModelProperties(const OvrPropertiesWrapper& properties) const -> void {
-    OVR_LOG("Setting device as {}", leapDevice->ProductId());
-    switch (leapDevice->ProductId()) {
+auto LeapDeviceDriver::SetDeviceModelProperties(const VrDeviceProperties& properties) const -> void {
+    LOG_INFO("Setting device as {}", leap_device_->ProductId());
+    switch (leap_device_->ProductId()) {
     case eLeapDevicePID_Peripheral: {
         properties.Set(vr::Prop_ModelNumber_String, "lmc");
         properties.Set(vr::Prop_FieldOfViewLeftDegrees_Float, 140.0f / 2.0f);

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "VrUtils.h"
+
 #include <openvr_driver.h>
 #include <LeapC.h>
 
@@ -9,31 +11,30 @@ class LeapHandDriver final : public vr::ITrackedDeviceServerDriver {
     virtual ~LeapHandDriver() = default;
 
     // ITrackedDeviceServerDriver
-    auto Activate(uint32_t unObjectId) -> vr::EVRInitError override;
+    auto Activate(uint32_t object_id) -> vr::EVRInitError override;
     auto Deactivate() -> void override;
     auto EnterStandby() -> void override;
-    auto GetComponent(const char* pchComponentNameAndVersion) -> void* override;
-    auto DebugRequest(const char* pchRequest, char* pchResponseBuffer, uint32_t unResponseBufferSize) -> void override;
+    auto GetComponent(const char* component_name_and_version) -> void* override;
+    auto DebugRequest(const char* request, char* response_buffer, uint32_t response_buffer_size) -> void override;
     auto GetPose() -> vr::DriverPose_t override;
 
-    [[nodiscard]] auto Id() const -> uint32_t { return id; }
+    [[nodiscard]] auto Id() const -> uint32_t { return id_; }
 
-    auto UpdateHandFromFrame(const LEAP_TRACKING_EVENT* frame) -> void;
+    auto UpdateFromLeapFrame(const LEAP_TRACKING_EVENT* frame) -> void;
 
   private:
-    uint32_t id;
-    eLeapHandType handType;
+    uint32_t id_;
+    eLeapHandType hand_type_;
 
-    vr::DriverPose_t pose;
+    vr::DriverPose_t pose_;
 
-    vr::VRInputComponentHandle_t inputPinch;
-    vr::VRInputComponentHandle_t inputGrip;
+    VrScalarInputComponent input_pinch_;
+    VrScalarInputComponent input_grip_;
 
-    vr::VRInputComponentHandle_t inputSkeleton;
-    vr::VRInputComponentHandle_t inputThumbFinger;
-    vr::VRInputComponentHandle_t inputIndexFinger;
-    vr::VRInputComponentHandle_t inputMiddleFinger;
-    vr::VRInputComponentHandle_t inputRingFinger;
-    vr::VRInputComponentHandle_t inputPinkyFinger;
-    ;
+    VrSkeletonInputComponent input_skeleton_;
+    VrScalarInputComponent input_thumb_finger_;
+    VrScalarInputComponent input_index_finger_;
+    VrScalarInputComponent input_middle_finger_;
+    VrScalarInputComponent input_ring_finger_;
+    VrScalarInputComponent input_pinky_finger_;
 };
