@@ -32,7 +32,7 @@ class VrQuat : public glm::dquat {
     VrQuat() = default;
     VrQuat(const Quaternion auto& q) : glm::dquat{q.w, q.x, q.y, q.z} {} // NOLINT(*-explicit-constructor)
     explicit VrQuat(const glm::dquat& q) : glm::dquat{q} {}
-    VrQuat(value_type w, value_type x, value_type y, value_type z);
+    VrQuat(const value_type w, const value_type x, const value_type y, const value_type z) : glm::dquat{w, x, y, z} {}
 
     // Implicit conversion operators.
     operator vr::HmdQuaternion_t() const { return vr::HmdQuaternion_t{w, x, y, z}; } // NOLINT(*-explicit-constructor)
@@ -64,13 +64,13 @@ class VrQuat : public glm::dquat {
     }
 
     [[nodiscard]] static auto FromMatrix(const vr::HmdMatrix34_t& matrix) -> VrQuat {
-        return VrQuat{glm::quat_cast(glm::transpose(glm::mat3x3{glm::make_mat4x3(matrix.m)}))};
+        return VrQuat{glm::quat_cast(glm::transpose(glm::mat3x3{glm::make_mat4x3(matrix.m[0])}))};
     }
     [[nodiscard]] static auto FromMatrix(const vr::HmdMatrix33_t& matrix) -> VrQuat {
-        return VrQuat{glm::quat_cast(glm::transpose(glm::mat3x3{glm::make_mat3x3(matrix.m)}))};
+        return VrQuat{glm::quat_cast(glm::transpose(glm::mat3x3{glm::make_mat3x3(matrix.m[0])}))};
     }
     // [[nodiscard]] static auto FromMatrix(const vr::HmdMatrix44_t& matrix) -> VrQuat {
-    //     return VrQuat{glm::quat_cast(glm::transpose(glm::mat3x3{glm::make_mat4x4(matrix.m)}))};
+    //     return VrQuat{glm::quat_cast(glm::transpose(glm::mat3x3{glm::make_mat4x4(matrix.m[0])}))};
     // }
 
     [[nodiscard]] static auto FromEulerAngles(const double roll, const double pitch, const double yaw) -> VrQuat {
@@ -83,7 +83,7 @@ class VrQuat : public glm::dquat {
     static const VrQuat Identity;
 };
 
-const VrQuat VrQuat::Identity = {1, 0, 0, 0};
+inline const VrQuat VrQuat::Identity = {1, 0, 0, 0};
 
 class VrVec3 : public glm::dvec3 {
   public:
@@ -134,13 +134,13 @@ class VrVec3 : public glm::dvec3 {
     static const VrVec3 Backward;
 };
 
-const VrVec3 VrVec3::Zero = {0, 0, 0};
-const VrVec3 VrVec3::Left = {-1, 0, 0};
-const VrVec3 VrVec3::Right = {1, 0, 0};
-const VrVec3 VrVec3::Up = {0, 1, 0};
-const VrVec3 VrVec3::Down = {0, -1, 0};
-const VrVec3 VrVec3::Forward = {0, 0, -1};
-const VrVec3 VrVec3::Backward = {0, 0, 1};
+inline const VrVec3 VrVec3::Zero = {0, 0, 0};
+inline const VrVec3 VrVec3::Left = {-1, 0, 0};
+inline const VrVec3 VrVec3::Right = {1, 0, 0};
+inline const VrVec3 VrVec3::Up = {0, 1, 0};
+inline const VrVec3 VrVec3::Down = {0, -1, 0};
+inline const VrVec3 VrVec3::Forward = {0, 0, -1};
+inline const VrVec3 VrVec3::Backward = {0, 0, 1};
 
 // Global operators to allow operation on standard types and interop between VrVec3 and VrQuat.
 static auto operator*(const VrVec3& lhs, const VrQuat& rhs) -> VrVec3 {
