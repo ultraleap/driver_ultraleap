@@ -116,10 +116,27 @@ auto LeapDeviceProvider::TrackingFrame(const uint32_t /*deviceId*/, const LEAP_T
 }
 
 auto LeapDeviceProvider::TrackingModeChanged(const uint32_t device_id, const LEAP_TRACKING_MODE_EVENT* event) const -> void {
-    if (event->current_tracking_mode != eLeapTrackingMode_HMD) {
-        const auto& leapDevice = leap_device_by_id_.at(device_id);
-        LOG_INFO("Device {} is not currently in HMD mode, setting to HMD", leapDevice->SerialNumber());
-        LeapSetTrackingModeEx(leap_connection_, leapDevice->Handle(), eLeapTrackingMode_HMD);
+    auto orientation = VrSettings::GetString("orientation");
+    const auto& leapDevice = leap_device_by_id_.at(device_id);
+    auto trackingMode = eLeapTrackingMode_Unknown;
+
+    if (orientation == "Head Mounted") {
+        LOG_INFO("Device {} tracking mode is being overridden by steamvr.vrsettings to: '{}'", leapDevice->SerialNumber(), orientation);
+        trackingMode = eLeapTrackingMode_HMD;
+    } else if (orientation == "Desktop") {
+        LOG_INFO("Device {} tracking mode is being overridden by steamvr.vrsettings to: '{}'", leapDevice->SerialNumber(), orientation);
+        trackingMode = eLeapTrackingMode_Desktop;
+    } else {
+        LOG_INFO("Invalid tracking mode set in steamvr.vrsettings with value: '{}', falling back to HMD...", orientation);
+        trackingMode = eLeapTrackingMode_HMD;
+    }
+
+    LeapSetTrackingModeEx(leap_connection_, leapDevice->Handle(), trackingMode);
+
+    for (const auto handDriver : {left_hand_.get(), right_hand_.get()}) {
+        if (handDriver != nullptr) {
+            handDriver->UpdateTrackingMode(trackingMode);
+        }
     }
 }
 
