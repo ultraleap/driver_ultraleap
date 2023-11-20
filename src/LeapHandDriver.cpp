@@ -56,7 +56,7 @@ auto LeapHandDriver::Activate(const uint32_t object_id) -> vr::EVRInitError {
         p.Set(vr::Prop_ControllerType_String, "ultraleap_hand");
         p.Set(vr::Prop_ControllerHandSelectionPriority_Int32, 0);
         p.Set(vr::Prop_ManufacturerName_String, "Ultraleap");
-        p.Set(vr::Prop_RenderModelName_String, "{ultraleap}/rendermodels/ultraleap_hand");
+        //p.Set(vr::Prop_RenderModelName_String, "{ultraleap}/rendermodels/ultraleap_hand");
 
         // Device capabilities.
         p.Set(vr::Prop_DeviceIsWireless_Bool, true);
@@ -74,7 +74,7 @@ auto LeapHandDriver::Activate(const uint32_t object_id) -> vr::EVRInitError {
         }
 
         // Setup input profiles.
-        p.Set(vr::Prop_InputProfilePath_String, "{ultraleap}/input/hand_profile.json");
+        p.Set(vr::Prop_InputProfilePath_String, "{ultraleap}/input/ultraleap_hand_profile.json");
 
         input_pinch_ = p.CreateAbsoluteScalarInput("/input/pinch/value", vr::VRScalarUnits_NormalizedOneSided);
         input_grip_ = p.CreateAbsoluteScalarInput("/input/grip/value", vr::VRScalarUnits_NormalizedOneSided);
@@ -149,17 +149,19 @@ auto LeapHandDriver::UpdateFromLeapFrame(const LEAP_TRACKING_EVENT* frame) -> vo
         if (const auto hmd_pose = HmdPose::Get(time_offset); hmd_pose.IsValid()) {
             pose_.poseIsValid = true;
 
-            // Set identiy head rotation for now.
+            // Space transform from LeapC -> OpenVR Head Space.
+            const auto tracker_head_offset = VrVec3{0, 0, -0.08f};
+            const auto tracker_head_rotation = VrQuat::FromEulerAngles(-std::numbers::pi / 2.0, 0, std::numbers::pi);
             pose_.qDriverFromHeadRotation = VrQuat::Identity;
             VrVec3::Zero.CopyToArray(pose_.vecDriverFromHeadTranslation);
 
-            // Space transform from LeapC -> OpenVR Space.
-            const auto tracker_head_offset = VrVec3{0, 0, -0.08f};
-            const auto tracker_local_orientation = VrQuat::FromEulerAngles(0.0, std::numbers::pi / 2.0, std::numbers::pi);
-            const auto tracker_local_translation = hmd_pose.Position() + tracker_head_offset * hmd_pose.Orientation();
-            pose_.qWorldFromDriverRotation = hmd_pose.Orientation() * tracker_local_orientation;
-            tracker_local_translation.CopyToArray(pose_.vecWorldFromDriverTranslation);
+            // Space transform from LeapC -> OpenVR World Space.
+            const auto tracker_world_orientation = hmd_pose.Orientation() * tracker_head_rotation;
+            const auto tracker_world_position = hmd_pose.Position() + tracker_head_offset * hmd_pose.Orientation();
+            pose_.qWorldFromDriverRotation = tracker_world_orientation;
+            tracker_world_position.CopyToArray(pose_.vecWorldFromDriverTranslation);
 
+            // Copy joint applying LeapC -> OpenVR scaling correction.
             (VrVec3{hand.arm.next_joint} * 0.001).CopyToArray(pose_.vecPosition);
             pose_.qRotation = VrQuat{hand.arm.rotation};
 

@@ -31,6 +31,8 @@ add_library(driver_ultraleap SHARED
         src/VrUtils.h
         src/VrLogging.h
         src/VrMaths.h
+        src/LeapElbowDriver.cpp
+        src/LeapElbowDriver.h
 )
 target_link_libraries(driver_ultraleap
         PUBLIC OpenVR::OpenVR

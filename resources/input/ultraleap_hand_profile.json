@@ -1,7 +1,7 @@
 {
   "jsonid": "input_profile",
   "controller_type": "ultraleap_hand",
-  "legacy_binding": "{ultraleap}/input/legacy_binding_hand.json",
+  "legacy_binding": "{ultraleap}/input/legacy_binding_ultraleap_hand.json",
   "input_bindingui_mode": "controller_handed",
   "input_bindingui_left": {
     "transform": "scale(-1,1)",
