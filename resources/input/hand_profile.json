@@ -1,6 +1,7 @@
 {
   "jsonid": "input_profile",
   "controller_type": "ultraleap_hand",
+  "legacy_binding": "{ultraleap}/input/legacy_binding_hand.json",
   "input_bindingui_mode": "controller_handed",
   "input_bindingui_left": {
     "transform": "scale(-1,1)",
@@ -22,6 +23,7 @@
       "value": true,
       "order": 2
     },
+
     "/input/raw": {
       "type": "pose",
       "binding_image_point" : [0, 0]
@@ -42,26 +44,31 @@
 
     "/input/finger/thumb" : {
       "type" : "trigger",
+      "visibility" : "InputValueVisibility_AvailableButHidden",
       "binding_image_point" : [ 0, 0 ],
       "order" : 100
     },
     "/input/finger/index" : {
       "type" : "trigger",
+      "visibility" : "InputValueVisibility_AvailableButHidden",
       "binding_image_point" : [ 0, 0 ],
       "order" : 101
     },
     "/input/finger/middle" : {
       "type" : "trigger",
+      "visibility" : "InputValueVisibility_AvailableButHidden",
       "binding_image_point" : [ 0, 0 ],
       "order" : 102
     },
     "/input/finger/ring" : {
       "type" : "trigger",
+      "visibility" : "InputValueVisibility_AvailableButHidden",
       "binding_image_point" : [ 0, 0 ],
       "order" : 103
     },
     "/input/finger/pinky" : {
       "type" : "trigger",
+      "visibility" : "InputValueVisibility_AvailableButHidden",
       "binding_image_point" : [ 0, 0 ],
       "order" : 104
     }
