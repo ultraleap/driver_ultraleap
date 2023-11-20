@@ -6,8 +6,8 @@
 #include <string>
 
 #include <openvr_driver.h>
-#include <vrmath.h>
 
+#include "VrMaths.h"
 #include "VrLogging.h"
 
 // Platform specific export macros.
@@ -20,6 +20,45 @@
 #else
 #error "Unsupported Platform"
 #endif
+
+typedef int32_t BoneIndex_t;
+const BoneIndex_t INVALID_BONEINDEX = -1;
+enum class VrHandSkeletonBone : BoneIndex_t
+{
+    Root = 0,
+    Wrist,
+    Thumb0,
+    Thumb1,
+    Thumb2,
+    Thumb3,
+    IndexFinger0,
+    IndexFinger1,
+    IndexFinger2,
+    IndexFinger3,
+    IndexFinger4,
+    MiddleFinger0,
+    MiddleFinger1,
+    MiddleFinger2,
+    MiddleFinger3,
+    MiddleFinger4,
+    RingFinger0,
+    RingFinger1,
+    RingFinger2,
+    RingFinger3,
+    RingFinger4,
+    PinkyFinger0,
+    PinkyFinger1,
+    PinkyFinger2,
+    PinkyFinger3,
+    PinkyFinger4,
+    Aux_Thumb,
+    Aux_IndexFinger,
+    Aux_MiddleFinger,
+    Aux_RingFinger,
+    Aux_PinkyFinger,
+    Count
+};
+
 
 class VrBooleanInputComponent {
   public:
@@ -75,7 +114,7 @@ class VrSkeletonInputComponent {
     VrSkeletonInputComponent() = default;
     VrSkeletonInputComponent(const vr::VRInputComponentHandle_t handle, const char* name) : handle{handle}, name{name} {}
 
-    auto Update(const vr::EVRSkeletalMotionRange motion_range, const std::span<vr::VRBoneTransform_t> bone_transforms) -> void {
+    auto Update(const vr::EVRSkeletalMotionRange motion_range, const std::span<const vr::VRBoneTransform_t> bone_transforms) -> void {
         if (vr::VRDriverInput()->UpdateSkeletonComponent(handle, motion_range, bone_transforms.data(), bone_transforms.size())
             != vr::VRInputError_None) {
             throw std::runtime_error(std::format("Failed update skeleton input component \"{}\"", name));
@@ -179,13 +218,14 @@ class VrDeviceProperties {
         return VrScalarInputComponent{component_handle, name, vr::VRScalarType_Relative, units};
     }
 
-    [[maybe_unused]] auto CreateHapticOutput(const char* name) const -> vr::VRInputComponentHandle_t {
-        vr::VRInputComponentHandle_t component_handle;
-        if (vr::VRDriverInput()->CreateHapticComponent(handle, name, &component_handle) != vr::VRInputError_None) {
-            throw std::runtime_error(std::format("Failed to create haptic output component \"{}\"", name));
-        }
-        return component_handle;
-    }
+    // TODO: Wrap and re-enable?
+    // [[maybe_unused]] auto CreateHapticOutput(const char* name) const -> vr::VRInputComponentHandle_t {
+    //     vr::VRInputComponentHandle_t component_handle;
+    //     if (vr::VRDriverInput()->CreateHapticComponent(handle, name, &component_handle) != vr::VRInputError_None) {
+    //         throw std::runtime_error(std::format("Failed to create haptic output component \"{}\"", name));
+    //     }
+    //     return component_handle;
+    // }
 
     [[maybe_unused]] auto CreateSkeletonInput(
         const char* name,
@@ -199,7 +239,7 @@ class VrDeviceProperties {
             != vr::VRInputError_None) {
             throw std::runtime_error(std::format("Failed to create skeleton input component \"{}\"", name));
         }
-        return VrSkeletonInputComponent{handle, name};
+        return VrSkeletonInputComponent{component_handle, name};
     }
 
   private:
@@ -268,24 +308,24 @@ class HmdPose {
         HmdPose pose{};
         vr::VRServerDriverHost()->GetRawTrackedDevicePoses(static_cast<float>(time_offset), &pose.hmd_pose, 1);
         if (pose.hmd_pose.bPoseIsValid && pose.hmd_pose.eTrackingResult == vr::TrackingResult_Running_OK) {
-            pose.hmd_position = HmdVector3_From34Matrix(pose.hmd_pose.mDeviceToAbsoluteTracking);
-            pose.hmd_orientation = HmdQuaternion_FromMatrix(pose.hmd_pose.mDeviceToAbsoluteTracking);
+            pose.hmd_position = VrVec3::FromMatrix(pose.hmd_pose.mDeviceToAbsoluteTracking);
+            pose.hmd_orientation = VrQuat::FromMatrix(pose.hmd_pose.mDeviceToAbsoluteTracking);
         }
         return pose;
     }
 
     [[nodiscard]] auto IsValid() const -> bool { return hmd_pose.bPoseIsValid; }
-    [[nodiscard]] auto Position() const -> vr::HmdVector3_t { return hmd_position; }
-    [[nodiscard]] auto Orientation() const -> vr::HmdQuaternion_t { return hmd_orientation; }
-    [[nodiscard]] auto Velocity() const -> vr::HmdVector3_t { return hmd_pose.vVelocity; }
-    [[nodiscard]] auto AngularVelocity() const -> vr::HmdVector3_t { return hmd_pose.vAngularVelocity; }
+    [[nodiscard]] auto Position() const -> const VrVec3& { return hmd_position; }
+    [[nodiscard]] auto Orientation() const -> const VrQuat& { return hmd_orientation; }
+    [[nodiscard]] auto Velocity() const -> const VrVec3& { return hmd_pose.vVelocity; }
+    [[nodiscard]] auto AngularVelocity() const -> const VrVec3& { return hmd_pose.vAngularVelocity; }
 
   private:
     HmdPose() = default;
 
     vr::TrackedDevicePose_t hmd_pose{};
-    vr::HmdVector3_t hmd_position{};
-    vr::HmdQuaternion_t hmd_orientation{HmdQuaternion_Identity};
+    VrVec3 hmd_position{};
+    VrQuat hmd_orientation{1.0f, 0, 0, 0};
 };
 
 constexpr vr::DriverPose_t kDeviceConnectedPose{

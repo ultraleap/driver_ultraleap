@@ -8,6 +8,7 @@ SortIncludes: Never
 
 BreakBeforeBinaryOperators: NonAssignment
 BreakConstructorInitializers: BeforeColon
+AlwaysBreakTemplateDeclarations: Yes
 
 # Alignment
 AlignOperands: AlignAfterOperator

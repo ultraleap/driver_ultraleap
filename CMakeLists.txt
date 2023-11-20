@@ -7,8 +7,14 @@ set(CMAKE_CXX_STANDARD 23)
 
 set(LeapSDK_DIR ${CMAKE_SOURCE_DIR}/3rdparty/LeapSDK/lib/cmake/LeapSDK)
 set(OpenVR_ROOT ${CMAKE_SOURCE_DIR}/3rdparty/OpenVR)
+set(GLM_ROOT ${CMAKE_SOURCE_DIR}/3rdparty/GLM)
+
 find_package(OpenVR REQUIRED)
 find_package(LeapSDK 5 REQUIRED)
+
+# Add GLM (avoiding an annoying target it adds by creating a dummy one with the same name).
+add_custom_target(uninstall)
+add_subdirectory(${GLM_ROOT})
 
 add_library(driver_ultraleap SHARED
         src/HmdDriverFactory.cpp
@@ -24,10 +30,12 @@ add_library(driver_ultraleap SHARED
         src/OsUtils.h
         src/VrUtils.h
         src/VrLogging.h
+        src/VrMaths.h
 )
 target_link_libraries(driver_ultraleap
         PUBLIC OpenVR::OpenVR
-        PRIVATE LeapSDK::LeapC)
+        PRIVATE LeapSDK::LeapC
+        PRIVATE glm::glm)
 target_include_directories(driver_ultraleap
         PRIVATE ${OpenVR_INCLUDE_DIR}/../samples/drivers/utils/vrmath/
 )

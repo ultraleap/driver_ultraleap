@@ -23,10 +23,13 @@ class LeapHandDriver final : public vr::ITrackedDeviceServerDriver {
     auto UpdateFromLeapFrame(const LEAP_TRACKING_EVENT* frame) -> void;
 
   private:
+    auto UpdateBoneTransforms(const LEAP_HAND* hand) -> void;
+
     uint32_t id_;
     eLeapHandType hand_type_;
 
     vr::DriverPose_t pose_;
+    std::array<vr::VRBoneTransform_t, 31> bones_transforms_;
 
     VrScalarInputComponent input_pinch_;
     VrScalarInputComponent input_grip_;
