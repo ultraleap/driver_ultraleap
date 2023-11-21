@@ -19,14 +19,21 @@ class LeapHandDriver final : public vr::ITrackedDeviceServerDriver {
     auto GetPose() -> vr::DriverPose_t override;
 
     [[nodiscard]] auto Id() const -> uint32_t { return id_; }
-    auto UpdateTrackingMode(eLeapTrackingMode mode) -> void { tracking_mode_ = mode; }
+    auto UpdateHmdTrackerOffset() -> void { hmd_tracker_offset_ = GetHmdTrackerOffset(); }
+    auto UpdateDesktopTrackerOffset() -> void { desktop_tracker_offset_= GetDesktopTrackerOffset(); }
+    auto UpdateTrackingMode(const eLeapTrackingMode mode) -> void { tracking_mode_ = mode; }
 
     auto UpdateFromLeapFrame(const LEAP_TRACKING_EVENT* frame) -> void;
 
   private:
+    [[nodsicard]] static auto GetHmdTrackerOffset() -> vr::HmdVector3_t;
+    [[nodsicard]] static auto GetDesktopTrackerOffset() -> vr::HmdVector3_t;
+
     uint32_t id_;
     eLeapHandType hand_type_;
     eLeapTrackingMode tracking_mode_;
+    vr::HmdVector3_t hmd_tracker_offset_;
+    vr::HmdVector3_t desktop_tracker_offset_;
 
     vr::DriverPose_t pose_;
 

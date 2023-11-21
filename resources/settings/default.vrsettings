@@ -4,6 +4,12 @@
     "loadPriority": 0,
     "blocked_by_safe_mode": true,
 
-    "orientation": "Head Mounted"
+    "orientation": "Head Mounted",
+    "hmd_offset_x": 0.0,
+    "hmd_offset_y": 0.0,
+    "hmd_offset_z": -0.08,
+    "desktop_offset_x": 0.0,
+    "desktop_offset_y": -0.2,
+    "desktop_offset_z": -0.35,
   }
 }
