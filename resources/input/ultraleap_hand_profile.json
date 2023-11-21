@@ -5,10 +5,10 @@
   "input_bindingui_mode": "controller_handed",
   "input_bindingui_left": {
     "transform": "scale(-1,1)",
-    "image": "{ultraleap}/bindingui/hand.svg"
+    "image": "{holographic}/icons/hand.svg"
   },
   "input_bindingui_right": {
-    "image": "{ultraleap}/bindingui/hand.svg"
+    "image": "{holographic}/icons/hand.svg"
   },
   "input_source": {
     "/input/pinch": {
