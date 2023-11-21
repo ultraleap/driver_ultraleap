@@ -21,9 +21,7 @@
 #error "Unsupported Platform"
 #endif
 
-typedef int32_t BoneIndex_t;
-const BoneIndex_t INVALID_BONEINDEX = -1;
-enum class VrHandSkeletonBone : BoneIndex_t
+enum VrHandSkeletonBone : int32_t
 {
     Root = 0,
     Wrist,
@@ -51,11 +49,11 @@ enum class VrHandSkeletonBone : BoneIndex_t
     PinkyFinger2,
     PinkyFinger3,
     PinkyFinger4,
-    Aux_Thumb,
-    Aux_IndexFinger,
-    Aux_MiddleFinger,
-    Aux_RingFinger,
-    Aux_PinkyFinger,
+    AuxThumb,
+    AuxIndexFinger,
+    AuxMiddleFinger,
+    AuxRingFinger,
+    AuxPinkyFinger,
     Count
 };
 
@@ -256,13 +254,8 @@ class VrDeviceProperties {
 
 class VrSettings {
   public:
-    [[maybe_unused]] [[nodiscard]] static auto GetString(const std::string_view key) -> std::string {
-        std::array<char, 4096> value{};
-        vr::VRSettings()->GetString(kUltraleapSection, std::string{key}.c_str(), value.data(), value.size());
-        return std::string{value.data()};
-    }
-
-    template <typename T> static auto Get(std::string_view key) -> T = delete;
+    template <typename T>
+    [[maybe_unused]] [[nodiscard]] static auto Get(std::string_view key) -> T = delete;
 
     [[maybe_unused]] static auto Set(const std::string_view key, const std::string_view value) -> void {
         vr::VRSettings()->SetString(kUltraleapSection, std::string{key}.c_str(), std::string{value}.c_str());
