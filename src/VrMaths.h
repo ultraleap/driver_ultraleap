@@ -56,9 +56,7 @@ class VrQuat : public dquat {
     [[nodiscard]] auto Length() const -> value_type { return glm::length(static_cast<dquat>(*this)); }
     [[nodiscard]] auto Normalize() -> VrQuat& { return *this = Normalized(); }
 
-    [[nodiscard]] static auto Dot(const VrQuat& a, const VrQuat& b) -> value_type {
-        return dot(static_cast<dquat>(a), b);
-    }
+    [[nodiscard]] static auto Dot(const VrQuat& a, const VrQuat& b) -> value_type { return dot(static_cast<dquat>(a), b); }
     [[nodiscard]] static auto Cross(const VrQuat& a, const VrQuat& b) -> VrQuat { return cross(a, b); }
     [[nodiscard]] static auto Slerp(const VrQuat& a, const VrQuat& b, const std::floating_point auto& alpha) -> VrQuat& {
         return slerp(a, b, static_cast<value_type>(alpha));
@@ -94,9 +92,12 @@ class VrVec3 : public dvec3 {
     VrVec3(value_type x, value_type y, value_type z) : dvec3{x, y, z} {}
     explicit VrVec3(const dvec3& v) : dvec3{v} {}
 
-    // Implicit conversion operators: NOLINTNEXTLINE(*-explicit-constructor).
+    // NOLINTNEXTLINE(*-explicit-constructor).
     operator vr::HmdVector3_t() const { return {static_cast<float>(x), static_cast<float>(y), static_cast<float>(z)}; }
-    operator vr::HmdVector3d_t() const { return {x, y, z}; } // NOLINT(*-explicit-constructor)
+    // NOLINTNEXTLINE(*-explicit-constructor)
+    operator vr::HmdVector3d_t() const { return {x, y, z}; }
+    // NOLINTNEXTLINE(*-explicit-constructor)
+    operator vr::HmdVector4_t() const { return {static_cast<float>(x), static_cast<float>(y), static_cast<float>(z), 1.0}; }
 
     [[nodiscard]] auto operator-() const -> VrVec3 { return VrVec3{static_cast<const dvec3>(*this)}; }
     [[nodiscard]] auto operator+(const VrVec3& v) const -> VrVec3 { return VrVec3{*this + static_cast<const dvec3>(v)}; }
@@ -116,12 +117,7 @@ class VrVec3 : public dvec3 {
     [[nodiscard]] auto Dot(const Vector3 auto& other) const -> double { return dot(*this, make_vec3(other.v)); }
     [[nodiscard]] auto Dot(const VrVec3& other) const -> double { return dot(*this, make_vec3(other.data.data)); }
 
-    auto CopyToArray(double destination[3]) const -> void {
-        //std::ranges::copy(this->data.data, destination);
-        destination[0] = x;
-        destination[1] = y;
-        destination[2] = z;
-    }
+    auto CopyToArray(double destination[3]) const -> void { std::ranges::copy(this->data.data, destination); }
 
     static auto FromMatrix(const vr::HmdMatrix34_t& matrix) -> VrVec3 {
         return VrVec3{matrix.m[0][3], matrix.m[1][3], matrix.m[2][3]};
