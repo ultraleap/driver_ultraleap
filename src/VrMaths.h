@@ -8,6 +8,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/quaternion.hpp>
+#include <glm/gtx/euler_angles.hpp>
 
 using namespace glm;
 
@@ -60,6 +61,12 @@ class VrQuat : public dquat {
     [[nodiscard]] static auto Cross(const VrQuat& a, const VrQuat& b) -> VrQuat { return cross(a, b); }
     [[nodiscard]] static auto Slerp(const VrQuat& a, const VrQuat& b, const std::floating_point auto& alpha) -> VrQuat& {
         return slerp(a, b, static_cast<value_type>(alpha));
+    }
+
+    [[nodiscard]] auto ToEulerAngles() const -> std::tuple<value_type, value_type, value_type> {
+        value_type euler_angles[3];
+        extractEulerAngleXYZ(mat4_cast(*this), euler_angles[0], euler_angles[1], euler_angles[2]);
+        return {euler_angles[0], euler_angles[1], euler_angles[2]};
     }
 
     [[nodiscard]] static auto FromMatrix(const vr::HmdMatrix34_t& matrix) -> VrQuat {

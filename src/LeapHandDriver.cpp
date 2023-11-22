@@ -183,17 +183,17 @@ auto LeapHandDriver::UpdateFromLeapFrame(const LEAP_TRACKING_EVENT* frame) -> vo
         // Update finger curl amounts
         // TODO: Calculate correctly.
         input_thumb_finger_.Update(static_cast<float>(hand.digits[0].is_extended), time_offset);
-        input_index_finger_.Update(static_cast<float>(hand.digits[0].is_extended), time_offset);
-        input_middle_finger_.Update(static_cast<float>(hand.digits[0].is_extended), time_offset);
-        input_ring_finger_.Update(static_cast<float>(hand.digits[0].is_extended), time_offset);
-        input_pinky_finger_.Update(static_cast<float>(hand.digits[0].is_extended), time_offset);
+        input_index_finger_.Update(static_cast<float>(hand.digits[1].is_extended), time_offset);
+        input_middle_finger_.Update(static_cast<float>(hand.digits[2].is_extended), time_offset);
+        input_ring_finger_.Update(static_cast<float>(hand.digits[3].is_extended), time_offset);
+        input_pinky_finger_.Update(static_cast<float>(hand.digits[4].is_extended), time_offset);
     } else {
         pose_.result = vr::TrackingResult_Running_OutOfRange;
         pose_.poseIsValid = false;
         pose_.deviceIsConnected = true;
     }
 
-    // Update the poser for this virtual hand;
+    // Update the pose for this virtual hand;
     vr::VRServerDriverHost()->TrackedDevicePoseUpdated(id_, pose_, sizeof(pose_));
 }
 
@@ -204,71 +204,87 @@ auto LeapHandDriver::SetInitialBoneTransforms() -> void {
 
 auto LeapHandDriver::UpdateBoneTransforms(const LEAP_HAND& hand) -> void {
     const auto GetBoneRotation = [&](const VrHandSkeletonBone bone) -> VrQuat {
-        VrQuat rotation = VrQuat::Identity;
-
+        if (bone == Root) {
+            return VrQuat{hand.palm.orientation};
+        }
         if (bone == Wrist) {
-            rotation = VrQuat{hand.palm.orientation}.Inverse() * hand.arm.rotation;
+            return VrQuat{hand.arm.rotation};
         }
         if (bone < IndexFinger0) {
-            rotation = hand.thumb.bones[bone - Thumb0].rotation;
+            // Ignore the zero length metacarpal and the tip has the same rotation as the preceeding bone.
+            return VrQuat{hand.thumb.bones[std::max(bone - Thumb0 + 1, 3)].rotation};
         }
         if (bone < AuxThumb) {
-            rotation = hand.digits[(bone - IndexFinger0 + 1) / 5].bones[(bone - IndexFinger0) % 5].rotation;
+            // Tip has the same rotation as preceeding bone.
+            return VrQuat{hand.digits[(bone - IndexFinger0) / 5 + 1].bones[std::max((bone - IndexFinger0) % 5, 3)].rotation};
         }
-
-        // Fiddle the rotation
-        // std::swap(rotation.x, rotation.z);
-        // rotation.z *= -1.0f;
-
-        return rotation;
+        // TODO: AUX Bones
+        return VrQuat::Identity;
     };
 
     const auto GetBonePosition = [&](const VrHandSkeletonBone bone) -> VrVec3 {
         if (bone == Root) {
-            return VrVec3{hand.palm.position} * 0.001f;
+            return VrVec3{hand.palm.position} * 0.001f ;
         }
         if (bone == Wrist) {
             return VrVec3{hand.arm.next_joint} * 0.001f;
         }
         if (bone < IndexFinger0) {
+            // Special case checking for the finger tip.
+            if (bone == Thumb3) {
+                return VrVec3{hand.thumb.distal.next_joint} * 0.001f;
+            }
+            // Ignore the zero length metacarpal.
             return VrVec3{hand.thumb.bones[bone - Thumb0 + 1].prev_joint} * 0.001f;
         }
         if (bone < AuxThumb) {
-            return VrVec3{hand.digits[(bone - IndexFinger0 + 1) / 5].bones[(bone - IndexFinger0) % 5].prev_joint} * 0.001f;
+            // Again account for the tip specially.
+            const auto digit_index = (bone - IndexFinger0) / 5 + 1;
+            const auto bone_index = (bone - IndexFinger0) % 5;
+            if (bone_index == 4) {
+                return VrVec3{hand.digits[digit_index].bones[bone_index - 1].next_joint} * 0.001f;
+            }
+            return VrVec3{hand.digits[digit_index].bones[bone_index].prev_joint} * 0.001f;
         }
+        // TODO: AUX Bones
         return VrVec3::Zero;
     };
+    // Start with sensible data
+    //std::memcpy(&bones_transforms_, kOpenHandGesture, sizeof(kOpenHandGesture));
 
-    const auto ComputeDigitBoneTransforms = [&](VrVec3 parent_world_position,
-                                                VrQuat parent_world_rotation,
-                                                const size_t index_start,
-                                                const size_t index_end) {
-         const auto magic = VrQuat{0.5f, 0.5f, -0.5f, 0.5f};
-        for (auto index = index_start; index <= index_end; ++index) {
-            auto bone_local_position = (GetBonePosition(static_cast<VrHandSkeletonBone>(index)) - parent_world_position);
-            auto bone_local_rotation = GetBoneRotation(static_cast<VrHandSkeletonBone>(index)) * parent_world_rotation;
-            bones_transforms_[index] = vr::VRBoneTransform_t{
-                bone_local_position,
-                bone_local_rotation,
-            };
+    const auto tracker_head_offset = VrVec3{0, 0, -0.08f};
+    const auto tracker_head_rotation = VrQuat::FromEulerAngles(-std::numbers::pi / 2.0, 0, std::numbers::pi);
+    const auto hmd_pose = HmdPose::Get();
+    const auto tracker_world_orientation = hmd_pose.Orientation() * tracker_head_rotation;
+    const auto tracker_world_position = hmd_pose.Position() + tracker_head_offset * hmd_pose.Orientation();
 
-            parent_world_position = GetBonePosition(static_cast<VrHandSkeletonBone>(index));
-            parent_world_rotation = GetBoneRotation(static_cast<VrHandSkeletonBone>(index));
-        }
+    const auto ComputeDigitBoneTransforms =
+        [&](VrVec3 parent_position, VrQuat parent_rotation, const size_t index_start, const size_t index_end) {
+            for (auto index = index_start; index <= index_end; ++index) {
+
+                auto bone_position = GetBonePosition(static_cast<VrHandSkeletonBone>(index)) + tracker_world_position;
+                auto bone_rotation = GetBoneRotation(static_cast<VrHandSkeletonBone>(index)) * tracker_world_orientation;
+
+                // // Appl the required metacarpal offset.
+                // if (index == index_start) {
+                //     bone_rotation *= VrQuat{0.5f, 0.5f, -0.5f, 0.5f};
+                // }
+
+                bones_transforms_[index] = vr::VRBoneTransform_t{
+                    (bone_position - parent_position) * parent_rotation,           // Local bone position.
+                    parent_rotation.Inverse() * bone_rotation, // Local bone rotation TODO: Check ordering of multiplications.
+                };
+                parent_position = bone_position;
+                parent_rotation = bone_rotation;
+            }
     };
 
-    // Start with sensible data
-    std::memcpy(&bones_transforms_, kOpenHandGesture, sizeof(kOpenHandGesture));
-
-    // Setup the Root and Wrist bones.
-    VrQuat magic = { 0.5f, 0.5f, -0.5f, 0.5f };
-
-    const auto root_position = GetBonePosition(Root);
-    const auto root_rotation = GetBoneRotation(Root);
-    const auto wrist_position = GetBonePosition(Wrist);
-    const auto wrist_rotation = GetBoneRotation(Wrist);
+    const auto root_position = GetBonePosition(Root) + tracker_world_position;
+    const auto root_rotation = GetBoneRotation(Root) * tracker_world_orientation;
+    const auto wrist_position = GetBonePosition(Wrist) + tracker_world_position;
+    const auto wrist_rotation = GetBoneRotation(Wrist) * tracker_world_orientation;
     bones_transforms_[Root] = vr::VRBoneTransform_t{VrVec3::Zero, VrQuat::Identity};
-    bones_transforms_[Wrist] = vr::VRBoneTransform_t{wrist_position - root_position, magic.Inverse() * root_rotation};
+    bones_transforms_[Wrist] = vr::VRBoneTransform_t{(wrist_position - root_position) * root_rotation, root_rotation.Inverse() * wrist_rotation}; // TODO: Check ordering of multiplications.
 
     // Computer the bone digits.
     ComputeDigitBoneTransforms(wrist_position, wrist_rotation, Thumb0, Thumb3);
@@ -276,6 +292,20 @@ auto LeapHandDriver::UpdateBoneTransforms(const LEAP_HAND& hand) -> void {
     ComputeDigitBoneTransforms(wrist_position, wrist_rotation, MiddleFinger0, MiddleFinger4);
     ComputeDigitBoneTransforms(wrist_position, wrist_rotation, RingFinger0, RingFinger4);
     ComputeDigitBoneTransforms(wrist_position, wrist_rotation, PinkyFinger0, PinkyFinger4);
+
+    // TODO: Calculate AUX bones here.
+
+    // Debug all the transforms as euler angles
+    std::array<std::array<int, 3>, 31> bone_angles_{};
+    for (auto i = 0; i < 31; ++i) {
+        auto [pitch, yaw, roll] = VrQuat{bones_transforms_[i].orientation}.ToEulerAngles();
+        constexpr auto radiansToDegrees = 180.0 / std::numbers::pi;
+        bone_angles_[i] = {
+            static_cast<int>(pitch * radiansToDegrees),
+            static_cast<int>(yaw * radiansToDegrees),
+            static_cast<int>(roll * radiansToDegrees)
+        };
+    }
 
     // Update the skeletons.
     input_skeleton_.Update(vr::VRSkeletalMotionRange_WithController, bones_transforms_);
