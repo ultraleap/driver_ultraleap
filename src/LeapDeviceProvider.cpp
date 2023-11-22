@@ -71,9 +71,9 @@ auto LeapDeviceProvider::RunFrame() -> void {
     //    }
 
     // Poll the runtime for events; for now we only care if the settings change
-    vr::VREvent_t vr_event{};
-    while(vr::VRServerDriverHost()->PollNextEvent(&vr_event, sizeof(vr_event))) {
-        switch (vr_event.eventType) {
+    vr::VREvent_t event{};
+    while(vr::VRServerDriverHost()->PollNextEvent(&event, sizeof(event))) {
+        switch (event.eventType) {
         default: continue;
         case vr::EVREventType::VREvent_OtherSectionSettingChanged: OtherSectionSettingsChanged(); break;
         }
@@ -81,7 +81,7 @@ auto LeapDeviceProvider::RunFrame() -> void {
 }
 
 auto LeapDeviceProvider::OtherSectionSettingsChanged() const -> void {
-    // Prompt a refetch of all the settings file variables.
+    // Prompt a re-fetch of all the settings file variables.
     UpdateServiceAndDriverTrackingMode(GetTrackingMode(), std::nullopt);
 
     for (const auto handDriver : {left_hand_.get(), right_hand_.get()}) {
@@ -277,12 +277,12 @@ auto LeapDeviceProvider::UpdateServiceAndDriverTrackingMode(const eLeapTrackingM
 }
 
 auto LeapDeviceProvider::GetTrackingMode() -> eLeapTrackingMode {
-    if (const auto orientation = VrSettings::GetString("orientation"); orientation == "Head Mounted") {
+    if (const auto mode = VrSettings::GetString("tracker_mode"); mode == "hmd") {
         return eLeapTrackingMode_HMD;
-    } else if (orientation == "Desktop") {
+    } else if (mode == "desktop") {
         return eLeapTrackingMode_Desktop;
     } else {
-        LOG_INFO("Orientation Key in VrSettings isn't a valid value: '{}', falling back to HMD...", orientation);
+        LOG_INFO("Orientation Key in VrSettings isn't a valid value: '{}', falling back to HMD...", mode);
         return eLeapTrackingMode_HMD;
     }
 }

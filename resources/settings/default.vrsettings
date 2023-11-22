@@ -4,7 +4,7 @@
     "loadPriority": 0,
     "blocked_by_safe_mode": true,
 
-    "orientation": "Head Mounted",
+    "tracker_mode": "hmd",
     "hmd_offset_x": 0.0,
     "hmd_offset_y": 0.0,
     "hmd_offset_z": -0.08,

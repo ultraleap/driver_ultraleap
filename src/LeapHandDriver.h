@@ -1,5 +1,7 @@
 #pragma once
 
+#include <atomic>
+
 #include "VrUtils.h"
 
 #include <openvr_driver.h>
@@ -26,14 +28,14 @@ class LeapHandDriver final : public vr::ITrackedDeviceServerDriver {
     auto UpdateFromLeapFrame(const LEAP_TRACKING_EVENT* frame) -> void;
 
   private:
-    [[nodsicard]] static auto GetHmdTrackerOffset() -> vr::HmdVector3_t;
-    [[nodsicard]] static auto GetDesktopTrackerOffset() -> vr::HmdVector3_t;
+    [[nodiscard]] static auto GetHmdTrackerOffset() -> vr::HmdVector3_t;
+    [[nodiscard]] static auto GetDesktopTrackerOffset() -> vr::HmdVector3_t;
 
     uint32_t id_;
     eLeapHandType hand_type_;
-    eLeapTrackingMode tracking_mode_;
-    vr::HmdVector3_t hmd_tracker_offset_;
-    vr::HmdVector3_t desktop_tracker_offset_;
+    std::atomic<eLeapTrackingMode> tracking_mode_;
+    std::atomic<vr::HmdVector3_t> hmd_tracker_offset_;
+    std::atomic<vr::HmdVector3_t> desktop_tracker_offset_;
 
     vr::DriverPose_t pose_;
 
