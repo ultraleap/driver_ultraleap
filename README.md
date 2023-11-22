@@ -2,6 +2,8 @@
 
 This is the official Ultraleap driver for SteamVR, supporting using your hands as a first class input system.
 
+[![Build](https://github.com/rblenkinsopp/driver_ultraleap/actions/workflows/build.yml/badge.svg)](https://github.com/rblenkinsopp/driver_ultraleap/actions/workflows/build.yml)
+
 ## Supported devices
 
 This driver supports the follow Ultraleap/Leap Motion devices
