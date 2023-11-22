@@ -46,9 +46,9 @@ class VrQuat : public dquat {
     [[nodiscard]] auto operator+(const VrQuat& q) const -> VrQuat { return VrQuat{static_cast<const dquat>(*this) + q}; }
     [[nodiscard]] auto operator-(const VrQuat& q) const -> VrQuat { return VrQuat{static_cast<const dquat>(*this) - q}; }
     [[nodiscard]] auto operator*(const VrQuat& q) const -> VrQuat { return VrQuat{static_cast<const dquat>(*this) * q}; }
-    [[nodiscard]] auto operator+=(const VrQuat& q) -> VrQuat& { return *this = *this + q; }
-    [[nodiscard]] auto operator-=(const VrQuat& q) -> VrQuat& { return *this = *this - q; }
-    [[nodiscard]] auto operator*=(const VrQuat& q) -> VrQuat& { return *this = *this * q; }
+    auto operator+=(const VrQuat& q) -> VrQuat& { return *this = *this + q; }
+    auto operator-=(const VrQuat& q) -> VrQuat& { return *this = *this - q; }
+    auto operator*=(const VrQuat& q) -> VrQuat& { return *this = *this * q; }
 
     [[nodiscard]] auto Inverse() const -> VrQuat { return inverse(*this); }
     [[nodiscard]] auto Normalized() const -> VrQuat { return normalize(*this); }
@@ -104,10 +104,10 @@ class VrVec3 : public dvec3 {
     [[nodiscard]] auto operator-(const VrVec3& v) const -> VrVec3 { return VrVec3{*this - static_cast<const dvec3>(v)}; }
     [[nodiscard]] auto operator*(const VrVec3& v) const -> VrVec3 { return VrVec3{*this * static_cast<const dvec3>(v)}; }
     [[nodiscard]] auto operator/(const VrVec3& v) const -> VrVec3 { return VrVec3{*this / static_cast<const dvec3>(v)}; }
-    [[nodiscard]] auto operator+=(const VrVec3& v) -> VrVec3& { return *this = *this + v; }
-    [[nodiscard]] auto operator-=(const VrVec3& v) -> VrVec3& { return *this = *this - v; }
-    [[nodiscard]] auto operator*=(const VrVec3& v) -> VrVec3& { return *this = *this * v; }
-    [[nodiscard]] auto operator/=(const VrVec3& v) -> VrVec3& { return *this = *this / v; }
+    auto operator+=(const VrVec3& v) -> VrVec3& { return *this = *this + v; }
+    auto operator-=(const VrVec3& v) -> VrVec3& { return *this = *this - v; }
+    auto operator*=(const VrVec3& v) -> VrVec3& { return *this = *this * v; }
+    auto operator/=(const VrVec3& v) -> VrVec3& { return *this = *this / v; }
 
     auto operator*(const std::floating_point auto scale) const -> VrVec3 { return VrVec3{*this * dvec3{scale}}; }
     auto operator/(const std::floating_point auto scale) const -> VrVec3 { return VrVec3{*this / dvec3{scale}}; }
