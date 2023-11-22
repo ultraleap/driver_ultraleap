@@ -9,6 +9,8 @@ LeapHandDriver::LeapHandDriver(const eLeapHandType hand)
     : id_{vr::k_unTrackedDeviceIndexInvalid},
       hand_type_{hand},
       pose_{kDefaultPose},
+      hmd_tracker_offset_{GetHmdTrackerOffset()},
+      desktop_tracker_offset_{GetDesktopTrackerOffset()},
       input_pinch_(),
       input_grip_(),
       input_skeleton_(),
@@ -99,6 +101,20 @@ auto LeapHandDriver::GetPose() -> vr::DriverPose_t {
     return pose_;
 }
 
+auto LeapHandDriver::GetHmdTrackerOffset() -> vr::HmdVector3_t {
+    const auto x = VrSettings::Get<float>("hmd_offset_x");
+    const auto y = VrSettings::Get<float>("hmd_offset_y");
+    const auto z = VrSettings::Get<float>("hmd_offset_z");
+    return {x,y,z};
+}
+
+auto LeapHandDriver::GetDesktopTrackerOffset() -> vr::HmdVector3_t {
+    const auto x = VrSettings::Get<float>("desktop_offset_x");
+    const auto y = VrSettings::Get<float>("desktop_offset_y");
+    const auto z = VrSettings::Get<float>("desktop_offset_z");
+    return {x,y,z};
+}
+
 auto LeapHandDriver::UpdateFromLeapFrame(const LEAP_TRACKING_EVENT* frame) -> void {
     // Work out the offset from now
     const auto time_offset = static_cast<double>(frame->info.timestamp - LeapGetNow()) * std::micro::num / std::micro::den;
@@ -119,9 +135,15 @@ auto LeapHandDriver::UpdateFromLeapFrame(const LEAP_TRACKING_EVENT* frame) -> vo
             pose_.vecDriverFromHeadTranslation[1] = 0;
             pose_.vecDriverFromHeadTranslation[2] = 0;
 
+            // First work out forward and offset for the tracker depending on the tracking mode.
+            const auto trackerOrientation = tracking_mode_ == eLeapTrackingMode_HMD ? vr::HmdVector3_t{0.0f, M_PI / 2.0f, M_PI}
+                                                                              : vr::HmdVector3_t{0.0f, 0.0f, 0.0f};
+            const auto trackerPositionOffset = tracking_mode_ == eLeapTrackingMode_HMD ? vr::HmdVector3_t{0.0f, 0.0f, -0.08f}
+                                                                                 : vr::HmdVector3_t{0.0f, -0.2f, -0.35f};
+
             // Space transform from LeapC -> OpenVR Space;
-            pose_.qWorldFromDriverRotation = hmd_pose.Orientation() * HmdQuaternion_FromEulerAngles(0.0, M_PI / 2.0f, M_PI);
-            auto [offsetPosition] = hmd_pose.Position() + vr::HmdVector3_t{0, 0, -0.08f} * hmd_pose.Orientation();
+            pose_.qWorldFromDriverRotation = hmd_pose.Orientation() * HmdQuaternion_FromEulerAngles(trackerOrientation.v[0], trackerOrientation.v[1], trackerOrientation.v[2]);
+            auto [offsetPosition] = hmd_pose.Position() + trackerPositionOffset * hmd_pose.Orientation();
             std::ranges::copy(offsetPosition, pose_.vecWorldFromDriverTranslation);
 
             pose_.vecPosition[0] = 0.001f * hand.arm.next_joint.x;
