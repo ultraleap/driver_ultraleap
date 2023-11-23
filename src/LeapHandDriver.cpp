@@ -252,18 +252,12 @@ auto LeapHandDriver::UpdateBoneTransforms(const LEAP_HAND& hand) -> void {
     // Start with sensible data
     //std::memcpy(&bones_transforms_, kOpenHandGesture, sizeof(kOpenHandGesture));
 
-    const auto tracker_head_offset = VrVec3{0, 0, -0.08f};
-    const auto tracker_head_rotation = VrQuat::FromEulerAngles(-std::numbers::pi / 2.0, 0, std::numbers::pi);
-    const auto hmd_pose = HmdPose::Get();
-    const auto tracker_world_orientation = hmd_pose.Orientation() * tracker_head_rotation;
-    const auto tracker_world_position = hmd_pose.Position() + tracker_head_offset * hmd_pose.Orientation();
-
     const auto ComputeDigitBoneTransforms =
         [&](VrVec3 parent_position, VrQuat parent_rotation, const size_t index_start, const size_t index_end) {
             for (auto index = index_start; index <= index_end; ++index) {
 
-                auto bone_position = GetBonePosition(static_cast<VrHandSkeletonBone>(index)) + tracker_world_position;
-                auto bone_rotation = GetBoneRotation(static_cast<VrHandSkeletonBone>(index)) * tracker_world_orientation;
+                auto bone_position = GetBonePosition(static_cast<VrHandSkeletonBone>(index));
+                auto bone_rotation = GetBoneRotation(static_cast<VrHandSkeletonBone>(index));
 
                 // // Appl the required metacarpal offset.
                 // if (index == index_start) {
@@ -279,10 +273,11 @@ auto LeapHandDriver::UpdateBoneTransforms(const LEAP_HAND& hand) -> void {
             }
     };
 
-    const auto root_position = GetBonePosition(Root) + tracker_world_position;
-    const auto root_rotation = GetBoneRotation(Root) * tracker_world_orientation;
-    const auto wrist_position = GetBonePosition(Wrist) + tracker_world_position;
-    const auto wrist_rotation = GetBoneRotation(Wrist) * tracker_world_orientation;
+    const auto leap_space_rotation = VrQuat::FromEulerAngles(-std::numbers::pi / 2.0, 0, std::numbers::pi);
+    const auto root_position = GetBonePosition(Root);
+    const auto root_rotation = GetBoneRotation(Root);
+    const auto wrist_position = GetBonePosition(Wrist);
+    const auto wrist_rotation = GetBoneRotation(Wrist);
     bones_transforms_[Root] = vr::VRBoneTransform_t{VrVec3::Zero, VrQuat::Identity};
     bones_transforms_[Wrist] = vr::VRBoneTransform_t{(wrist_position - root_position) * root_rotation, root_rotation.Inverse() * wrist_rotation}; // TODO: Check ordering of multiplications.
 
