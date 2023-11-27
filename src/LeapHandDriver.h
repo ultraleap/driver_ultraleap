@@ -30,7 +30,7 @@ class LeapHandDriver final : public vr::ITrackedDeviceServerDriver {
     eLeapHandType hand_type_;
 
     vr::DriverPose_t pose_;
-    std::array<vr::VRBoneTransform_t, 31> bones_transforms_;
+    std::array<vr::VRBoneTransform_t, 31> bones_transforms_{};
 
     VrScalarInputComponent input_pinch_;
     VrScalarInputComponent input_grip_;

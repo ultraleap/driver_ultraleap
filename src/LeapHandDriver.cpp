@@ -10,38 +10,38 @@
 
 #include <thread>
 
-const vr::VRBoneTransform_t kOpenHandGesture[31]{
-    {{{0.000000f, 0.000000f, 0.000000f, 1.000000f}}, {1.000000f, -0.000000f, -0.000000f, 0.000000f}},
-    {{{-0.034038f, 0.026503f, 0.174722f, 1.000000f}}, {-0.055147f, -0.078608f, -0.920279f, 0.379296f}},
-    {{{-0.012083f, 0.028070f, 0.025050f, 1.000000f}}, {0.464112f, 0.567418f, 0.272106f, 0.623374f}},
-    {{{0.040406f, 0.000000f, -0.000000f, 1.000000f}}, {0.994838f, 0.082939f, 0.019454f, 0.055130f}},
-    {{{0.032517f, 0.000000f, 0.000000f, 1.000000f}}, {0.974793f, -0.003213f, 0.021867f, -0.222015f}},
-    {{{0.030464f, -0.000000f, -0.000000f, 1.000000f}}, {1.000000f, -0.000000f, -0.000000f, 0.000000f}},
-    {{{0.000632f, 0.026866f, 0.015002f, 1.000000f}}, {0.644251f, 0.421979f, -0.478202f, 0.422133f}},
-    {{{0.074204f, -0.005002f, 0.000234f, 1.000000f}}, {0.995332f, 0.007007f, -0.039124f, 0.087949f}},
-    {{{0.043930f, -0.000000f, -0.000000f, 1.000000f}}, {0.997891f, 0.045808f, 0.002142f, -0.045943f}},
-    {{{0.028695f, 0.000000f, 0.000000f, 1.000000f}}, {0.999649f, 0.001850f, -0.022782f, -0.013409f}},
-    {{{0.022821f, 0.000000f, -0.000000f, 1.000000f}}, {1.000000f, -0.000000f, 0.000000f, -0.000000f}},
-    {{{0.002177f, 0.007120f, 0.016319f, 1.000000f}}, {0.546723f, 0.541276f, -0.442520f, 0.460749f}},
-    {{{0.070953f, 0.000779f, 0.000997f, 1.000000f}}, {0.980294f, -0.167261f, -0.078959f, 0.069368f}},
-    {{{0.043108f, 0.000000f, 0.000000f, 1.000000f}}, {0.997947f, 0.018493f, 0.013192f, 0.059886f}},
-    {{{0.033266f, 0.000000f, 0.000000f, 1.000000f}}, {0.997394f, -0.003328f, -0.028225f, -0.066315f}},
-    {{{0.025892f, -0.000000f, 0.000000f, 1.000000f}}, {0.999195f, -0.000000f, 0.000000f, 0.040126f}},
-    {{{0.000513f, -0.006545f, 0.016348f, 1.000000f}}, {0.516692f, 0.550143f, -0.495548f, 0.429888f}},
-    {{{0.065876f, 0.001786f, 0.000693f, 1.000000f}}, {0.990420f, -0.058696f, -0.101820f, 0.072495f}},
-    {{{0.040697f, 0.000000f, 0.000000f, 1.000000f}}, {0.999545f, -0.002240f, 0.000004f, 0.030081f}},
-    {{{0.028747f, -0.000000f, -0.000000f, 1.000000f}}, {0.999102f, -0.000721f, -0.012693f, 0.040420f}},
-    {{{0.022430f, -0.000000f, 0.000000f, 1.000000f}}, {1.000000f, 0.000000f, 0.000000f, 0.000000f}},
-    {{{-0.002478f, -0.018981f, 0.015214f, 1.000000f}}, {0.526918f, 0.523940f, -0.584025f, 0.326740f}},
-    {{{0.062878f, 0.002844f, 0.000332f, 1.000000f}}, {0.986609f, -0.059615f, -0.135163f, 0.069132f}},
-    {{{0.030220f, 0.000000f, 0.000000f, 1.000000f}}, {0.994317f, 0.001896f, -0.000132f, 0.106446f}},
-    {{{0.018187f, 0.000000f, 0.000000f, 1.000000f}}, {0.995931f, -0.002010f, -0.052079f, -0.073526f}},
-    {{{0.018018f, 0.000000f, -0.000000f, 1.000000f}}, {1.000000f, 0.000000f, 0.000000f, 0.000000f}},
-    {{{-0.006059f, 0.056285f, 0.060064f, 1.000000f}}, {0.737238f, 0.202745f, 0.594267f, 0.249441f}},
-    {{{-0.040416f, -0.043018f, 0.019345f, 1.000000f}}, {-0.290331f, 0.623527f, -0.663809f, -0.293734f}},
-    {{{-0.039354f, -0.075674f, 0.047048f, 1.000000f}}, {-0.187047f, 0.678062f, -0.659285f, -0.265683f}},
-    {{{-0.038340f, -0.090987f, 0.082579f, 1.000000f}}, {-0.183037f, 0.736793f, -0.634757f, -0.143936f}},
-    {{{-0.031806f, -0.087214f, 0.121015f, 1.000000f}}, {-0.003659f, 0.758407f, -0.639342f, -0.126678f}}
+const vr::VRBoneTransform_t kInitialHand[31]{
+    {{{0.000000, 0.000000, 0.000000, 1.000000f}}, {0.000000, 0.000000, 0.000000, 0.000000}},
+    {{{0.006954, 0.006954, 0.006954, 1.000000f}}, {0.006954, 0.006954, 0.006954, 0.006954}},
+    {{{0.030358, 0.030358, 0.030358, 1.000000f}}, {0.030358, 0.030358, 0.030358, 0.030358}},
+    {{{-0.000000, -0.000000, -0.000000, 1.000000f}}, {-0.000000, -0.000000, -0.000000, -0.000000}},
+    {{{0.000000, 0.000000, 0.000000, 1.000000f}}, {0.000000, 0.000000, 0.000000, 0.000000}},
+    {{{-0.000000, -0.000000, -0.000000, 1.000000f}}, {-0.000000, -0.000000, -0.000000, -0.000000}},
+    {{{0.022294, 0.022294, 0.022294, 1.000000f}}, {0.022294, 0.022294, 0.022294, 0.022294}},
+    {{{-0.000000, -0.000000, -0.000000, 1.000000f}}, {-0.000000, -0.000000, -0.000000, -0.000000}},
+    {{{0.000000, 0.000000, 0.000000, 1.000000f}}, {0.000000, 0.000000, 0.000000, 0.000000}},
+    {{{0.000000, 0.000000, 0.000000, 1.000000f}}, {0.000000, 0.000000, 0.000000, 0.000000}},
+    {{{-0.000000, -0.000000, -0.000000, 1.000000f}}, {-0.000000, -0.000000, -0.000000, -0.000000}},
+    {{{0.007883, 0.007883, 0.007883, 1.000000f}}, {0.007883, 0.007883, 0.007883, 0.007883}},
+    {{{0.000000, 0.000000, 0.000000, 1.000000f}}, {0.000000, 0.000000, 0.000000, 0.000000}},
+    {{{-0.000000, -0.000000, -0.000000, 1.000000f}}, {-0.000000, -0.000000, -0.000000, -0.000000}},
+    {{{-0.000000, -0.000000, -0.000000, 1.000000f}}, {-0.000000, -0.000000, -0.000000, -0.000000}},
+    {{{0.000000, 0.000000, 0.000000, 1.000000f}}, {0.000000, 0.000000, 0.000000, 0.000000}},
+    {{{-0.002032, -0.002032, -0.002032, 1.000000f}}, {-0.002032, -0.002032, -0.002032, -0.002032}},
+    {{{0.000000, 0.000000, 0.000000, 1.000000f}}, {0.000000, 0.000000, 0.000000, 0.000000}},
+    {{{-0.000000, -0.000000, -0.000000, 1.000000f}}, {-0.000000, -0.000000, -0.000000, -0.000000}},
+    {{{0.000000, 0.000000, 0.000000, 1.000000f}}, {0.000000, 0.000000, 0.000000, 0.000000}},
+    {{{0.000000, 0.000000, 0.000000, 1.000000f}}, {0.000000, 0.000000, 0.000000, 0.000000}},
+    {{{-0.012044, -0.012044, -0.012044, 1.000000f}}, {-0.012044, -0.012044, -0.012044, -0.012044}},
+    {{{-0.000000, -0.000000, -0.000000, 1.000000f}}, {-0.000000, -0.000000, -0.000000, -0.000000}},
+    {{{0.000000, 0.000000, 0.000000, 1.000000f}}, {0.000000, 0.000000, 0.000000, 0.000000}},
+    {{{-0.000000, -0.000000, -0.000000, 1.000000f}}, {-0.000000, -0.000000, -0.000000, -0.000000}},
+    {{{0.000000, 0.000000, 0.000000, 1.000000f}}, {0.000000, 0.000000, 0.000000, 0.000000}},
+    {{{-0.020693, -0.020693, -0.020693, 1.000000f}}, {-0.020693, -0.020693, -0.020693, -0.020693}},
+    {{{-0.015647, -0.015647, -0.015647, 1.000000f}}, {-0.015647, -0.015647, -0.015647, -0.015647}},
+    {{{-0.011907, -0.011907, -0.011907, 1.000000f}}, {-0.011907, -0.011907, -0.011907, -0.011907}},
+    {{{-0.013752, -0.013752, -0.013752, 1.000000f}}, {-0.013752, -0.013752, -0.013752, -0.013752}},
+    {{{-0.012825, -0.012825, -0.012825, 1.000000f}}, {-0.012825, -0.012825, -0.012825, -0.012825}},
 };
 
 LeapHandDriver::LeapHandDriver(const eLeapHandType hand)
@@ -169,6 +169,11 @@ auto LeapHandDriver::UpdateFromLeapFrame(const LEAP_TRACKING_EVENT* frame) -> vo
             (VrVec3{hand.palm.position} * 0.001).CopyToArray(pose_.vecPosition);
             pose_.qRotation = VrQuat{hand.palm.orientation};
 
+            // Velocity
+            // TODO: Check.
+            const auto hand_velocity = VrVec3{hand.palm.velocity} * 0.001 * tracker_head_rotation;
+            hand_velocity.CopyToArray(pose_.vecVelocity);
+
             // Transform the skeleton joints.
             UpdateBoneTransforms(hand);
         } else {
@@ -198,8 +203,8 @@ auto LeapHandDriver::UpdateFromLeapFrame(const LEAP_TRACKING_EVENT* frame) -> vo
 }
 
 auto LeapHandDriver::SetInitialBoneTransforms() -> void {
-    input_skeleton_.Update(vr::VRSkeletalMotionRange_WithController, kOpenHandGesture);
-    input_skeleton_.Update(vr::VRSkeletalMotionRange_WithoutController, kOpenHandGesture);
+    input_skeleton_.Update(vr::VRSkeletalMotionRange_WithController, kInitialHand);
+    input_skeleton_.Update(vr::VRSkeletalMotionRange_WithoutController, kInitialHand);
 }
 
 auto LeapHandDriver::UpdateBoneTransforms(const LEAP_HAND& hand) -> void {
@@ -255,14 +260,30 @@ auto LeapHandDriver::UpdateBoneTransforms(const LEAP_HAND& hand) -> void {
     const auto ComputeDigitBoneTransforms =
         [&](VrVec3 parent_position, VrQuat parent_rotation, const size_t index_start, const size_t index_end) {
             for (auto index = index_start; index <= index_end; ++index) {
+
+                const auto handed_orientation = VrQuat::FromEulerAngles(
+                    -std::numbers::pi,
+                    hand_type_ == eLeapHandType_Left ? std::numbers::pi / 2.0 : -std::numbers::pi / 2.0,
+                    hand_type_ == eLeapHandType_Left ? 0 : std::numbers::pi
+                );
                 auto bone_position = GetBonePosition(static_cast<VrHandSkeletonBone>(index));
-                auto bone_rotation = GetBoneRotation(static_cast<VrHandSkeletonBone>(index));
+                auto bone_rotation = GetBoneRotation(static_cast<VrHandSkeletonBone>(index)) * handed_orientation;
 
-                bones_transforms_[index] = vr::VRBoneTransform_t{
-                    (bone_position - parent_position) * parent_rotation, // Local bone position.
-                    (parent_rotation.Inverse() * bone_rotation),         // Local bone rotation
-                };
+                auto local_bone_position = (bone_position - parent_position) * parent_rotation;
+                auto local_bone_rotation = parent_rotation.Inverse() * bone_rotation;
 
+                // Metacarpals need to handle the additional 90 degree rotation that OpenVR expects.
+                if (index == index_start) {
+                    const auto wrist_correction = VrQuat::FromEulerAngles(
+                        0,
+                        std::numbers::pi,
+                        hand_type_ == eLeapHandType_Left ? -std::numbers::pi / 2.0 : std::numbers::pi / 2.0
+                    );
+                    local_bone_position = local_bone_position * wrist_correction;
+                    local_bone_rotation = wrist_correction.Inverse() * local_bone_rotation;
+                }
+
+                bones_transforms_[index] = {local_bone_position,local_bone_rotation};
                 parent_position = bone_position;
                 parent_rotation = bone_rotation;
             }
@@ -272,11 +293,19 @@ auto LeapHandDriver::UpdateBoneTransforms(const LEAP_HAND& hand) -> void {
     const auto root_rotation = GetBoneRotation(Root);
     const auto wrist_position = GetBonePosition(Wrist);
     const auto wrist_rotation = GetBoneRotation(Wrist);
+
     bones_transforms_[Root] = vr::VRBoneTransform_t{VrVec3::Zero, VrQuat::Identity};
-    bones_transforms_[Wrist] = vr::VRBoneTransform_t{
-        (wrist_position - root_position) * root_rotation,
-        root_rotation.Inverse() * wrist_rotation
-    };
+    if (hand_type_ == eLeapHandType_Left) {
+        bones_transforms_[Wrist] = vr::VRBoneTransform_t{
+            (wrist_position - root_position) * root_rotation,
+            VrQuat::FromEulerAngles(0.0, std::numbers::pi, -std::numbers::pi / 2.0f) * (root_rotation.Inverse() * wrist_rotation),
+        };
+    } else {
+        bones_transforms_[Wrist] = vr::VRBoneTransform_t{
+            (wrist_position - root_position) * root_rotation,
+            VrQuat::FromEulerAngles(0.0, std::numbers::pi, std::numbers::pi / 2.0f) * (root_rotation.Inverse() * wrist_rotation),
+        };
+    }
 
     // Computer the bone digits.
     ComputeDigitBoneTransforms(wrist_position, wrist_rotation, Thumb0, Thumb3);
@@ -308,17 +337,17 @@ auto LeapHandDriver::UpdateBoneTransforms(const LEAP_HAND& hand) -> void {
         root_rotation.Inverse() * GetBoneRotation(PinkyFinger3)
     };
 
-    // Debug all the transforms as euler angles
-    std::array<std::tuple<int, int, int>, 31> bone_angles_{};
-    for (auto i = 0; i < 31; ++i) {
-        auto [pitch, yaw, roll] = VrQuat{bones_transforms_[i].orientation}.ToEulerAngles();
-        constexpr auto radiansToDegrees = 180.0 / std::numbers::pi;
-        bone_angles_[i] = {
-            static_cast<int>(pitch * radiansToDegrees),
-            static_cast<int>(yaw * radiansToDegrees),
-            static_cast<int>(roll * radiansToDegrees)
-        };
-    }
+    // // Debug all the transforms as euler angles
+    // static bool logged = false;
+    // if (!logged) {
+    //     for (auto i = 0; i < 31; ++i) {
+    //         const auto& p = bones_transforms_[i].position;
+    //         const auto& o = bones_transforms_[i].orientation;
+    //         LOG_INFO("{{ {{ {{ {1:.6f}, {1:.6f}, {1:.6f}, 1.000000f }} }}, {{ {1:.6f}, {1:.6f}, {1:.6f}, {1:.6f} }} }},", p.v[0],
+    //         p.v[1], p.v[2], o.w, o.x, o.y, o.z);
+    //     }
+    //     logged = true;
+    // }
 
     // Update the skeletons.
     input_skeleton_.Update(vr::VRSkeletalMotionRange_WithController, bones_transforms_);
