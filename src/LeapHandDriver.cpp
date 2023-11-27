@@ -208,7 +208,7 @@ auto LeapHandDriver::UpdateBoneTransforms(const LEAP_HAND& hand) -> void {
             return VrQuat{hand.palm.orientation};
         }
         if (bone == Wrist) {
-            return VrQuat{hand.arm.rotation};
+            return VrQuat{hand.palm.orientation}; // SteamVR expects the wrist to be hand static not arm static.
         }
         if (bone < IndexFinger0) {
             // Ignore the zero length metacarpal and the tip has the same rotation as the preceeding bone.
