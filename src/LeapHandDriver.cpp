@@ -136,13 +136,16 @@ auto LeapHandDriver::UpdateFromLeapFrame(const LEAP_TRACKING_EVENT* frame) -> vo
             pose_.vecDriverFromHeadTranslation[2] = 0;
 
             // First work out forward and offset for the tracker depending on the tracking mode.
-            const auto trackerOrientation = tracking_mode_ == eLeapTrackingMode_HMD ? vr::HmdVector3_t{0.0f, M_PI / 2.0f, M_PI}
-                                                                              : vr::HmdVector3_t{0.0f, 0.0f, 0.0f};
-            const auto trackerPositionOffset = tracking_mode_ == eLeapTrackingMode_HMD ? vr::HmdVector3_t{0.0f, 0.0f, -0.08f}
-                                                                                 : vr::HmdVector3_t{0.0f, -0.2f, -0.35f};
+            // TODO: reimplement desktop mode once skeletal data is stable.
+            // const auto trackerRotationOffset = tracking_mode_ == eLeapTrackingMode_HMD ? vr::HmdVector3_t{0.0f, M_PI / 2.0f, M_PI}
+            //                                                                   : vr::HmdVector3_t{0.0f, 0.0f, 0.0f};
+            // const auto trackerPositionOffset = tracking_mode_ == eLeapTrackingMode_HMD ? hmd_tracker_offset_ : desktop_tracker_offset;
+
+            const auto [trackerRotationOffset] = vr::HmdVector3_t{0.0f, M_PI / 2.0f, M_PI};
+            const auto& trackerPositionOffset = hmd_tracker_offset_;
 
             // Space transform from LeapC -> OpenVR Space;
-            pose_.qWorldFromDriverRotation = hmd_pose.Orientation() * HmdQuaternion_FromEulerAngles(trackerOrientation.v[0], trackerOrientation.v[1], trackerOrientation.v[2]);
+            pose_.qWorldFromDriverRotation = hmd_pose.Orientation() * HmdQuaternion_FromEulerAngles(trackerRotationOffset[0], trackerRotationOffset[1], trackerRotationOffset[2]);
             auto [offsetPosition] = hmd_pose.Position() + trackerPositionOffset * hmd_pose.Orientation();
             std::ranges::copy(offsetPosition, pose_.vecWorldFromDriverTranslation);
 

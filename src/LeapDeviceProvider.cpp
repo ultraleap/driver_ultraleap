@@ -272,6 +272,8 @@ auto LeapDeviceProvider::UpdateServiceAndDriverTrackingMode(const eLeapTrackingM
     for (const auto handDriver : {left_hand_.get(), right_hand_.get()}) {
         if (handDriver != nullptr) {
             handDriver->UpdateTrackingMode(mode);
+            handDriver->UpdateHmdTrackerOffset();
+            handDriver->UpdateDesktopTrackerOffset();
         }
     }
 }

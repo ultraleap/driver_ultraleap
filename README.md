@@ -48,7 +48,7 @@ A simplified example of the `steamvr.vrsettings` would look like the following:
 ```
 {
    "DesktopUI" : {
-      "controllerbinding_desktop" : "151,39,1920,1073,0",
+      "controllerbinding_desktop" : "151,39,1920,1073,0"
    },
    "GpuSpeed" : {
       "gpuSpeedRenderTargetScale" : 1.5,
