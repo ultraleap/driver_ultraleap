@@ -181,7 +181,6 @@ auto LeapHandDriver::UpdateFromLeapFrame(const LEAP_TRACKING_EVENT* frame) -> vo
         }
 
         // Update input components.
-        // TODO: Do hystersis etc.
         input_pinch_.Update(hand.pinch_strength, time_offset);
         input_grip_.Update(hand.grab_strength, time_offset);
 
