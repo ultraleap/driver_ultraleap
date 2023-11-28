@@ -56,15 +56,11 @@ auto LeapHandDriver::Activate(const uint32_t object_id) -> vr::EVRInitError {
     try {
         const auto p = VrDeviceProperties::FromDeviceId(id_);
 
-        // p.Set(vr::Prop_ControllerType_String, "ultraleap_hand");
+        p.Set(vr::Prop_ControllerType_String, "ultraleap_hand");
         p.Set(vr::Prop_ControllerHandSelectionPriority_Int32, 0);
         p.Set(vr::Prop_ManufacturerName_String, "Ultraleap");
-        // p.Set(vr::Prop_RenderModelName_String, "{ultraleap}/rendermodels/ultraleap_hand");
-        // p.Set(vr::Prop_InputProfilePath_String, "{ultraleap}/input/ultraleap_hand_profile.json");
-
-        // Emulate knuckles for now.
-        p.Set(vr::Prop_InputProfilePath_String, "{indexcontroller}/input/index_controller_profile.json");
-        p.Set(vr::Prop_ControllerType_String, "knuckles");
+        p.Set(vr::Prop_RenderModelName_String, "{ultraleap}/rendermodels/ultraleap_hand");
+        p.Set(vr::Prop_InputProfilePath_String, "{ultraleap}/input/ultraleap_hand_profile.json");
 
         // Device capabilities.
         p.Set(vr::Prop_DeviceIsWireless_Bool, true);
