@@ -47,7 +47,9 @@ const vr::VRBoneTransform_t kInitialHand[31]{
 LeapHandDriver::LeapHandDriver(const eLeapHandType hand)
     : id_{vr::k_unTrackedDeviceIndexInvalid},
       hand_type_{hand},
-      pose_{kDefaultPose} {
+      pose_{kDefaultPose},
+      hmd_tracker_offset_{GetHmdTrackerOffset()},
+      desktop_tracker_offset_{GetDesktopTrackerOffset()} {
 }
 
 auto LeapHandDriver::Activate(const uint32_t object_id) -> vr::EVRInitError {
@@ -134,6 +136,20 @@ auto LeapHandDriver::DebugRequest(const char* request, char* response_buffer, co
 
 auto LeapHandDriver::GetPose() -> vr::DriverPose_t {
     return pose_;
+}
+
+auto LeapHandDriver::GetHmdTrackerOffset() -> vr::HmdVector3_t {
+    const auto x = VrSettings::Get<float>("hmd_offset_x");
+    const auto y = VrSettings::Get<float>("hmd_offset_y");
+    const auto z = VrSettings::Get<float>("hmd_offset_z");
+    return {x,y,z};
+}
+
+auto LeapHandDriver::GetDesktopTrackerOffset() -> vr::HmdVector3_t {
+    const auto x = VrSettings::Get<float>("desktop_offset_x");
+    const auto y = VrSettings::Get<float>("desktop_offset_y");
+    const auto z = VrSettings::Get<float>("desktop_offset_z");
+    return {x,y,z};
 }
 
 auto LeapHandDriver::UpdateFromLeapFrame(const LEAP_TRACKING_EVENT* frame) -> void {

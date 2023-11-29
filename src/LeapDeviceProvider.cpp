@@ -1,6 +1,7 @@
 #include "LeapDeviceProvider.h"
 
 #include <algorithm>
+#include <ranges>
 
 #if defined(_WIN32)
 #include <ShlObj_core.h>
@@ -68,6 +69,27 @@ auto LeapDeviceProvider::RunFrame() -> void {
     //        const auto devicePose = device->GetPose();
     //        vr::VRServerDriverHost()->TrackedDevicePoseUpdated(device->GetId(), devicePose, sizeof(devicePose));
     //    }
+
+    // Poll the runtime for events; for now we only care if the settings change
+    vr::VREvent_t event{};
+    while(vr::VRServerDriverHost()->PollNextEvent(&event, sizeof(event))) {
+        switch (event.eventType) {
+        default: continue;
+        case vr::EVREventType::VREvent_OtherSectionSettingChanged: OtherSectionSettingsChanged(); break;
+        }
+    }
+}
+
+auto LeapDeviceProvider::OtherSectionSettingsChanged() const -> void {
+    // Prompt a re-fetch of all the settings file variables.
+    UpdateServiceAndDriverTrackingMode(GetTrackingMode(), std::nullopt);
+
+    for (const auto handDriver : {left_hand_.get(), right_hand_.get()}) {
+        if (handDriver != nullptr) {
+            handDriver->UpdateHmdTrackerOffset();
+            handDriver->UpdateDesktopTrackerOffset();
+        }
+    }
 }
 
 auto LeapDeviceProvider::ShouldBlockStandbyMode() -> bool {
@@ -106,7 +128,7 @@ auto LeapDeviceProvider::ServiceMessageLoop() -> void {
     }
 }
 
-auto LeapDeviceProvider::TrackingFrame(const uint32_t /*deviceId*/, const LEAP_TRACKING_EVENT* event) const -> void {
+auto LeapDeviceProvider::TrackingFrame([[maybe_unused]] const uint32_t device_id, const LEAP_TRACKING_EVENT* event) const -> void {
     // Pass the tracking frame to each virtual hand driver, and update with the latest pose.
     for (const auto handDriver : {left_hand_.get(), right_hand_.get()}) {
         if (handDriver != nullptr) {
@@ -116,14 +138,11 @@ auto LeapDeviceProvider::TrackingFrame(const uint32_t /*deviceId*/, const LEAP_T
 }
 
 auto LeapDeviceProvider::TrackingModeChanged(const uint32_t device_id, const LEAP_TRACKING_MODE_EVENT* event) const -> void {
-    if (event->current_tracking_mode != eLeapTrackingMode_HMD) {
-        const auto& leapDevice = leap_device_by_id_.at(device_id);
-        LOG_INFO("Device {} is not currently in HMD mode, setting to HMD", leapDevice->SerialNumber());
-        LeapSetTrackingModeEx(leap_connection_, leapDevice->Handle(), eLeapTrackingMode_HMD);
-    }
+    const auto& leapDevice = leap_device_by_id_.at(device_id);
+    UpdateServiceAndDriverTrackingMode(GetTrackingMode(), leapDevice.get());
 }
 
-auto LeapDeviceProvider::DeviceDetected(const uint32_t /*deviceId*/, const LEAP_DEVICE_EVENT* event) -> void {
+auto LeapDeviceProvider::DeviceDetected(const uint32_t /*device_id*/, const LEAP_DEVICE_EVENT* event) -> void {
     // WARNING!
     // In this context, deviceId will be 0 as this is a system message, for the ID of the affected device, use event->device.id.
 
@@ -144,7 +163,7 @@ auto LeapDeviceProvider::DeviceDetected(const uint32_t /*deviceId*/, const LEAP_
     }
 }
 
-auto LeapDeviceProvider::DeviceLost(const uint32_t /*deviceId*/, const LEAP_DEVICE_EVENT* event) -> void {
+auto LeapDeviceProvider::DeviceLost(const uint32_t /*device_id*/, const LEAP_DEVICE_EVENT* event) -> void {
     // WARNING!
     // In this context, deviceId will be 0 as this is a system message, for the ID of the affected device, use event->device.id.
     DisconnectDeviceDriver(event->device.id);
@@ -155,7 +174,10 @@ auto LeapDeviceProvider::DeviceLost(const uint32_t /*deviceId*/, const LEAP_DEVI
     }
 }
 
-auto LeapDeviceProvider::DeviceStatusChanged(uint32_t device_id, const LEAP_DEVICE_STATUS_CHANGE_EVENT* event) -> void {
+auto LeapDeviceProvider::DeviceStatusChanged(const uint32_t /*device_id*/, const LEAP_DEVICE_STATUS_CHANGE_EVENT* event) -> void {
+    // WARNING!
+    // In this context, device_id will be 0 as this is a system message, for the ID of the affected device, use event->device.id.
+
     // Check for any of the error statuses and set a device error in that instance.
     if (event->status >= eLeapDeviceStatus_UnknownFailure) {
         vr::VRServerDriverHost()
@@ -233,4 +255,36 @@ auto LeapDeviceProvider::DeviceDriverFromLeapId(const uint32_t device_id) const 
     const auto& serialNumber = leap_device_by_id_.at(device_id)->SerialNumber();
     const auto& leapDeviceDriver = leap_device_driver_by_serial_.at(serialNumber);
     return leapDeviceDriver;
+}
+
+auto LeapDeviceProvider::UpdateServiceAndDriverTrackingMode(const eLeapTrackingMode mode, const std::optional<LeapDevice*> device)
+    const -> void {
+    // If we've been given a specific device only change that one, otherwise change all.
+    if (device.has_value()) {
+        LeapSetTrackingModeEx(leap_connection_, device.value()->Handle(), mode);
+    } else {
+        for (const auto& val : std::views::values(leap_device_by_id_)) {
+            LeapSetTrackingModeEx(leap_connection_, val->Handle(), mode);
+        }
+    }
+
+    // Update our drivers tracking mode reference to ensure tracker pose is correct.
+    for (const auto handDriver : {left_hand_.get(), right_hand_.get()}) {
+        if (handDriver != nullptr) {
+            handDriver->UpdateTrackingMode(mode);
+            handDriver->UpdateHmdTrackerOffset();
+            handDriver->UpdateDesktopTrackerOffset();
+        }
+    }
+}
+
+auto LeapDeviceProvider::GetTrackingMode() -> eLeapTrackingMode {
+    if (const auto mode = VrSettings::Get<std::string>("tracker_mode"); mode == "hmd") {
+        return eLeapTrackingMode_HMD;
+    } else if (mode == "desktop") {
+        return eLeapTrackingMode_Desktop;
+    } else {
+        LOG_INFO("Orientation Key in VrSettings isn't a valid value: '{}', falling back to HMD...", mode);
+        return eLeapTrackingMode_HMD;
+    }
 }
