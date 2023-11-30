@@ -1,14 +1,15 @@
 {
   "jsonid": "input_profile",
   "controller_type": "ultraleap_hand",
-  "legacy_binding": "{ultraleap}/input/legacy_binding_hand.json",
+  "legacy_binding": "{ultraleap}/input/legacy_binding_ultraleap_hand.json",
+  "remapping" : "{ultraleap}/input/ultraleap_hand_remapping.json",
   "input_bindingui_mode": "controller_handed",
   "input_bindingui_left": {
     "transform": "scale(-1,1)",
-    "image": "{ultraleap}/bindingui/hand.svg"
+    "image": "{holographic}/icons/hand.svg"
   },
   "input_bindingui_right": {
-    "image": "{ultraleap}/bindingui/hand.svg"
+    "image": "{holographic}/icons/hand.svg"
   },
   "input_source": {
     "/input/pinch": {
@@ -25,6 +26,14 @@
     },
 
     "/input/raw": {
+      "type": "pose",
+      "binding_image_point" : [0, 0]
+    },
+    "/input/handgrip": {
+      "type": "pose",
+      "binding_image_point" : [0, 0]
+    },
+    "/input/tip": {
       "type": "pose",
       "binding_image_point" : [0, 0]
     },
@@ -72,11 +81,5 @@
       "binding_image_point" : [ 0, 0 ],
       "order" : 104
     }
-  },
-  "default_bindings": [
-    {
-      "app_key": "openvr.component.vrcompositor",
-      "binding_url": "bindings/openvr.component.vrcompositor.json"
-    }
-  ]
+  }
 }

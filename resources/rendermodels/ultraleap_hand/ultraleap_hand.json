@@ -2,11 +2,11 @@
     "components": {
         "base": {
             "component_local" : {
-                "origin": [0.0, 0.0, 0.00],
+                "origin": [0.0, 0.0, 0.0],
                 "rotate_xyz" : [0.0, 0.0, 0.0]
             }
         },
-        "grip": {
+        "handgrip": {
             "component_local" : {
                 "origin": [0.0, 0.0, 0.00],
                 "rotate_xyz" : [-30.0, 0.0, 0.0]

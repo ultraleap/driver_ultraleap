@@ -31,13 +31,18 @@ class LeapHandDriver final : public vr::ITrackedDeviceServerDriver {
     [[nodiscard]] static auto GetHmdTrackerOffset() -> vr::HmdVector3_t;
     [[nodiscard]] static auto GetDesktopTrackerOffset() -> vr::HmdVector3_t;
 
+    auto SetInitialBoneTransforms() -> void;
+    auto UpdateBoneTransforms(const LEAP_HAND& hand) -> void;
+
     uint32_t id_;
     eLeapHandType hand_type_;
+
     std::atomic<eLeapTrackingMode> tracking_mode_;
     std::atomic<vr::HmdVector3_t> hmd_tracker_offset_;
     std::atomic<vr::HmdVector3_t> desktop_tracker_offset_;
 
     vr::DriverPose_t pose_;
+    std::array<vr::VRBoneTransform_t, 31> bones_transforms_{};
 
     VrScalarInputComponent input_pinch_;
     VrScalarInputComponent input_grip_;

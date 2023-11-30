@@ -1,5 +1,0 @@
-mtllib ultraleap_hand.mtl
-g default
-s off
-g ultraleap_hand:ultraleap_hand_steam_controller
-usemtl ultraleap_hand:lambert4SG

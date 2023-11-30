@@ -6,7 +6,9 @@
     "lmc2": "Leap Motion Controller 2",
     "sir170": "Ultraleap StereoIR 170",
     "3di": "Ultraleap 3Di",
+
     "ultraleap_hand": "Ultraleap Tracked Hand",
+    "ultraleap_elbow": "Ultraleap Tracked Elbow",
 
     "left_hand": "Left Hand",
     "right_hand": "Right Hand",

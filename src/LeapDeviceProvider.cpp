@@ -279,7 +279,7 @@ auto LeapDeviceProvider::UpdateServiceAndDriverTrackingMode(const eLeapTrackingM
 }
 
 auto LeapDeviceProvider::GetTrackingMode() -> eLeapTrackingMode {
-    if (const auto mode = VrSettings::GetString("tracker_mode"); mode == "hmd") {
+    if (const auto mode = VrSettings::Get<std::string>("tracker_mode"); mode == "hmd") {
         return eLeapTrackingMode_HMD;
     } else if (mode == "desktop") {
         return eLeapTrackingMode_Desktop;

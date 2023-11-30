@@ -7,8 +7,14 @@ set(CMAKE_CXX_STANDARD 23)
 
 set(LeapSDK_DIR ${CMAKE_SOURCE_DIR}/3rdparty/LeapSDK/lib/cmake/LeapSDK)
 set(OpenVR_ROOT ${CMAKE_SOURCE_DIR}/3rdparty/OpenVR)
+set(GLM_ROOT ${CMAKE_SOURCE_DIR}/3rdparty/GLM)
+
 find_package(OpenVR REQUIRED)
 find_package(LeapSDK 5 REQUIRED)
+
+# Add GLM (avoiding an annoying target it adds by creating a dummy one with the same name).
+add_custom_target(uninstall)
+add_subdirectory(${GLM_ROOT})
 
 add_library(driver_ultraleap SHARED
         src/HmdDriverFactory.cpp
@@ -24,12 +30,12 @@ add_library(driver_ultraleap SHARED
         src/OsUtils.h
         src/VrUtils.h
         src/VrLogging.h
+        src/VrMaths.h
 )
 target_link_libraries(driver_ultraleap
         PUBLIC OpenVR::OpenVR
-        PRIVATE LeapSDK::LeapC)
-target_include_directories(driver_ultraleap
-        PRIVATE ${OpenVR_INCLUDE_DIR}/../samples/drivers/utils/vrmath/
+        PRIVATE LeapSDK::LeapC
+        PRIVATE glm::glm
 )
 set_target_properties(driver_ultraleap PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/ultraleap/bin/win64)
 
@@ -39,7 +45,8 @@ add_custom_command(
         COMMENT "Copying DLL: LeapC.dll"
         DEPENDS $<TARGET_FILE:LeapSDK::LeapC>
         #BYPRODUCTS $<TARGET_FILE_DIR:driver_ultraleap>/$<TARGET_FILE_NAME:LeapSDK::LeapC>
-        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:LeapSDK::LeapC> $<TARGET_FILE_DIR:driver_ultraleap>)
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:LeapSDK::LeapC> $<TARGET_FILE_DIR:driver_ultraleap>
+)
 
 # Copy the localization, resources and manifests.
 add_custom_command(
@@ -47,10 +54,12 @@ add_custom_command(
         COMMENT "Copying Driver Manifest"
         DEPENDS ${CMAKE_SOURCE_DIR}/driver.vrdrivermanifest
         BYPRODUCTS ${CMAKE_BINARY_DIR}/ultraleap/driver.vrdrivermanifest
-        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/driver.vrdrivermanifest ${CMAKE_BINARY_DIR}/ultraleap/driver.vrdrivermanifest)
+        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/driver.vrdrivermanifest ${CMAKE_BINARY_DIR}/ultraleap/driver.vrdrivermanifest
+)
 add_custom_command(
         TARGET driver_ultraleap POST_BUILD
         COMMENT "Copying Resources"
         DEPENDS ${CMAKE_SOURCE_DIR}/resources
         BYPRODUCTS ${CMAKE_BINARY_DIR}/ultraleap/resources
-        COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/resources ${CMAKE_BINARY_DIR}/ultraleap/resources)
+        COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/resources ${CMAKE_BINARY_DIR}/ultraleap/resources
+)
