@@ -6,9 +6,9 @@
 # but only if the requested major version is the same as the current one.
 
 # Track the individual tracking client/API version per platform as they are not unified.
-set(PACKAGE_VERSION_ANDROID "5.12.0.7")
-set(PACKAGE_VERSION_LINUX "5.6.3.0")
-set(PACKAGE_VERSION_WINDOWS "5.12.0.7")
+set(PACKAGE_VERSION_ANDROID "5.17.1.0")
+set(PACKAGE_VERSION_LINUX "5.17.1.0")
+set(PACKAGE_VERSION_WINDOWS "5.17.1.0")
 
 if(WIN32)
   set(PACKAGE_VERSION "${PACKAGE_VERSION_WINDOWS}")
