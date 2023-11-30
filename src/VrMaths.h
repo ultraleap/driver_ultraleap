@@ -121,8 +121,11 @@ class VrVec3 : public dvec3 {
     auto operator*=(const std::floating_point auto scale) const -> VrVec3& { return *this * dvec3{scale}; }
     auto operator/=(const std::floating_point auto scale) const -> VrVec3& { return *this / dvec3{scale}; }
 
-    [[nodiscard]] auto Dot(const Vector3 auto& other) const -> double { return dot(*this, make_vec3(other.v)); }
-    [[nodiscard]] auto Dot(const VrVec3& other) const -> double { return dot(*this, make_vec3(other.data.data)); }
+    [[nodiscard]] auto Dot(const Vector3 auto& other) const -> value_type { return dot(*this, make_vec3(other.v)); }
+    [[nodiscard]] auto Dot(const VrVec3& other) const -> value_type { return dot(*this, make_vec3(other.data.data)); }
+    [[nodiscard]] auto Cross(const Vector3 auto& other) const -> VrVec3 { return cross(*this, make_vec3(other.v)); }
+    [[nodiscard]] auto Cross(const VrVec3& other) const -> VrVec3 { return VrVec3{cross(*this, make_vec3(other.data.data))}; }
+    [[nodiscard]] auto Length() const -> value_type { return glm::length(static_cast<dvec3>(*this)); }
 
     auto CopyToArray(double destination[3]) const -> void { std::ranges::copy(this->data.data, destination); }
 

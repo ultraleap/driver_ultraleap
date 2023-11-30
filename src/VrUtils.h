@@ -21,8 +21,7 @@
 #error "Unsupported Platform"
 #endif
 
-enum VrHandSkeletonBone : int32_t
-{
+enum VrHandSkeletonBone : int32_t {
     Root = 0,
     Wrist,
     Thumb0,
@@ -57,7 +56,6 @@ enum VrHandSkeletonBone : int32_t
     Count
 };
 
-
 class VrBooleanInputComponent {
   public:
     VrBooleanInputComponent() = default;
@@ -65,8 +63,10 @@ class VrBooleanInputComponent {
 
     auto Update(const bool new_value, const double time_offset = 0) -> void {
         value = new_value;
-        if (vr::VRDriverInput()->UpdateBooleanComponent(handle, new_value, time_offset) != vr::VRInputError_None) {
-            throw std::runtime_error(std::format("Failed update boolean input component \"{}\"", name));
+        if (const auto result = vr::VRDriverInput()->UpdateBooleanComponent(handle, new_value, time_offset);
+            result != vr::VRInputError_None) {
+            throw std::runtime_error(std::format("Failed update boolean input component \"{}\": {}", name, static_cast<int>(result))
+            );
         }
     }
 
@@ -94,8 +94,10 @@ class VrScalarInputComponent {
 
     auto Update(const float new_value, const double time_offset = 0) -> void {
         value = new_value;
-        if (vr::VRDriverInput()->UpdateScalarComponent(handle, new_value, time_offset) != vr::VRInputError_None) {
-            throw std::runtime_error(std::format("Failed update scalar input component \"{}\"", name));
+        if (const auto result = vr::VRDriverInput()->UpdateScalarComponent(handle, new_value, time_offset);
+            result != vr::VRInputError_None) {
+            throw std::runtime_error(std::format("Failed update scalar input component \"{}\": {}", name, static_cast<int>(result))
+            );
         }
     }
 
@@ -112,10 +114,14 @@ class VrSkeletonInputComponent {
     VrSkeletonInputComponent() = default;
     VrSkeletonInputComponent(const vr::VRInputComponentHandle_t handle, const char* name) : handle{handle}, name{name} {}
 
-    auto Update(const vr::EVRSkeletalMotionRange motion_range, const std::span<const vr::VRBoneTransform_t> bone_transforms) -> void {
-        if (vr::VRDriverInput()->UpdateSkeletonComponent(handle, motion_range, bone_transforms.data(), bone_transforms.size())
-            != vr::VRInputError_None) {
-            throw std::runtime_error(std::format("Failed update skeleton input component \"{}\"", name));
+    auto Update(const vr::EVRSkeletalMotionRange motion_range, const std::span<const vr::VRBoneTransform_t> bone_transforms)
+        -> void {
+        if (const auto result = vr::VRDriverInput()
+                                    ->UpdateSkeletonComponent(handle, motion_range, bone_transforms.data(), bone_transforms.size());
+            result != vr::VRInputError_None) {
+            throw std::runtime_error(
+                std::format("Failed update skeleton input component \"{}\": {}", name, static_cast<int>(result))
+            );
         }
     }
 
@@ -190,8 +196,11 @@ class VrDeviceProperties {
 
     [[maybe_unused]] auto CreateBooleanInput(const char* name) const -> VrBooleanInputComponent {
         vr::VRInputComponentHandle_t component_handle;
-        if (vr::VRDriverInput()->CreateBooleanComponent(handle, name, &component_handle) != vr::VRInputError_None) {
-            throw std::runtime_error(std::format("Failed to create scalar input component \"{}\"", name));
+        if (const auto result = vr::VRDriverInput()->CreateBooleanComponent(handle, name, &component_handle);
+            result != vr::VRInputError_None) {
+            throw std::runtime_error(
+                std::format("Failed to create scalar input component \"{}\": {}", name, static_cast<int>(result))
+            );
         }
         return VrBooleanInputComponent{component_handle, name};
     }
@@ -199,9 +208,12 @@ class VrDeviceProperties {
     [[maybe_unused]] auto CreateAbsoluteScalarInput(const char* name, const vr::EVRScalarUnits units) const
         -> VrScalarInputComponent {
         vr::VRInputComponentHandle_t component_handle;
-        if (vr::VRDriverInput()->CreateScalarComponent(handle, name, &component_handle, vr::VRScalarType_Absolute, units)
-            != vr::VRInputError_None) {
-            throw std::runtime_error(std::format("Failed to create scalar input component \"{}\"", name));
+        if (const auto result = vr::VRDriverInput()
+                                    ->CreateScalarComponent(handle, name, &component_handle, vr::VRScalarType_Absolute, units);
+            result != vr::VRInputError_None) {
+            throw std::runtime_error(
+                std::format("Failed to create scalar input component \"{}\": {}", name, static_cast<int>(result))
+            );
         }
         return VrScalarInputComponent{component_handle, name, vr::VRScalarType_Absolute, units};
     }
@@ -209,9 +221,12 @@ class VrDeviceProperties {
     [[maybe_unused]] auto CreateRelativeScalarInput(const char* name, const vr::EVRScalarUnits units) const
         -> VrScalarInputComponent {
         vr::VRInputComponentHandle_t component_handle;
-        if (vr::VRDriverInput()->CreateScalarComponent(handle, name, &component_handle, vr::VRScalarType_Relative, units)
-            != vr::VRInputError_None) {
-            throw std::runtime_error(std::format("Failed to create scalar input component \"{}\"", name));
+        if (const auto result = vr::VRDriverInput()
+                                    ->CreateScalarComponent(handle, name, &component_handle, vr::VRScalarType_Relative, units);
+            result != vr::VRInputError_None) {
+            throw std::runtime_error(
+                std::format("Failed to create scalar input component \"{}\": {}", name, static_cast<int>(result))
+            );
         }
         return VrScalarInputComponent{component_handle, name, vr::VRScalarType_Relative, units};
     }
@@ -219,8 +234,10 @@ class VrDeviceProperties {
     // TODO: Wrap and re-enable?
     // [[maybe_unused]] auto CreateHapticOutput(const char* name) const -> vr::VRInputComponentHandle_t {
     //     vr::VRInputComponentHandle_t component_handle;
-    //     if (vr::VRDriverInput()->CreateHapticComponent(handle, name, &component_handle) != vr::VRInputError_None) {
-    //         throw std::runtime_error(std::format("Failed to create haptic output component \"{}\"", name));
+    //     if (const auto result = vr::VRDriverInput()->CreateHapticComponent(handle, name, &component_handle); result !=
+    //     vr::VRInputError_None) {
+    //         throw std::runtime_error(std::format("Failed to create haptic output component \"{}\": {}", name,
+    //         static_cast<int>(result)));
     //     }
     //     return component_handle;
     // }
@@ -232,10 +249,20 @@ class VrDeviceProperties {
         const vr::EVRSkeletalTrackingLevel tracking_level
     ) const -> VrSkeletonInputComponent {
         vr::VRInputComponentHandle_t component_handle;
-        if (vr::VRDriverInput()
-                ->CreateSkeletonComponent(handle, name, skeleton_path, base_pose_path, tracking_level, nullptr, 0, &component_handle)
-            != vr::VRInputError_None) {
-            throw std::runtime_error(std::format("Failed to create skeleton input component \"{}\"", name));
+        if (const auto result = vr::VRDriverInput()->CreateSkeletonComponent(
+                handle,
+                name,
+                skeleton_path,
+                base_pose_path,
+                tracking_level,
+                nullptr,
+                0,
+                &component_handle
+            );
+            result != vr::VRInputError_None) {
+            throw std::runtime_error(
+                std::format("Failed to create skeleton input component \"{}\": {}", name, static_cast<int>(result))
+            );
         }
         return VrSkeletonInputComponent{component_handle, name};
     }
@@ -277,21 +304,25 @@ class VrSettings {
     static constexpr auto kUltraleapSection = "driver_ultraleap";
 };
 
-template <> [[nodiscard]] inline auto VrSettings::Get<std::string>(const std::string_view key) -> std::string {
-    std::array<char, 4096> value{};
+template <>
+[[nodiscard]] inline auto VrSettings::Get<std::string>(const std::string_view key) -> std::string {
+    std::array<char, vr::k_unMaxPropertyStringSize> value{};
     vr::VRSettings()->GetString(kUltraleapSection, std::string{key}.c_str(), value.data(), value.size());
     return std::string{value.data()};
 }
 
-template <> [[nodiscard]] inline auto VrSettings::Get<float>(const std::string_view key) -> float {
+template <>
+[[nodiscard]] inline auto VrSettings::Get<float>(const std::string_view key) -> float {
     return vr::VRSettings()->GetFloat(kUltraleapSection, std::string{key}.c_str());
 }
 
-template <> [[nodiscard]] inline auto VrSettings::Get<int32_t>(const std::string_view key) -> int32_t {
+template <>
+[[nodiscard]] inline auto VrSettings::Get<int32_t>(const std::string_view key) -> int32_t {
     return vr::VRSettings()->GetInt32(kUltraleapSection, std::string{key}.c_str());
 }
 
-template <> [[nodiscard]] inline auto VrSettings::Get<bool>(const std::string_view key) -> bool {
+template <>
+[[nodiscard]] inline auto VrSettings::Get<bool>(const std::string_view key) -> bool {
     return vr::VRSettings()->GetBool(kUltraleapSection, std::string{key}.c_str());
 }
 
