@@ -8,6 +8,8 @@
 #include "VrLogging.h"
 #include "VrMaths.h"
 
+#include <numeric>
+#include <ranges>
 #include <thread>
 
 const vr::VRBoneTransform_t kInitialHand[31]{
@@ -138,14 +140,14 @@ auto LeapHandDriver::GetHmdTrackerOffset() -> vr::HmdVector3_t {
     const auto x = VrSettings::Get<float>("hmd_offset_x");
     const auto y = VrSettings::Get<float>("hmd_offset_y");
     const auto z = VrSettings::Get<float>("hmd_offset_z");
-    return {x,y,z};
+    return {x, y, z};
 }
 
 auto LeapHandDriver::GetDesktopTrackerOffset() -> vr::HmdVector3_t {
     const auto x = VrSettings::Get<float>("desktop_offset_x");
     const auto y = VrSettings::Get<float>("desktop_offset_y");
     const auto z = VrSettings::Get<float>("desktop_offset_z");
-    return {x,y,z};
+    return {x, y, z};
 }
 
 auto LeapHandDriver::UpdateFromLeapFrame(const LEAP_TRACKING_EVENT* frame) -> void {
@@ -187,7 +189,7 @@ auto LeapHandDriver::UpdateFromLeapFrame(const LEAP_TRACKING_EVENT* frame) -> vo
             hand_velocity.CopyToArray(pose_.vecVelocity);
 
             // Transform the skeleton joints.
-            UpdateBoneTransforms(hand);
+            UpdateBoneTransforms(hand, time_offset);
         } else {
             pose_.poseIsValid = false;
         }
@@ -195,14 +197,6 @@ auto LeapHandDriver::UpdateFromLeapFrame(const LEAP_TRACKING_EVENT* frame) -> vo
         // Update input components.
         input_pinch_.Update(hand.pinch_strength, time_offset);
         input_grip_.Update(hand.grab_strength, time_offset);
-
-        // Update finger curl amounts
-        // TODO: Calculate correctly.
-        input_thumb_finger_.Update(static_cast<float>(hand.digits[0].is_extended), time_offset);
-        input_index_finger_.Update(static_cast<float>(hand.digits[1].is_extended), time_offset);
-        input_middle_finger_.Update(static_cast<float>(hand.digits[2].is_extended), time_offset);
-        input_ring_finger_.Update(static_cast<float>(hand.digits[3].is_extended), time_offset);
-        input_pinky_finger_.Update(static_cast<float>(hand.digits[4].is_extended), time_offset);
     } else {
         pose_.result = vr::TrackingResult_Running_OutOfRange;
         pose_.poseIsValid = false;
@@ -218,7 +212,7 @@ auto LeapHandDriver::SetInitialBoneTransforms() -> void {
     input_skeleton_.Update(vr::VRSkeletalMotionRange_WithoutController, kInitialHand);
 }
 
-auto LeapHandDriver::UpdateBoneTransforms(const LEAP_HAND& hand) -> void {
+auto LeapHandDriver::UpdateBoneTransforms(const LEAP_HAND& hand, const double time_offset) -> void {
     const auto GetBoneRotation = [&](const VrHandSkeletonBone bone) -> VrQuat {
         if (bone == Root) {
             return VrQuat{hand.palm.orientation};
@@ -236,6 +230,7 @@ auto LeapHandDriver::UpdateBoneTransforms(const LEAP_HAND& hand) -> void {
             const auto bone_index = (bone - IndexFinger0) % 5;
             return VrQuat{hand.digits[digit_index].bones[std::min(bone_index, 3)].rotation};
         }
+
         // TODO: AUX Bones
         return VrQuat::Identity;
     };
@@ -264,6 +259,7 @@ auto LeapHandDriver::UpdateBoneTransforms(const LEAP_HAND& hand) -> void {
             }
             return VrVec3{hand.digits[digit_index].bones[bone_index].prev_joint} * 0.001f;
         }
+
         // TODO: AUX Bones
         return VrVec3::Zero;
     };
@@ -295,10 +291,21 @@ auto LeapHandDriver::UpdateBoneTransforms(const LEAP_HAND& hand) -> void {
                 }
 
                 bones_transforms_[index] = {local_bone_position,local_bone_rotation};
+
                 parent_position = bone_position;
                 parent_rotation = bone_rotation;
             }
         };
+
+    const auto ComputeFingerCurl = [&](const LEAP_DIGIT& finger) -> float {
+        const auto bone_directions = std::ranges::views::transform(finger.bones, [](const LEAP_BONE& bone) -> glm::dvec3 {
+            return (bone.next_joint - bone.prev_joint).Normalised();
+        });
+        const auto total_finger_angles = glm::acos(glm::dot(bone_directions[0], bone_directions[1])) // Proximal
+                                       + glm::acos(glm::dot(bone_directions[1], bone_directions[2])) // Intermediate
+                                       + glm::acos(glm::dot(bone_directions[2], bone_directions[3]));
+        return static_cast<float>(glm::clamp(total_finger_angles / (std::numbers::pi * 2.0), 0.0, 1.0));
+    };
 
     const auto root_position = GetBonePosition(Root);
     const auto root_rotation = GetBoneRotation(Root);
@@ -318,12 +325,18 @@ auto LeapHandDriver::UpdateBoneTransforms(const LEAP_HAND& hand) -> void {
         };
     }
 
-    // Computer the bone digits.
+    // Compute the bone digits.
     ComputeDigitBoneTransforms(wrist_position, wrist_rotation, Thumb0, Thumb3);
     ComputeDigitBoneTransforms(wrist_position, wrist_rotation, IndexFinger0, IndexFinger4);
     ComputeDigitBoneTransforms(wrist_position, wrist_rotation, MiddleFinger0, MiddleFinger4);
     ComputeDigitBoneTransforms(wrist_position, wrist_rotation, RingFinger0, RingFinger4);
     ComputeDigitBoneTransforms(wrist_position, wrist_rotation, PinkyFinger0, PinkyFinger4);
+
+    // Compute the scalar finger curls.
+    input_index_finger_.Update(ComputeFingerCurl(hand.index), time_offset);
+    input_middle_finger_.Update(ComputeFingerCurl(hand.middle), time_offset);
+    input_ring_finger_.Update(ComputeFingerCurl(hand.ring), time_offset);
+    input_pinky_finger_.Update(ComputeFingerCurl(hand.pinky), time_offset);
 
     // Calculate the AUX bones.
     // Documented at: https://github.com/ValveSoftware/openvr/wiki/Hand-Skeleton#auxiliary-bones
