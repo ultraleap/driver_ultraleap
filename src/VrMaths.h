@@ -126,6 +126,7 @@ class VrVec3 : public dvec3 {
     [[nodiscard]] auto Cross(const Vector3 auto& other) const -> VrVec3 { return cross(*this, make_vec3(other.v)); }
     [[nodiscard]] auto Cross(const VrVec3& other) const -> VrVec3 { return VrVec3{cross(*this, make_vec3(other.data.data))}; }
     [[nodiscard]] auto Length() const -> value_type { return glm::length(static_cast<dvec3>(*this)); }
+    [[nodiscard]] auto Normalised() const -> VrVec3 { return VrVec3{glm::normalize(*this)}; }
 
     auto CopyToArray(double destination[3]) const -> void { std::ranges::copy(this->data.data, destination); }
 
