@@ -46,6 +46,40 @@ const vr::VRBoneTransform_t kInitialHand[31]{
     {{{-0.012825, -0.012825, -0.012825, 1.000000f}}, {-0.012825, -0.012825, -0.012825, -0.012825}},
 };
 
+constexpr double kOvrBoneLengths[31]{
+    0.0,                  // Root,
+    0.0,                  // Wrist,
+    0.040406133979558945, // Thumb0,
+    0.03251682594418526,  // Thumb1,
+    0.030463997274637222, // Thumb2,
+    0.0,                  // Thumb3,
+    0.0737975463271141,   // IndexFinger0,
+    0.043286554515361786, // IndexFinger1,
+    0.028275206685066223, // IndexFinger2,
+    0.022821536287665367, // IndexFinger3,
+    0.0,                  // IndexFinger4,
+    0.0708855390548706,   // MiddleFinger0,
+    0.04310855641961098,  // MiddleFinger1,
+    0.03326592966914177,  // MiddleFinger2,
+    0.02589227259159088,  // MiddleFinger3,
+    0.0,                  // MiddleFinger4,
+    0.06597498059272766,  // RingFinger0,
+    0.040331222116947174, // RingFinger1,
+    0.02848881110548973,  // RingFinger2,
+    0.02243015542626381,  // RingFinger3,
+    0.0,                  // RingFinger4,
+    0.06285565346479416,  // PinkyFinger0,
+    0.029874319210648537, // PinkyFinger1,
+    0.01797856017947197,  // PinkyFinger2,
+    0.018017906695604324, // PinkyFinger3,
+    0.0,                  // PinkyFinger4,
+    0.0,                  // AuxThumb,
+    0.0,                  // AuxIndexFinger,
+    0.0,                  // AuxMiddleFinger,
+    0.0,                  // AuxRingFinger,
+    0.0,                  // AuxPinkyFinger,
+};
+
 LeapHandDriver::LeapHandDriver(const eLeapHandType hand)
     : id_{vr::k_unTrackedDeviceIndexInvalid},
       hand_type_{hand},
@@ -63,7 +97,7 @@ auto LeapHandDriver::Activate(const uint32_t object_id) -> vr::EVRInitError {
         p.Set(vr::Prop_ControllerType_String, "ultraleap_hand");
         p.Set(vr::Prop_ControllerHandSelectionPriority_Int32, 0);
         p.Set(vr::Prop_ManufacturerName_String, "Ultraleap");
-        p.Set(vr::Prop_RenderModelName_String, "{ultraleap}/rendermodels/ultraleap_hand");
+        //p.Set(vr::Prop_RenderModelName_String, "{ultraleap}/rendermodels/ultraleap_hand");
         p.Set(vr::Prop_InputProfilePath_String, "{ultraleap}/input/ultraleap_hand_profile.json");
 
         // Device capabilities.
@@ -311,6 +345,20 @@ auto LeapHandDriver::UpdateBoneTransforms(const LEAP_HAND& hand, const double ti
 
                 auto local_bone_position = (bone_position - parent_position) * parent_rotation;
                 auto local_bone_rotation = parent_rotation.Inverse() * bone_rotation;
+
+                // auto bone_length = local_bone_position.Length();
+                // auto &bone_length_min_max = bone_lengths_[index - 1];
+                // if (bone_length_min_max.first < 0.01) {
+                //     bone_length_min_max.first = bone_length;
+                //     bone_length_min_max.second = bone_length;
+                // } else {
+                //     bone_length_min_max.first = std::min(bone_length_min_max.first, bone_length);
+                //     bone_length_min_max.second = std::max(bone_length_min_max.second, bone_length);
+                // }
+                // auto average_bone_length = std::lerp(bone_length_min_max.first, bone_length_min_max.second, 0.8f);
+                //
+                // local_bone_position /= bone_length;
+                // local_bone_position *= average_bone_length;
 
                 // Metacarpals need to handle the additional 90 degree rotation that OpenVR expects.
                 if (index == index_start) {
