@@ -48,40 +48,6 @@ const vr::VRBoneTransform_t kInitialHand[31]{
     {{{-0.012825, -0.012825, -0.012825, 1.000000f}}, {-0.012825, -0.012825, -0.012825, -0.012825}},
 };
 
-constexpr double kOvrBoneLengths[31]{
-    0.0,                  // Root,
-    0.0,                  // Wrist,
-    0.040406133979558945, // Thumb0,
-    0.03251682594418526,  // Thumb1,
-    0.030463997274637222, // Thumb2,
-    0.0,                  // Thumb3,
-    0.0737975463271141,   // IndexFinger0,
-    0.043286554515361786, // IndexFinger1,
-    0.028275206685066223, // IndexFinger2,
-    0.022821536287665367, // IndexFinger3,
-    0.0,                  // IndexFinger4,
-    0.0708855390548706,   // MiddleFinger0,
-    0.04310855641961098,  // MiddleFinger1,
-    0.03326592966914177,  // MiddleFinger2,
-    0.02589227259159088,  // MiddleFinger3,
-    0.0,                  // MiddleFinger4,
-    0.06597498059272766,  // RingFinger0,
-    0.040331222116947174, // RingFinger1,
-    0.02848881110548973,  // RingFinger2,
-    0.02243015542626381,  // RingFinger3,
-    0.0,                  // RingFinger4,
-    0.06285565346479416,  // PinkyFinger0,
-    0.029874319210648537, // PinkyFinger1,
-    0.01797856017947197,  // PinkyFinger2,
-    0.018017906695604324, // PinkyFinger3,
-    0.0,                  // PinkyFinger4,
-    0.0,                  // AuxThumb,
-    0.0,                  // AuxIndexFinger,
-    0.0,                  // AuxMiddleFinger,
-    0.0,                  // AuxRingFinger,
-    0.0,                  // AuxPinkyFinger,
-};
-
 LeapHandDriver::LeapHandDriver(const std::shared_ptr<LeapDriverSettings>& settings, const eLeapHandType hand)
     : id_{vr::k_unTrackedDeviceIndexInvalid},
       settings_{settings},
@@ -342,20 +308,6 @@ auto LeapHandDriver::UpdateBoneTransforms(const LEAP_HAND& hand, const double ti
                 auto local_bone_position = (bone_position - parent_position) * parent_rotation;
                 auto local_bone_rotation = parent_rotation.Inverse() * bone_rotation;
 
-                // auto bone_length = local_bone_position.Length();
-                // auto &bone_length_min_max = bone_lengths_[index - 1];
-                // if (bone_length_min_max.first < 0.01) {
-                //     bone_length_min_max.first = bone_length;
-                //     bone_length_min_max.second = bone_length;
-                // } else {
-                //     bone_length_min_max.first = std::min(bone_length_min_max.first, bone_length);
-                //     bone_length_min_max.second = std::max(bone_length_min_max.second, bone_length);
-                // }
-                // auto average_bone_length = std::lerp(bone_length_min_max.first, bone_length_min_max.second, 0.8f);
-                //
-                // local_bone_position /= bone_length;
-                // local_bone_position *= average_bone_length;
-
                 // Metacarpals need to handle the additional 90 degree rotation that OpenVR expects.
                 if (index == index_start) {
                     const auto wrist_correction = VrQuat::FromEulerAngles(
@@ -437,18 +389,6 @@ auto LeapHandDriver::UpdateBoneTransforms(const LEAP_HAND& hand, const double ti
         (GetBonePosition(PinkyFinger3) - root_position) * root_rotation,
         root_rotation.Inverse() * GetBoneRotation(PinkyFinger3)
     };
-
-    // // Debug all the transforms as euler angles
-    // static bool logged = false;
-    // if (!logged) {
-    //     for (auto i = 0; i < 31; ++i) {
-    //         const auto& p = bones_transforms_[i].position;
-    //         const auto& o = bones_transforms_[i].orientation;
-    //         LOG_INFO("{{ {{ {{ {1:.6f}, {1:.6f}, {1:.6f}, 1.000000f }} }}, {{ {1:.6f}, {1:.6f}, {1:.6f}, {1:.6f} }} }},", p.v[0],
-    //         p.v[1], p.v[2], o.w, o.x, o.y, o.z);
-    //     }
-    //     logged = true;
-    // }
 
     // Update the skeletons.
     input_skeleton_.Update(vr::VRSkeletalMotionRange_WithController, bones_transforms_);
