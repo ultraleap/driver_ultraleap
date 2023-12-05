@@ -82,12 +82,11 @@ constexpr double kOvrBoneLengths[31]{
     0.0,                  // AuxPinkyFinger,
 };
 
-LeapHandDriver::LeapHandDriver(const eLeapHandType hand)
+LeapHandDriver::LeapHandDriver(const std::shared_ptr<LeapDriverSettings>& settings, const eLeapHandType hand)
     : id_{vr::k_unTrackedDeviceIndexInvalid},
+      settings_{settings},
       hand_type_{hand},
-      pose_{kDefaultPose},
-      hmd_tracker_offset_{GetHmdTrackerOffset()},
-      desktop_tracker_offset_{GetDesktopTrackerOffset()} {
+      pose_{kDefaultPose} {
 }
 
 auto LeapHandDriver::Activate(const uint32_t object_id) -> vr::EVRInitError {
@@ -177,20 +176,6 @@ auto LeapHandDriver::DebugRequest(const char* request, char* response_buffer, co
 
 auto LeapHandDriver::GetPose() -> vr::DriverPose_t {
     return pose_;
-}
-
-auto LeapHandDriver::GetHmdTrackerOffset() -> vr::HmdVector3_t {
-    const auto x = VrSettings::Get<float>("hmd_offset_x");
-    const auto y = VrSettings::Get<float>("hmd_offset_y");
-    const auto z = VrSettings::Get<float>("hmd_offset_z");
-    return {x, y, z};
-}
-
-auto LeapHandDriver::GetDesktopTrackerOffset() -> vr::HmdVector3_t {
-    const auto x = VrSettings::Get<float>("desktop_offset_x");
-    const auto y = VrSettings::Get<float>("desktop_offset_y");
-    const auto z = VrSettings::Get<float>("desktop_offset_z");
-    return {x, y, z};
 }
 
 auto LeapHandDriver::UpdateFromLeapFrame(const LEAP_TRACKING_EVENT* frame) -> void {

@@ -31,6 +31,8 @@ add_library(driver_ultraleap SHARED
         src/VrMaths.h
         src/VrHand.cpp
         src/VrHand.h
+        src/LeapDriverSettings.cpp
+        src/LeapDriverSettings.h
 )
 target_compile_features(driver_ultraleap
     PUBLIC

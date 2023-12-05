@@ -16,6 +16,9 @@
 auto LeapDeviceProvider::Init(vr::IVRDriverContext* driver_context) -> vr::EVRInitError {
     VR_INIT_SERVER_DRIVER_CONTEXT(driver_context)
 
+    // Load the driver settings
+    settings_ = std::make_shared<LeapDriverSettings>();
+
     // Initialize the LeapC Connection
     constexpr LEAP_CONNECTION_CONFIG connectionConfig{
         sizeof(connectionConfig),
@@ -81,15 +84,11 @@ auto LeapDeviceProvider::RunFrame() -> void {
 }
 
 auto LeapDeviceProvider::OtherSectionSettingsChanged() const -> void {
-    // Prompt a re-fetch of all the settings file variables.
-    UpdateServiceAndDriverTrackingMode(GetTrackingMode(), std::nullopt);
+    // Reload the settings
+    settings_->LoadSettings();
 
-    for (const auto handDriver : {left_hand_.get(), right_hand_.get()}) {
-        if (handDriver != nullptr) {
-            handDriver->UpdateHmdTrackerOffset();
-            handDriver->UpdateDesktopTrackerOffset();
-        }
-    }
+    // Prompt a re-fetch of all the settings file variables.
+    UpdateServiceAndDriverTrackingMode(settings_->TrackingMode(), std::nullopt);
 }
 
 auto LeapDeviceProvider::ShouldBlockStandbyMode() -> bool {
@@ -139,7 +138,7 @@ auto LeapDeviceProvider::TrackingFrame([[maybe_unused]] const uint32_t device_id
 
 auto LeapDeviceProvider::TrackingModeChanged(const uint32_t device_id, const LEAP_TRACKING_MODE_EVENT* event) const -> void {
     const auto& leapDevice = leap_device_by_id_.at(device_id);
-    UpdateServiceAndDriverTrackingMode(GetTrackingMode(), leapDevice.get());
+    UpdateServiceAndDriverTrackingMode(settings_->TrackingMode(), leapDevice.get());
 }
 
 auto LeapDeviceProvider::DeviceDetected(const uint32_t /*device_id*/, const LEAP_DEVICE_EVENT* event) -> void {
@@ -230,8 +229,8 @@ auto LeapDeviceProvider::DisconnectDeviceDriver(const uint32_t device_id) -> voi
 }
 
 auto LeapDeviceProvider::CreateHandControllers() -> void {
-    left_hand_ = std::make_unique<LeapHandDriver>(eLeapHandType_Left);
-    right_hand_ = std::make_unique<LeapHandDriver>(eLeapHandType_Right);
+    left_hand_ = std::make_unique<LeapHandDriver>(settings_, eLeapHandType_Left);
+    right_hand_ = std::make_unique<LeapHandDriver>(settings_, eLeapHandType_Right);
 
     if (!vr::VRServerDriverHost()
              ->TrackedDeviceAdded("LeftHand", vr::ETrackedDeviceClass::TrackedDeviceClass_Controller, left_hand_.get())) {
@@ -266,25 +265,5 @@ auto LeapDeviceProvider::UpdateServiceAndDriverTrackingMode(const eLeapTrackingM
         for (const auto& val : std::views::values(leap_device_by_id_)) {
             LeapSetTrackingModeEx(leap_connection_, val->Handle(), mode);
         }
-    }
-
-    // Update our drivers tracking mode reference to ensure tracker pose is correct.
-    for (const auto handDriver : {left_hand_.get(), right_hand_.get()}) {
-        if (handDriver != nullptr) {
-            handDriver->UpdateTrackingMode(mode);
-            handDriver->UpdateHmdTrackerOffset();
-            handDriver->UpdateDesktopTrackerOffset();
-        }
-    }
-}
-
-auto LeapDeviceProvider::GetTrackingMode() -> eLeapTrackingMode {
-    if (const auto mode = VrSettings::Get<std::string>("tracker_mode"); mode == "hmd") {
-        return eLeapTrackingMode_HMD;
-    } else if (mode == "desktop") {
-        return eLeapTrackingMode_Desktop;
-    } else {
-        LOG_INFO("Orientation Key in VrSettings isn't a valid value: '{}', falling back to HMD...", mode);
-        return eLeapTrackingMode_HMD;
     }
 }

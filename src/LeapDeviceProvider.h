@@ -9,6 +9,7 @@
 #include <LeapC.h>
 
 #include "LeapDeviceDriver.h"
+#include "LeapDriverSettings.h"
 #include "LeapHandDriver.h"
 
 class LeapDeviceProvider final : public vr::IServerTrackedDeviceProvider {
@@ -48,7 +49,6 @@ class LeapDeviceProvider final : public vr::IServerTrackedDeviceProvider {
 
     // VrSettings related functions
     auto UpdateServiceAndDriverTrackingMode(eLeapTrackingMode mode, std::optional<LeapDevice*> device) const -> void;
-    [[nodiscard]] static auto GetTrackingMode() -> eLeapTrackingMode;
 
     LEAP_CONNECTION leap_connection_ = nullptr;
     std::atomic<bool> is_running_ = false;
@@ -60,4 +60,5 @@ class LeapDeviceProvider final : public vr::IServerTrackedDeviceProvider {
 
     std::unique_ptr<LeapHandDriver> left_hand_;
     std::unique_ptr<LeapHandDriver> right_hand_;
+    std::shared_ptr<LeapDriverSettings> settings_;
 };
