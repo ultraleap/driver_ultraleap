@@ -29,5 +29,6 @@ class LeapDeviceDriver final : public vr::ITrackedDeviceServerDriver {
     auto SetDeviceModelProperties(const VrDeviceProperties& properties) const -> void;
 
     uint32_t id_;
+    std::atomic<bool> active_;
     std::shared_ptr<LeapDevice> leap_device_;
 };
