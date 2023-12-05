@@ -99,7 +99,7 @@ auto LeapHandDriver::Activate(const uint32_t object_id) -> vr::EVRInitError {
         p.Set(vr::Prop_ControllerType_String, "ultraleap_hand");
         p.Set(vr::Prop_ControllerHandSelectionPriority_Int32, 0);
         p.Set(vr::Prop_ManufacturerName_String, "Ultraleap");
-        //p.Set(vr::Prop_RenderModelName_String, "{ultraleap}/rendermodels/ultraleap_hand");
+        p.Set(vr::Prop_RenderModelName_String, "{ultraleap}/rendermodels/ultraleap_hand");
         p.Set(vr::Prop_InputProfilePath_String, "{ultraleap}/input/ultraleap_hand_profile.json");
 
         // Device capabilities.
