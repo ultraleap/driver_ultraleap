@@ -39,10 +39,12 @@ auto LeapDeviceDriver::Activate(const uint32_t object_id) -> vr::EVRInitError {
     }
 
     // Indicate that this driver has initialized successfully.
+    active_ = true;
     return vr::VRInitError_None;
 }
 
 auto LeapDeviceDriver::Deactivate() -> void {
+    active_ = false;
     id_ = vr::k_unTrackedDeviceIndexInvalid;
 }
 
