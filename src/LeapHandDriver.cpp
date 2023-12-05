@@ -1,5 +1,7 @@
 #include "LeapHandDriver.h"
 
+#include "VrHand.h"
+
 #include <span>
 #include <numbers>
 #include <ratio>
@@ -206,7 +208,7 @@ auto LeapHandDriver::UpdateFromLeapFrame(const LEAP_TRACKING_EVENT* frame) -> vo
     const auto hands = std::span(frame->pHands, frame->nHands);
     if (const auto hand_iter = std::ranges::find_if(hands, [&](auto h) { return h.type == hand_type_; });
         hand_iter != hands.end()) {
-        const auto hand = *hand_iter;
+        const auto leap_hand = *hand_iter;
 
         // Get the HMD position for the timestamp of the frame.
         pose_.result = vr::TrackingResult_Running_OK;
@@ -226,24 +228,33 @@ auto LeapHandDriver::UpdateFromLeapFrame(const LEAP_TRACKING_EVENT* frame) -> vo
             tracker_world_position.CopyToArray(pose_.vecWorldFromDriverTranslation);
 
             // Copy joint applying LeapC -> OpenVR scaling correction.
-            (VrVec3{hand.palm.position} * 0.001).CopyToArray(pose_.vecPosition);
-            pose_.qRotation = VrQuat{hand.palm.orientation};
+            (VrVec3{leap_hand.palm.position} * 0.001).CopyToArray(pose_.vecPosition);
+            pose_.qRotation = VrQuat{leap_hand.palm.orientation};
 
             // Velocity
             // TODO: Check.
-            const auto hand_velocity = VrVec3{hand.palm.velocity} * 0.001 * tracker_head_rotation;
+            const auto hand_velocity = VrVec3{leap_hand.palm.velocity} * 0.001 * tracker_head_rotation;
             hand_velocity.CopyToArray(pose_.vecVelocity);
-
-            // Transform the skeleton joints.
-            UpdateBoneTransforms(hand, time_offset);
         } else {
             pose_.poseIsValid = false;
         }
 
-        // Update input components.
-        //input_proximity_.Update(true, time_offset);
-        input_pinch_.Update(hand.pinch_strength, time_offset);
-        input_grip_.Update(hand.grab_strength, time_offset);
+        // Parse this hand into a VrHand
+        const auto hand = VrHand{leap_hand};
+
+        // Update input components and skeleton
+        input_proximity_.Update(true, time_offset);
+
+        // Update the Skeleton and finger curl.
+        input_skeleton_.Update(vr::VRSkeletalMotionRange_WithController, hand.GetBoneTransforms());
+        input_skeleton_.Update(vr::VRSkeletalMotionRange_WithoutController, hand.GetBoneTransforms());
+        input_index_finger_.Update(hand.GetIndexFingerCurl());
+        input_middle_finger_.Update(hand.GetMiddleFingerCurl());
+        input_ring_finger_.Update(hand.GetRingFingerCurl());
+        input_pinky_finger_.Update(hand.GetPinkyFingerCurl());
+
+        input_pinch_.Update(hand.GetPinchStrength(), time_offset);
+        input_grip_.Update(hand.GetGrabStrength(), time_offset);
     } else {
         pose_.result = vr::TrackingResult_Running_OutOfRange;
         pose_.poseIsValid = false;
@@ -258,8 +269,8 @@ auto LeapHandDriver::UpdateFromLeapFrame(const LEAP_TRACKING_EVENT* frame) -> vo
         const auto& hand1 = frame->pHands[0];
         const auto& hand2 = frame->pHands[1];
 
-        const float index_tip_distance = VrVec3{hand1.index.distal.next_joint - hand2.index.distal.next_joint}.Length();
-        const float thumb_tip_distance = VrVec3{hand1.thumb.distal.next_joint - hand2.thumb.distal.next_joint}.Length();
+        const double index_tip_distance = VrVec3{hand1.index.distal.next_joint - hand2.index.distal.next_joint}.Length();
+        const double thumb_tip_distance = VrVec3{hand1.thumb.distal.next_joint - hand2.thumb.distal.next_joint}.Length();
 
         if (index_tip_distance < 20 && thumb_tip_distance < 20) {
             input_system_.Update(true);

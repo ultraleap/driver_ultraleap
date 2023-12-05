@@ -59,7 +59,7 @@ class VrQuat : public dquat {
 
     [[nodiscard]] static auto Dot(const VrQuat& a, const VrQuat& b) -> value_type { return dot(static_cast<dquat>(a), b); }
     [[nodiscard]] static auto Cross(const VrQuat& a, const VrQuat& b) -> VrQuat { return cross(a, b); }
-    [[nodiscard]] static auto Slerp(const VrQuat& a, const VrQuat& b, const std::floating_point auto& alpha) -> VrQuat& {
+    [[nodiscard]] static auto Slerp(const VrQuat& a, const VrQuat& b, const std::floating_point auto& alpha) -> VrQuat {
         return slerp(a, b, static_cast<value_type>(alpha));
     }
 
