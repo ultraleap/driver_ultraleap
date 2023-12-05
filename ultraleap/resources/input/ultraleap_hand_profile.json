@@ -54,21 +54,25 @@
     "/input/finger/index": {
       "type": "trigger",
       "binding_image_point": [55, 8],
+      "value": true,
       "order": 101
     },
     "/input/finger/middle": {
       "type": "trigger",
       "binding_image_point": [35, 9],
+      "value": true,
       "order": 102
     },
     "/input/finger/ring": {
       "type": "trigger",
       "binding_image_point": [12, 21],
+      "value": true,
       "order": 103
     },
     "/input/finger/pinky": {
       "type": "trigger",
       "binding_image_point": [9, 48],
+      "value": true,
       "order": 104
     }
   }
