@@ -20,7 +20,7 @@ VrHand::VrHand(const LEAP_HAND& leap_hand)
             return VrQuat{leap_hand.palm.orientation};
         }
         if (bone == Wrist) {
-            return VrQuat::Slerp(leap_hand.palm.orientation, leap_hand.middle.metacarpal.rotation, 0.25f); // SteamVR expects the wrist to be hand static not arm static.
+            return VrQuat{leap_hand.palm.orientation}; // SteamVR expects the wrist to be hand static not arm static.
         }
         if (bone < IndexFinger0) {
             // Ignore the zero length metacarpal and the tip has the same rotation as the preceeding bone.
