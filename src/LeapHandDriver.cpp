@@ -81,6 +81,11 @@ auto LeapHandDriver::Activate(const uint32_t object_id) -> vr::EVRInitError {
             p.Set(vr::Prop_ModelNumber_String, "right_hand");
         }
 
+        // System input paths.
+        input_system_ = p.CreateBooleanInput("/input/system/click");
+        input_proximity_ = p.CreateBooleanInput("/proximity");
+
+        // Hand specific infput paths.
         input_pinch_ = p.CreateAbsoluteScalarInput("/input/pinch/value", vr::VRScalarUnits_NormalizedOneSided);
         input_grip_ = p.CreateAbsoluteScalarInput("/input/grip/value", vr::VRScalarUnits_NormalizedOneSided);
 
@@ -105,10 +110,12 @@ auto LeapHandDriver::Activate(const uint32_t object_id) -> vr::EVRInitError {
     }
 
     // Indicate that this driver has initialized successfully.
+    active_ = true;
     return vr::VRInitError_None;
 }
 
 auto LeapHandDriver::Deactivate() -> void {
+    active_ = false;
     id_ = vr::k_unTrackedDeviceIndexInvalid;
 }
 
@@ -151,6 +158,11 @@ auto LeapHandDriver::GetDesktopTrackerOffset() -> vr::HmdVector3_t {
 }
 
 auto LeapHandDriver::UpdateFromLeapFrame(const LEAP_TRACKING_EVENT* frame) -> void {
+    // Check we've been activated before allowing updates from the tracking thread.
+    if (!active_) {
+        return;
+    }
+
     // Work out the offset from now
     const auto time_offset = static_cast<double>(frame->info.timestamp - LeapGetNow()) * std::micro::num / std::micro::den;
     pose_.poseTimeOffset = time_offset;
@@ -195,12 +207,33 @@ auto LeapHandDriver::UpdateFromLeapFrame(const LEAP_TRACKING_EVENT* frame) -> vo
         }
 
         // Update input components.
+        //input_proximity_.Update(true, time_offset);
         input_pinch_.Update(hand.pinch_strength, time_offset);
         input_grip_.Update(hand.grab_strength, time_offset);
     } else {
         pose_.result = vr::TrackingResult_Running_OutOfRange;
         pose_.poseIsValid = false;
         pose_.deviceIsConnected = true;
+
+        input_proximity_.Update(false, time_offset);
+        // TODO: Do we need to zero other input components here as well?
+    }
+
+    // TODO: Make this a proper classifier.
+    if (frame->nHands == 2) {
+        const auto& hand1 = frame->pHands[0];
+        const auto& hand2 = frame->pHands[1];
+
+        const float index_tip_distance = VrVec3{hand1.index.distal.next_joint - hand2.index.distal.next_joint}.Length();
+        const float thumb_tip_distance = VrVec3{hand1.thumb.distal.next_joint - hand2.thumb.distal.next_joint}.Length();
+
+        if (index_tip_distance < 20 && thumb_tip_distance < 20) {
+            input_system_.Update(true);
+        } else {
+            input_system_.Update(false);
+        }
+    } else {
+        input_system_.Update(false);
     }
 
     // Update the pose for this virtual hand;
