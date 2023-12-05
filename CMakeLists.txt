@@ -15,7 +15,7 @@ add_custom_target(uninstall)
 add_subdirectory(${GLM_ROOT})
 
 add_library(driver_ultraleap SHARED
-        src/HmdDriverFactory.cpp
+        src/LeapDriverFactory.cpp
         src/LeapDeviceProvider.cpp
         src/LeapDeviceProvider.h
         src/LeapDeviceDriver.cpp
