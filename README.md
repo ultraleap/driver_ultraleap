@@ -8,12 +8,12 @@ This is the official Ultraleap driver for SteamVR, supporting using your hands a
 
 This driver supports the follow Ultraleap/Leap Motion devices
 
-| Device Name              | Icon                                                                      |
-|:-------------------------|---------------------------------------------------------------------------|
-| Leap Motion Controller   | ![Leap Motion Controller icon](resources/icons/lmc_status_ready.png)      |
-| Leap Motion Controller 2 | ![Leap Motion Controller 2 icon](resources/icons/lmc2_status_ready.png)   |
-| Ultraleap 3di            | ![Leap Motion Controller 2 icon](resources/icons/3di_status_ready.png)    |
-| Ultraleap StereoIR 170   | ![Leap Motion Controller 2 icon](resources/icons/sir170_status_ready.png) |
+| Device Name              | Icon                                                                                |
+|:-------------------------|-------------------------------------------------------------------------------------|
+| Leap Motion Controller   | ![Leap Motion Controller icon](ultraleap/resources/icons/lmc_status_ready.png)      |
+| Leap Motion Controller 2 | ![Leap Motion Controller 2 icon](ultraleap/resources/icons/lmc2_status_ready.png)   |
+| Ultraleap 3di            | ![Leap Motion Controller 2 icon](ultraleap/resources/icons/3di_status_ready.png)    |
+| Ultraleap StereoIR 170   | ![Leap Motion Controller 2 icon](ultraleap/resources/icons/sir170_status_ready.png) |
 
 ## Installation
 - Install the latest version of the [Ultraleap Tracking Service](https://developer.leapmotion.com/tracking-software-download).
