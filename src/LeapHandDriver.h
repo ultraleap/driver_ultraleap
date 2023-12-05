@@ -44,6 +44,8 @@ class LeapHandDriver final : public vr::ITrackedDeviceServerDriver {
 
     vr::DriverPose_t pose_;
     std::array<vr::VRBoneTransform_t, 31> bones_transforms_{};
+    std::array<std::pair<double, double>, 31> bone_lengths_{};
+
     VrBooleanInputComponent input_system_;
     VrBooleanInputComponent input_proximity_;
 
