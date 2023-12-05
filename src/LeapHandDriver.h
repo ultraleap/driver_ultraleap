@@ -28,7 +28,6 @@ class LeapHandDriver final : public vr::ITrackedDeviceServerDriver {
 
   private:
     auto SetInitialBoneTransforms() -> void;
-    auto UpdateBoneTransforms(const LEAP_HAND& hand, double time_offset) -> void;
 
     uint32_t id_;
     std::atomic<bool> active_ = false;
@@ -40,7 +39,7 @@ class LeapHandDriver final : public vr::ITrackedDeviceServerDriver {
     std::array<vr::VRBoneTransform_t, 31> bones_transforms_{};
     std::array<std::pair<double, double>, 31> bone_lengths_{};
 
-    VrBooleanInputComponent input_system_;
+    VrBooleanInputComponent input_system_menu_;
     VrBooleanInputComponent input_proximity_;
 
     VrScalarInputComponent input_pinch_;
