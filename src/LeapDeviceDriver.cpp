@@ -13,23 +13,23 @@ auto LeapDeviceDriver::Activate(const uint32_t object_id) -> vr::EVRInitError {
     id_ = object_id;
 
     // Set up our property container and some utility functions.
-    const auto p = VrDeviceProperties::FromDeviceId(id_);
     try {
+        const auto properties = VrDeviceProperties::FromDeviceId(id_);
 
         // Setup manufacture/device information.
-        p.Set(vr::Prop_ManufacturerName_String, "Ultraleap");
+        properties.Set(vr::Prop_ManufacturerName_String, "Ultraleap");
 
         // Set up the base-station properties as a tracking reference point.
-        p.Set(vr::Prop_CanWirelessIdentify_Bool, false);
-        p.Set(vr::Prop_IsOnDesktop_Bool, false);
-        p.Set(vr::Prop_NeverTracked_Bool, false);
-        p.Set(vr::Prop_WillDriftInYaw_Bool, false);
+        properties.Set(vr::Prop_CanWirelessIdentify_Bool, false);
+        properties.Set(vr::Prop_IsOnDesktop_Bool, false);
+        properties.Set(vr::Prop_NeverTracked_Bool, false);
+        properties.Set(vr::Prop_WillDriftInYaw_Bool, false);
 
         // Don't locate the device in 3D space.
-        p.Set(vr::Prop_NeverTracked_Bool, true);
+        properties.Set(vr::Prop_NeverTracked_Bool, true);
 
         // Setup details of the FoV and range depending on device type.
-        SetDeviceModelProperties(p);
+        SetDeviceModelProperties(properties);
 
         // Mark this device as running correctly and connected, but with no valid pose.
         vr::VRServerDriverHost()->TrackedDevicePoseUpdated(id_, kDeviceConnectedPose, sizeof(kDeviceConnectedPose));

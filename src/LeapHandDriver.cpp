@@ -59,49 +59,48 @@ auto LeapHandDriver::Activate(const uint32_t object_id) -> vr::EVRInitError {
     id_ = object_id;
 
     try {
-        const auto p = VrDeviceProperties::FromDeviceId(id_);
-
-        p.Set(vr::Prop_ControllerType_String, "ultraleap_hand");
-        p.Set(vr::Prop_ControllerHandSelectionPriority_Int32, 0);
-        p.Set(vr::Prop_ManufacturerName_String, "Ultraleap");
-        p.Set(vr::Prop_RenderModelName_String, "{ultraleap}/rendermodels/ultraleap_hand");
-        p.Set(vr::Prop_InputProfilePath_String, "{ultraleap}/input/ultraleap_hand_profile.json");
+        const auto properties = VrDeviceProperties::FromDeviceId(id_);
+        properties.Set(vr::Prop_ControllerType_String, "ultraleap_hand");
+        properties.Set(vr::Prop_ControllerHandSelectionPriority_Int32, 0);
+        properties.Set(vr::Prop_ManufacturerName_String, "Ultraleap");
+        properties.Set(vr::Prop_RenderModelName_String, "{ultraleap}/rendermodels/ultraleap_hand");
+        properties.Set(vr::Prop_InputProfilePath_String, "{ultraleap}/input/ultraleap_hand_profile.json");
 
         // Device capabilities.
-        p.Set(vr::Prop_DeviceIsWireless_Bool, true);
-        p.Set(vr::Prop_DeviceCanPowerOff_Bool, false);
-        p.Set(vr::Prop_DeviceProvidesBatteryStatus_Bool, false);
-        p.Set(vr::Prop_Identifiable_Bool, false);
+        properties.Set(vr::Prop_DeviceIsWireless_Bool, true);
+        properties.Set(vr::Prop_DeviceCanPowerOff_Bool, false);
+        properties.Set(vr::Prop_DeviceProvidesBatteryStatus_Bool, false);
+        properties.Set(vr::Prop_Identifiable_Bool, false);
 
         // Setup properties that are different per hand.
         if (hand_type_ == eLeapHandType_Left) {
-            p.Set(vr::Prop_ControllerRoleHint_Int32, vr::TrackedControllerRole_LeftHand);
-            p.Set(vr::Prop_ModelNumber_String, "left_hand");
+            properties.Set(vr::Prop_ControllerRoleHint_Int32, vr::TrackedControllerRole_LeftHand);
+            properties.Set(vr::Prop_ModelNumber_String, "left_hand");
         } else {
-            p.Set(vr::Prop_ControllerRoleHint_Int32, vr::TrackedControllerRole_RightHand);
-            p.Set(vr::Prop_ModelNumber_String, "right_hand");
+            properties.Set(vr::Prop_ControllerRoleHint_Int32, vr::TrackedControllerRole_RightHand);
+            properties.Set(vr::Prop_ModelNumber_String, "right_hand");
         }
 
         // System input paths.
-        input_system_menu_ = p.CreateBooleanInput("/input/system/click");
-        input_proximity_ = p.CreateBooleanInput("/proximity");
+        input_system_menu_ = properties.CreateBooleanInput("/input/system/click");
+        input_proximity_ = properties.CreateBooleanInput("/proximity");
 
         // Hand specific infput paths.
-        input_pinch_ = p.CreateAbsoluteScalarInput("/input/pinch/value", vr::VRScalarUnits_NormalizedOneSided);
-        input_grip_ = p.CreateAbsoluteScalarInput("/input/grip/value", vr::VRScalarUnits_NormalizedOneSided);
+        input_pinch_ = properties.CreateAbsoluteScalarInput("/input/pinch/value", vr::VRScalarUnits_NormalizedOneSided);
+        input_grip_ = properties.CreateAbsoluteScalarInput("/input/grip/value", vr::VRScalarUnits_NormalizedOneSided);
 
         // Setup hand-skeleton to have full tracking with no supplied transforms.
-        input_skeleton_ = p.CreateSkeletonInput(
+        input_skeleton_ = properties.CreateSkeletonInput(
             hand_type_ == eLeapHandType_Left ? "/input/skeleton/left" : "/input/skeleton/right",
             hand_type_ == eLeapHandType_Left ? "/skeleton/hand/left" : "/skeleton/hand/right",
             "/pose/raw",
             vr::VRSkeletalTracking_Full
         );
-        input_thumb_finger_ = p.CreateAbsoluteScalarInput("/input/finger/thumb", vr::VRScalarUnits_NormalizedOneSided);
-        input_index_finger_ = p.CreateAbsoluteScalarInput("/input/finger/index", vr::VRScalarUnits_NormalizedOneSided);
-        input_middle_finger_ = p.CreateAbsoluteScalarInput("/input/finger/middle", vr::VRScalarUnits_NormalizedOneSided);
-        input_ring_finger_ = p.CreateAbsoluteScalarInput("/input/finger/ring", vr::VRScalarUnits_NormalizedOneSided);
-        input_pinky_finger_ = p.CreateAbsoluteScalarInput("/input/finger/pinky", vr::VRScalarUnits_NormalizedOneSided);
+        input_thumb_finger_ = properties.CreateAbsoluteScalarInput("/input/finger/thumb", vr::VRScalarUnits_NormalizedOneSided);
+        input_index_finger_ = properties.CreateAbsoluteScalarInput("/input/finger/index", vr::VRScalarUnits_NormalizedOneSided);
+        input_middle_finger_ = properties.CreateAbsoluteScalarInput("/input/finger/middle", vr::VRScalarUnits_NormalizedOneSided);
+        input_ring_finger_ = properties.CreateAbsoluteScalarInput("/input/finger/ring", vr::VRScalarUnits_NormalizedOneSided);
+        input_pinky_finger_ = properties.CreateAbsoluteScalarInput("/input/finger/pinky", vr::VRScalarUnits_NormalizedOneSided);
 
         // Send Skeleton data straight away.
         SetInitialBoneTransforms();
