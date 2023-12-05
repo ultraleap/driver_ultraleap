@@ -118,8 +118,8 @@ class VrVec3 : public dvec3 {
 
     auto operator*(const std::floating_point auto scale) const -> VrVec3 { return VrVec3{*this * dvec3{scale}}; }
     auto operator/(const std::floating_point auto scale) const -> VrVec3 { return VrVec3{*this / dvec3{scale}}; }
-    auto operator*=(const std::floating_point auto scale) const -> VrVec3& { return *this * dvec3{scale}; }
-    auto operator/=(const std::floating_point auto scale) const -> VrVec3& { return *this / dvec3{scale}; }
+    auto operator*=(const std::floating_point auto scale) -> VrVec3& { return *this = VrVec3{*this * dvec3{scale}}; }
+    auto operator/=(const std::floating_point auto scale) -> VrVec3& { return *this = VrVec3{*this / dvec3{scale}}; }
 
     [[nodiscard]] auto Dot(const Vector3 auto& other) const -> value_type { return dot(*this, make_vec3(other.v)); }
     [[nodiscard]] auto Dot(const VrVec3& other) const -> value_type { return dot(*this, make_vec3(other.data.data)); }
