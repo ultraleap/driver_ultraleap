@@ -9,7 +9,8 @@
       "simulate_HMD" : true,
       "autoremappings" : [
         { "from" : "/user/hand/right/input/trigger",  "to" : "/user/hand/right/input/pinch" },
-        { "from" : "/user/hand/right/input/grip",     "to" : "/user/hand/right/input/grip", "parameters": {
+        { "from" : "/user/hand/right/input/grip",     "to" : "/user/hand/right/input/grip",
+          "parameters": {
             "click_activate_threshold": "0.8",
             "click_deactivate_threshold": "0.7",
             "touch_activate_threshold": "0.2",
