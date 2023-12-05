@@ -81,20 +81,6 @@ VrHand::VrHand(const LEAP_HAND& leap_hand)
                 auto local_bone_position = (bone_position - parent_position) * parent_rotation;
                 auto local_bone_rotation = parent_rotation.Inverse() * bone_rotation;
 
-                // auto bone_length = local_bone_position.Length();
-                // auto &bone_length_min_max = bone_lengths_[index - 1];
-                // if (bone_length_min_max.first < 0.01) {
-                //     bone_length_min_max.first = bone_length;
-                //     bone_length_min_max.second = bone_length;
-                // } else {
-                //     bone_length_min_max.first = std::min(bone_length_min_max.first, bone_length);
-                //     bone_length_min_max.second = std::max(bone_length_min_max.second, bone_length);
-                // }
-                // auto average_bone_length = std::lerp(bone_length_min_max.first, bone_length_min_max.second, 0.8f);
-                //
-                // local_bone_position /= bone_length;
-                // local_bone_position *= average_bone_length;
-
                 // Metacarpals need to handle the additional 90 degree rotation that OpenVR expects.
                 if (index == index_start) {
                     const auto wrist_correction = VrQuat::FromEulerAngles(

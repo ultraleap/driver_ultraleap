@@ -26,8 +26,6 @@ class VrHand {
 private:
     std::array<vr::VRBoneTransform_t, 31> bones_transforms_{};
 
-    vr::DriverPose_t pose_;
-
     float pinch_strength_;
     float grab_strength_;
 

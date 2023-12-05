@@ -46,7 +46,6 @@ class LeapHandDriver final : public vr::ITrackedDeviceServerDriver {
     VrScalarInputComponent input_grip_;
 
     VrSkeletonInputComponent input_skeleton_;
-    VrScalarInputComponent input_thumb_finger_;
     VrScalarInputComponent input_index_finger_;
     VrScalarInputComponent input_middle_finger_;
     VrScalarInputComponent input_ring_finger_;

@@ -96,7 +96,6 @@ auto LeapHandDriver::Activate(const uint32_t object_id) -> vr::EVRInitError {
             "/pose/raw",
             vr::VRSkeletalTracking_Full
         );
-        input_thumb_finger_ = properties.CreateAbsoluteScalarInput("/input/finger/thumb", vr::VRScalarUnits_NormalizedOneSided);
         input_index_finger_ = properties.CreateAbsoluteScalarInput("/input/finger/index", vr::VRScalarUnits_NormalizedOneSided);
         input_middle_finger_ = properties.CreateAbsoluteScalarInput("/input/finger/middle", vr::VRScalarUnits_NormalizedOneSided);
         input_ring_finger_ = properties.CreateAbsoluteScalarInput("/input/finger/ring", vr::VRScalarUnits_NormalizedOneSided);
