@@ -23,6 +23,9 @@
 *.out
 *.app
 
+# Blender temporary files
+*.blend[123456789]
+
 # Build output
 cmake-build-*
 
