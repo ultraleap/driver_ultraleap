@@ -197,37 +197,47 @@ auto LeapHandDriver::UpdateFromLeapFrame(const LEAP_TRACKING_EVENT* frame) -> vo
         // Update the Skeleton and finger curl.
         input_skeleton_.Update(vr::VRSkeletalMotionRange_WithController, hand.GetBoneTransforms());
         input_skeleton_.Update(vr::VRSkeletalMotionRange_WithoutController, hand.GetBoneTransforms());
-        input_index_finger_.Update(hand.GetIndexFingerCurl());
-        input_middle_finger_.Update(hand.GetMiddleFingerCurl());
-        input_ring_finger_.Update(hand.GetRingFingerCurl());
-        input_pinky_finger_.Update(hand.GetPinkyFingerCurl());
+        input_index_finger_.Update(hand.GetIndexFingerCurl(), time_offset);
+        input_middle_finger_.Update(hand.GetMiddleFingerCurl(), time_offset);
+        input_ring_finger_.Update(hand.GetRingFingerCurl(), time_offset);
+        input_pinky_finger_.Update(hand.GetPinkyFingerCurl(), time_offset);
 
         input_pinch_.Update(hand.GetPinchStrength(), time_offset);
         input_grip_.Update(hand.GetGrabStrength(), time_offset);
+
+        // TODO: Make this a proper classifier.
+        if (frame->nHands == 2) {
+            const auto& hand1 = frame->pHands[0];
+            const auto& hand2 = frame->pHands[1];
+
+            const double index_tip_distance = VrVec3{hand1.index.distal.next_joint - hand2.index.distal.next_joint}.Length();
+            const double thumb_tip_distance = VrVec3{hand1.thumb.distal.next_joint - hand2.thumb.distal.next_joint}.Length();
+
+            if (index_tip_distance < 20 && thumb_tip_distance < 20) {
+                input_system_menu_.Update(true);
+            } else {
+                input_system_menu_.Update(false);
+            }
+        } else {
+            input_system_menu_.Update(false);
+        }
+
     } else {
         pose_.result = vr::TrackingResult_Running_OutOfRange;
         pose_.poseIsValid = false;
         pose_.deviceIsConnected = true;
 
-        input_proximity_.Update(false, time_offset);
-        // TODO: Do we need to zero other input components here as well?
-    }
-
-    // TODO: Make this a proper classifier.
-    if (frame->nHands == 2) {
-        const auto& hand1 = frame->pHands[0];
-        const auto& hand2 = frame->pHands[1];
-
-        const double index_tip_distance = VrVec3{hand1.index.distal.next_joint - hand2.index.distal.next_joint}.Length();
-        const double thumb_tip_distance = VrVec3{hand1.thumb.distal.next_joint - hand2.thumb.distal.next_joint}.Length();
-
-        if (index_tip_distance < 20 && thumb_tip_distance < 20) {
-            input_system_menu_.Update(true);
-        } else {
-            input_system_menu_.Update(false);
-        }
-    } else {
+        // Mark all input components as zero'ed values.
         input_system_menu_.Update(false);
+        input_proximity_.Update(false, time_offset);
+
+        input_index_finger_.Update(0.0, time_offset);
+        input_middle_finger_.Update(0.0, time_offset);
+        input_ring_finger_.Update(0.0, time_offset);
+        input_pinky_finger_.Update(0.0, time_offset);
+
+        input_pinch_.Update(0.0, time_offset);
+        input_grip_.Update(0.0, time_offset);
     }
 
     // Update the pose for this virtual hand;

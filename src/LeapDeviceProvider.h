@@ -10,6 +10,7 @@
 
 #include "LeapDeviceDriver.h"
 #include "LeapDriverSettings.h"
+#include "LeapElbowDriver.h"
 #include "LeapHandDriver.h"
 
 class LeapDeviceProvider final : public vr::IServerTrackedDeviceProvider {
@@ -60,5 +61,9 @@ class LeapDeviceProvider final : public vr::IServerTrackedDeviceProvider {
 
     std::unique_ptr<LeapHandDriver> left_hand_;
     std::unique_ptr<LeapHandDriver> right_hand_;
+
+    std::unique_ptr<LeapElbowDriver> left_elbow_;
+    std::unique_ptr<LeapElbowDriver> right_elbow_;
+
     std::shared_ptr<LeapDriverSettings> settings_;
 };

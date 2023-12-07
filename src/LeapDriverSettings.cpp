@@ -29,4 +29,6 @@ auto LeapDriverSettings::LoadSettings() -> void {
         VrSettings::Get<float>("desktop_offset_y"),
         VrSettings::Get<float>("desktop_offset_z"),
     };
+
+    enable_elbow_trackers_ = VrSettings::Get<bool>("enable_elbow_trackers");
 }

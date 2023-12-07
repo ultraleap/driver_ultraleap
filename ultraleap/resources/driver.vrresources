@@ -52,6 +52,16 @@
       "Prop_NamedIconPathDeviceStandbyAlert_String": "{ultraleap}/icons/right_hand_status_standby_alert.png",
       "Prop_NamedIconPathDeviceSearching_String": "{ultraleap}/icons/right_hand_status_standby.png",
       "Prop_NamedIconPathDeviceSearchingAlert_String": "{ultraleap}/icons/right_hand_status_standby_alert.png"
+    },
+    "elbow": {
+      "Prop_NamedIconPathDeviceOff_String": "{ultraleap}/icons/elbow_status_off.png",
+      "Prop_NamedIconPathDeviceReady_String": "{ultraleap}/icons/elbow_status_ready.png",
+      "Prop_NamedIconPathDeviceReadyAlert_String": "{ultraleap}/icons/elbow_status_ready_alert.png",
+      "Prop_NamedIconPathDeviceNotReady_String": "{ultraleap}/icons/elbow_status_error.png",
+      "Prop_NamedIconPathDeviceStandby_String": "{ultraleap}/icons/elbow_status_standby.png",
+      "Prop_NamedIconPathDeviceStandbyAlert_String": "{ultraleap}/icons/elbow_status_standby_alert.png",
+      "Prop_NamedIconPathDeviceSearching_String": "{ultraleap}/icons/elbow_status_standby.png",
+      "Prop_NamedIconPathDeviceSearchingAlert_String": "{ultraleap}/icons/elbow_status_standby_alert.png"
     }
   }
 }

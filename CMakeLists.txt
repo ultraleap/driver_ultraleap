@@ -22,6 +22,8 @@ add_library(driver_ultraleap SHARED
         src/LeapDeviceDriver.h
         src/LeapHandDriver.cpp
         src/LeapHandDriver.h
+        src/LeapElbowDriver.cpp
+        src/LeapElbowDriver.h
         src/LeapDevice.cpp
         src/LeapDevice.h
         src/OsUtils.cpp

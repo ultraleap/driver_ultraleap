@@ -128,10 +128,17 @@ auto LeapDeviceProvider::ServiceMessageLoop() -> void {
 }
 
 auto LeapDeviceProvider::TrackingFrame([[maybe_unused]] const uint32_t device_id, const LEAP_TRACKING_EVENT* event) const -> void {
-    // Pass the tracking frame to each virtual hand driver, and update with the latest pose.
+    // Pass the tracking frame to each virtual hand driver.
     for (const auto handDriver : {left_hand_.get(), right_hand_.get()}) {
         if (handDriver != nullptr) {
             handDriver->UpdateFromLeapFrame(event);
+        }
+    }
+
+    // Pass the tracking frame to each virtual elbow driver.
+    for (const auto elbowDriver : {left_elbow_.get(), right_elbow_.get()}) {
+        if (elbowDriver != nullptr) {
+            elbowDriver->UpdateFromLeapFrame(event);
         }
     }
 }
@@ -242,12 +249,34 @@ auto LeapDeviceProvider::CreateHandControllers() -> void {
         LOG_INFO("Failed to add Ultraleap right hand controller");
     }
     LOG_INFO("Added virtual hand devices");
+
+    if (settings_->EnableElbowTrackers()) {
+        left_elbow_ = std::make_unique<LeapElbowDriver>(settings_, eLeapHandType_Left);
+        right_elbow_ = std::make_unique<LeapElbowDriver>(settings_, eLeapHandType_Right);
+
+        if (!vr::VRServerDriverHost()
+                 ->TrackedDeviceAdded("LeftElbow", vr::ETrackedDeviceClass::TrackedDeviceClass_GenericTracker, left_elbow_.get())) {
+            LOG_INFO("Failed to add Ultraleap left elbow controller");
+                 }
+
+        if (!vr::VRServerDriverHost()
+                 ->TrackedDeviceAdded("RightElbow", vr::ETrackedDeviceClass::TrackedDeviceClass_GenericTracker, right_elbow_.get())) {
+            LOG_INFO("Failed to add Ultraleap right elbow controller");
+                 }
+        LOG_INFO("Added virtual elbow devices");
+    }
 }
 
 auto LeapDeviceProvider::DisconnectHandControllers() const -> void {
     vr::VRServerDriverHost()->TrackedDevicePoseUpdated(left_hand_->Id(), kDeviceDisconnectedPose, sizeof(kDeviceDisconnectedPose));
     vr::VRServerDriverHost()->TrackedDevicePoseUpdated(right_hand_->Id(), kDeviceDisconnectedPose, sizeof(kDeviceDisconnectedPose));
     LOG_INFO("Disconnected virtual hand devices");
+
+    if (left_elbow_ != nullptr && right_elbow_ != nullptr) {
+        vr::VRServerDriverHost()->TrackedDevicePoseUpdated(left_elbow_->Id(), kDeviceDisconnectedPose, sizeof(kDeviceDisconnectedPose));
+        vr::VRServerDriverHost()->TrackedDevicePoseUpdated(right_elbow_->Id(), kDeviceDisconnectedPose, sizeof(kDeviceDisconnectedPose));
+        LOG_INFO("Disconnected virtual elbow devices");
+    }
 }
 
 auto LeapDeviceProvider::DeviceDriverFromLeapId(const uint32_t device_id) const -> const std::shared_ptr<LeapDeviceDriver>& {

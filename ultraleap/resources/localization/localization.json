@@ -12,10 +12,15 @@
 
     "left_hand": "Left Hand",
     "right_hand": "Right Hand",
+    "left_elbow": "Left Elbow",
+    "right_elbow": "Right Elbow",
+
+    "/user/elbow/left": "Left Elbow",
+    "/user/elbow/right": "Right Elbow",
 
     "/input/pinch": "Pinch Gesture",
     "/input/grip": "Grip",
-    "/input/finger/thumb": "Thumb",
+
     "/input/finger/index": "Index Finger",
     "/input/finger/middle": "Middle Finger",
     "/input/finger/ring": "Ring Finger",
