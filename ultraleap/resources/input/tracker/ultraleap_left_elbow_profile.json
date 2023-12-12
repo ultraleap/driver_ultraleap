@@ -1,0 +1,12 @@
+{
+  "jsonid": "input_profile",
+  "controller_type": "ultraleap_left_elbow",
+  "input_bindingui_mode": "single_device",
+
+  "input_source": {
+    "/pose/left_elbow": {
+      "type": "pose",
+      "binding_image_point": [50, 50]
+    }
+  }
+}

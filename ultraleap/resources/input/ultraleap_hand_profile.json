@@ -11,10 +11,6 @@
   "input_bindingui_right": {
     "image": "{ultraleap}/bindingui/ultraleap_hand.svg"
   },
-  "tracker_types": {
-    "TrackerRole_LeftElbow": "{ultraleap}/input/ultraleap_elbow_profile.json",
-    "TrackerRole_RightElbow": "{ultraleap}/input/ultraleap_elbow_profile.json"
-  },
   "input_source": {
     "/input/pinch": {
       "type": "trigger",

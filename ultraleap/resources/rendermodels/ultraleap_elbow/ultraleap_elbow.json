@@ -1,6 +1,6 @@
 {
+  "thumbnail": "ultraleap_elbow-thumbnail.png",
   "components": {
-    "thumbnail": "ultraleap_elbow-thumbnail.png",
     "tracker": {
       "filename": "ultraleap_elbow.obj",
       "component_local": {

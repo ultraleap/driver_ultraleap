@@ -3,6 +3,11 @@
   "controller_type": "ultraleap_elbow",
   "input_bindingui_mode": "single_device",
 
+  "tracker_types": {
+    "TrackerRole_LeftElbow": "{ultraleap}/input/ultraleap_left_elbow_profile.json",
+    "TrackerRole_RightElbow": "{ultraleap}/input/ultraleap_right_elbow_profile.json"
+  },
+
   "input_source": {
     "/pose/raw": {
       "type": "pose",

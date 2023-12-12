@@ -27,7 +27,7 @@ auto LeapElbowDriver::Activate(const uint32_t object_id) -> vr::EVRInitError {
     try {
         const auto properties = VrDeviceProperties::FromDeviceId(id_);
         properties.Set(vr::Prop_ControllerType_String, "ultraleap_elbow");
-        properties.Set(vr::Prop_ModelNumber_String, "elbow");
+        properties.Set(vr::Prop_ModelNumber_String, "elbow_tracker");
         properties.Set(vr::Prop_ManufacturerName_String, "Ultraleap");
         properties.Set(vr::Prop_RenderModelName_String, "{ultraleap}/rendermodels/ultraleap_elbow");
         properties.Set(vr::Prop_InputProfilePath_String, "{ultraleap}/input/ultraleap_elbow_profile.json");
@@ -85,12 +85,12 @@ auto LeapElbowDriver::UpdateFromLeapFrame(const LEAP_TRACKING_EVENT* frame) -> v
         return;
     }
 
-    // Work out the offset from now
+    // Work out the offset from now based on the frame timestamp.
     const auto time_offset = static_cast<double>(frame->info.timestamp - LeapGetNow()) * std::micro::num / std::micro::den;
     pose_.poseTimeOffset = time_offset;
     pose_.deviceIsConnected = true;
 
-    // Find a hand that matches the correct chirality/
+    // Find a hand that matches the correct chirality.
     const auto hands = std::span(frame->pHands, frame->nHands);
     if (const auto hand_iter = std::ranges::find_if(hands, [&](auto h) { return h.type == hand_type_; });
         hand_iter != std::end(hands)) {
@@ -102,7 +102,7 @@ auto LeapElbowDriver::UpdateFromLeapFrame(const LEAP_TRACKING_EVENT* frame) -> v
             pose_.poseIsValid = true;
 
             // Space transform from LeapC -> OpenVR Head Space.
-            const auto tracker_head_offset = VrVec3{0, 0, -0.08f};
+            const auto tracker_head_offset = settings_->HmdTrackerOffset();
             const auto tracker_head_rotation = VrQuat::FromEulerAngles(-std::numbers::pi / 2.0, 0, std::numbers::pi);
             pose_.qDriverFromHeadRotation = VrQuat::Identity;
             VrVec3::Zero.CopyToArray(pose_.vecDriverFromHeadTranslation);
@@ -124,9 +124,6 @@ auto LeapElbowDriver::UpdateFromLeapFrame(const LEAP_TRACKING_EVENT* frame) -> v
         } else {
             pose_.poseIsValid = false;
         }
-
-        // Parse this hand into a VrHand
-        const auto hand = VrHand{leap_hand};
 
         // Update proximity.
         input_proximity_.Update(true, time_offset);
