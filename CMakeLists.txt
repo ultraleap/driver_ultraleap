@@ -9,6 +9,7 @@ set(GLM_ROOT ${CMAKE_SOURCE_DIR}/3rdparty/GLM)
 
 find_package(OpenVR REQUIRED)
 find_package(LeapSDK 5 REQUIRED)
+add_subdirectory(3rdparty/json EXCLUDE_FROM_ALL)
 
 # Add GLM (avoiding an annoying target it adds by creating a dummy one with the same name).
 add_custom_target(uninstall)
@@ -35,6 +36,8 @@ add_library(driver_ultraleap SHARED
         src/VrHand.h
         src/LeapDriverSettings.cpp
         src/LeapDriverSettings.h
+        src/JsonSerializer.cpp
+        src/JsonSerializer.h
 )
 target_compile_features(driver_ultraleap
     PUBLIC
@@ -45,6 +48,7 @@ target_link_libraries(driver_ultraleap
         OpenVR::OpenVR
         LeapSDK::LeapC
         glm::glm
+        nlohmann_json::nlohmann_json
 )
 set_target_properties(driver_ultraleap PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/ultraleap/bin/win64)
 

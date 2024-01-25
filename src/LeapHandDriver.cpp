@@ -1,6 +1,7 @@
 #include "LeapHandDriver.h"
 
 #include "VrHand.h"
+#include "JsonSerializer.h"
 
 #include <span>
 #include <numbers>
@@ -134,6 +135,14 @@ auto LeapHandDriver::DebugRequest(const char* request, char* response_buffer, co
         // TODO: Implement any required debugging here, for now just clear the buffer.
         if (response_buffer_size > 0) {
             std::memset(response_buffer, 0, response_buffer_size);
+
+            //TODO HYPOTHETICAL EXAMPLE OF MY BRAINCHILD move default constructor to private afterwards for DebugRequestJson.
+            const auto time_offset = static_cast<double>(LeapGetNow()) * std::micro::num / std::micro::den;
+            DebugRequestJson yeehaw;
+            // Assuming the keying of the enum this side is done to the various properties.
+            InputPaths pathEnum = InputPaths::GRIP;
+            auto& foundProp = input_grip_;
+            foundProp.Update(std::get<decltype(DebugRequestJson::InputPathTypeLookup.at(pathEnum))>(yeehaw.inputs.at(pathEnum).value));
         }
     }
 }
