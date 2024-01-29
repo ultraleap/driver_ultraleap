@@ -3,14 +3,18 @@
 #include "LeapDriverSettings.h"
 
 #include <atomic>
+#include <unordered_map>
+#include <variant>
 
 #include "VrUtils.h"
+#include "JsonSerializer.h"
 
 #include <openvr_driver.h>
 #include <LeapC.h>
 
 class LeapHandDriver final : public vr::ITrackedDeviceServerDriver {
   public:
+    using InputComponent = std::variant<VrScalarInputComponent*, VrBooleanInputComponent*>;
     LeapHandDriver(const std::shared_ptr<LeapDriverSettings>& settings, eLeapHandType hand);
     virtual ~LeapHandDriver() = default;
 
@@ -50,4 +54,6 @@ class LeapHandDriver final : public vr::ITrackedDeviceServerDriver {
     VrScalarInputComponent input_middle_finger_;
     VrScalarInputComponent input_ring_finger_;
     VrScalarInputComponent input_pinky_finger_;
+
+    std::unordered_map<InputPaths, InputComponent> path_inputs_map_;
 };

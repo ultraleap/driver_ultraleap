@@ -6,7 +6,6 @@
 #include <variant>
 #include <string>
 #include <unordered_map>
-#include <any>
 
 enum class InputPaths {
     SYSTEM_MENU,
@@ -27,42 +26,24 @@ public:
 
     class InputEntry {
     public:
-        InputEntry(std::string pathStr, InputValue val) : path{std::move(pathStr)}, value{val} {};
-        const std::string path;
-        const InputValue value;
+        InputEntry(std::string pathStr, InputValue val) : path_{std::move(pathStr)}, value_{val} {};
+        const std::string path_;
+        const InputValue value_;
     };
 
     class SettingsEntry {
-        SettingsEntry(std::string key, SettingsValue val) : key{std::move(key)}, value{val} {};
-        const std::string key;
-        const SettingsValue value;
+        SettingsEntry(std::string key, SettingsValue val) : key_{std::move(key)}, value_{val} {};
+        const std::string key_;
+        const SettingsValue value_;
     };
 
-    static std::optional<DebugRequestJson> Parse(const char* string);
+    static auto Parse(const char* string) -> std::optional<DebugRequestJson>;
 
-    std::unordered_map<InputPaths, InputEntry> inputs;
-    std::vector<SettingsEntry> settings;
-
-    // TODO: if theres a better way to ASSIGN a type to a variable PLEASE tell me. I spent far too long
-    // Fannying about with decltype and declval trying to get this idea in my brain to work.
-    inline const static std::unordered_map<InputPaths, std::any> InputPathTypeLookup {
-        {InputPaths::SYSTEM_MENU, true},
-        {InputPaths::PROXIMITY, true},
-        {InputPaths::PINCH, 0.0f},
-        {InputPaths::GRIP, 0.0f},
-        {InputPaths::INDEX_FINGER, 0.0f},
-        {InputPaths::MIDDLE_FINGER, 0.0f},
-        {InputPaths::RING_FINGER, 0.0f},
-        {InputPaths::PINKY_FINGER, 0.0f},
-    };
-
-    DebugRequestJson() = default;
+    std::unordered_map<InputPaths, InputEntry> inputs_;
+    std::vector<SettingsEntry> settings_;
 private:
-
+    DebugRequestJson() = default;
     DebugRequestJson(std::unordered_map<InputPaths, InputEntry> inputValues, std::vector<SettingsEntry> settingValues)
-        : inputs{std::move(inputValues)},
-          settings{std::move(settingValues)} {};
-
-
-
+        : inputs_{std::move(inputValues)},
+          settings_{std::move(settingValues)} {};
 };

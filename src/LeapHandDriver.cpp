@@ -1,19 +1,18 @@
 #include "LeapHandDriver.h"
 
 #include "VrHand.h"
-#include "JsonSerializer.h"
 
 #include <span>
 #include <numbers>
 #include <ratio>
+#include <numeric>
+#include <format>
 
 #include "VrUtils.h"
 #include "VrLogging.h"
 #include "VrMaths.h"
+#include "nlohmann/json.hpp"
 
-#include <numeric>
-#include <ranges>
-#include <thread>
 
 const vr::VRBoneTransform_t kInitialHand[31]{
     {{{0.000000, 0.000000, 0.000000, 1.000000f}}, {0.000000, 0.000000, 0.000000, 0.000000}},
@@ -84,11 +83,17 @@ auto LeapHandDriver::Activate(const uint32_t object_id) -> vr::EVRInitError {
 
         // System input paths.
         input_system_menu_ = properties.CreateBooleanInput("/input/system/click");
+        path_inputs_map_.insert({InputPaths::SYSTEM_MENU, &input_system_menu_});
+
         input_proximity_ = properties.CreateBooleanInput("/proximity");
+        path_inputs_map_.insert({InputPaths::PROXIMITY, &input_proximity_});
 
         // Hand specific infput paths.
         input_pinch_ = properties.CreateAbsoluteScalarInput("/input/pinch/value", vr::VRScalarUnits_NormalizedOneSided);
+        path_inputs_map_.insert({InputPaths::PINCH, &input_pinch_});
+
         input_grip_ = properties.CreateAbsoluteScalarInput("/input/grip/value", vr::VRScalarUnits_NormalizedOneSided);
+        path_inputs_map_.insert({InputPaths::GRIP, &input_grip_});
 
         // Setup hand-skeleton to have full tracking with no supplied transforms.
         input_skeleton_ = properties.CreateSkeletonInput(
@@ -98,9 +103,16 @@ auto LeapHandDriver::Activate(const uint32_t object_id) -> vr::EVRInitError {
             vr::VRSkeletalTracking_Full
         );
         input_index_finger_ = properties.CreateAbsoluteScalarInput("/input/finger/index", vr::VRScalarUnits_NormalizedOneSided);
+        path_inputs_map_.insert({InputPaths::INDEX_FINGER, &input_index_finger_});
+
         input_middle_finger_ = properties.CreateAbsoluteScalarInput("/input/finger/middle", vr::VRScalarUnits_NormalizedOneSided);
+        path_inputs_map_.insert({InputPaths::MIDDLE_FINGER, &input_middle_finger_});
+
         input_ring_finger_ = properties.CreateAbsoluteScalarInput("/input/finger/ring", vr::VRScalarUnits_NormalizedOneSided);
+        path_inputs_map_.insert({InputPaths::RING_FINGER, &input_ring_finger_});
+
         input_pinky_finger_ = properties.CreateAbsoluteScalarInput("/input/finger/pinky", vr::VRScalarUnits_NormalizedOneSided);
+        path_inputs_map_.insert({InputPaths::PINKY_FINGER, &input_pinky_finger_});
 
         // Send Skeleton data straight away.
         SetInitialBoneTransforms();
@@ -131,20 +143,70 @@ auto LeapHandDriver::GetComponent(const char* component_name_and_version) -> voi
 }
 
 auto LeapHandDriver::DebugRequest(const char* request, char* response_buffer, const uint32_t response_buffer_size) -> void {
-    if (id_ != vr::k_unTrackedDeviceIndexInvalid) {
-        // TODO: Implement any required debugging here, for now just clear the buffer.
-        if (response_buffer_size > 0) {
-            std::memset(response_buffer, 0, response_buffer_size);
+    auto SendResponse = [&](const nlohmann::json& response) {
+        const auto responseString = response.dump();
+        strcpy_s(response_buffer, response_buffer_size, responseString.c_str());
+    };
 
-            //TODO HYPOTHETICAL EXAMPLE OF MY BRAINCHILD move default constructor to private afterwards for DebugRequestJson.
-            const auto time_offset = static_cast<double>(LeapGetNow()) * std::micro::num / std::micro::den;
-            DebugRequestJson yeehaw;
-            // Assuming the keying of the enum this side is done to the various properties.
-            InputPaths pathEnum = InputPaths::GRIP;
-            auto& foundProp = input_grip_;
-            foundProp.Update(std::get<decltype(DebugRequestJson::InputPathTypeLookup.at(pathEnum))>(yeehaw.inputs.at(pathEnum).value));
+    if (id_ == vr::k_unTrackedDeviceIndexInvalid) {
+        LOG_INFO("Id of hand driver is invalid, implying driver hasnt been initialized yet; skipping....");
+        return;
+    }
+
+    if (response_buffer_size <= 0) {
+        LOG_INFO("Response Buffer for a debug payload was zero; Ignoring request...");
+        return;
+    }
+
+    // After safety checks we can now parse our received payload and process.
+    auto debugRequest = DebugRequestJson::Parse(request);
+    nlohmann::json response;
+    response["result"] = "success";
+
+    if (!debugRequest.has_value()) {
+        LOG_INFO("Failed to parse debug json, skipping...");
+        response["result"] = "error";
+        response["error"] = "Failed to parse debug json.";
+        SendResponse(response);
+        return;
+    }
+
+    // Loop through all the received InputEvents and fire off updates to the corresponding inputs.
+    std::vector<std::string> warningStrings;
+    for (const auto& [key, inputEntry] : debugRequest->inputs_) {
+        const auto& propVariant = path_inputs_map_.at(key);
+
+        // Special case for joysticks as x and y are sent together. Beyond that ensure that the types we've parsed
+        // from the debug payload correctly match our input types.
+        //TODO: see if theres a way we can lambda func this with template parameters since both VrScalarInputComponent AND VrBooleanInputComponent have update funcs.
+        //TODO: Also check if we need to be sending an offset with the Update. Afaik we want the inputs to fire immediately but could potentially be wiped out by our inputs due to pipelining?
+        if (std::holds_alternative<vr::HmdVector2_t>(inputEntry.value_)) {
+            //TODO: this will be to allow for joysticks in the future and can be ignored for now
+        } else if (std::holds_alternative<float>(inputEntry.value_) && std::holds_alternative<VrScalarInputComponent*>(propVariant)) {
+            const auto& val = std::get<float>(inputEntry.value_);
+            auto* prop = std::get<VrScalarInputComponent*>(propVariant);
+            prop->Update(val);
+        } else if (std::holds_alternative<bool>(inputEntry.value_) && std::holds_alternative<VrBooleanInputComponent*>(propVariant)) {
+            const auto& val = std::get<bool>(inputEntry.value_);
+            auto* prop = std::get<VrBooleanInputComponent*>(propVariant);
+            prop->Update(val);
+        } else {
+            LOG_INFO(
+                "Failed to process input for path: '{}'; Either the payload value didn't match the input type or path_inputs_map_ is missing an entry for the given key",
+                inputEntry.path_);
+            warningStrings.push_back(std::format(
+                "Failed to process input for path: '{}'; Either the payload value didn't match the input type or path_inputs_map_ is missing an entry for the given key",
+                inputEntry.path_));
         }
     }
+
+    // If we had any warnings from certain paths failing attach them to our response
+    if (!warningStrings.empty()) {
+        response["warnings"] = warningStrings;
+    }
+
+    // Copy our response into the provided buffer.
+    SendResponse(response);
 }
 
 auto LeapHandDriver::GetPose() -> vr::DriverPose_t {
