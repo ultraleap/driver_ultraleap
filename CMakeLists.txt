@@ -36,8 +36,8 @@ add_library(driver_ultraleap SHARED
         src/VrHand.h
         src/LeapDriverSettings.cpp
         src/LeapDriverSettings.h
-        src/JsonSerializer.cpp
-        src/JsonSerializer.h
+        src/RequestDeserializer.cpp
+        src/RequestDeserializer.h
 )
 target_compile_features(driver_ultraleap
     PUBLIC

@@ -5,13 +5,11 @@
 #include <span>
 #include <numbers>
 #include <ratio>
-#include <numeric>
 #include <format>
 
 #include "VrUtils.h"
 #include "VrLogging.h"
 #include "VrMaths.h"
-#include "nlohmann/json.hpp"
 
 
 const vr::VRBoneTransform_t kInitialHand[31]{
@@ -144,8 +142,19 @@ auto LeapHandDriver::GetComponent(const char* component_name_and_version) -> voi
 
 auto LeapHandDriver::DebugRequest(const char* request, char* response_buffer, const uint32_t response_buffer_size) -> void {
     auto SendResponse = [&](const nlohmann::json& response) {
-        const auto responseString = response.dump();
-        strcpy_s(response_buffer, response_buffer_size, responseString.c_str());
+        static const nlohmann::json buffer_insufficient_response = {
+            {"result", "error"},
+            {"error", "Buffer Size Insufficient"}
+        };
+        static const auto buffer_insufficient_string = buffer_insufficient_response.dump();
+        const auto response_string = response.dump();
+
+        // Attempt to send the correct response, otherwise attempt to fit the buffer insufficient error in it instead.
+        if (response_string.size() <= response_buffer_size) {
+            strcpy_s(response_buffer, response_buffer_size, response_string.c_str());
+        } else if (buffer_insufficient_string.size() < response_buffer_size) {
+            strcpy_s(response_buffer, response_buffer_size, buffer_insufficient_string.c_str());
+        }
     };
 
     if (id_ == vr::k_unTrackedDeviceIndexInvalid) {
@@ -159,11 +168,11 @@ auto LeapHandDriver::DebugRequest(const char* request, char* response_buffer, co
     }
 
     // After safety checks we can now parse our received payload and process.
-    auto debugRequest = DebugRequestJson::Parse(request);
+    auto debug_request_payload = DebugRequestPayload::Parse(request);
     nlohmann::json response;
     response["result"] = "success";
 
-    if (!debugRequest.has_value()) {
+    if (!debug_request_payload.has_value()) {
         LOG_INFO("Failed to parse debug json, skipping...");
         response["result"] = "error";
         response["error"] = "Failed to parse debug json.";
@@ -172,37 +181,37 @@ auto LeapHandDriver::DebugRequest(const char* request, char* response_buffer, co
     }
 
     // Loop through all the received InputEvents and fire off updates to the corresponding inputs.
-    std::vector<std::string> warningStrings;
-    for (const auto& [key, inputEntry] : debugRequest->inputs_) {
-        const auto& propVariant = path_inputs_map_.at(key);
+    std::vector<std::string> warning_strings;
+    for (const auto& [key, input_entry] : debug_request_payload->inputs_) {
+        const auto& prop_variant = path_inputs_map_.at(key);
 
         // Special case for joysticks as x and y are sent together. Beyond that ensure that the types we've parsed
         // from the debug payload correctly match our input types.
         //TODO: see if theres a way we can lambda func this with template parameters since both VrScalarInputComponent AND VrBooleanInputComponent have update funcs.
         //TODO: Also check if we need to be sending an offset with the Update. Afaik we want the inputs to fire immediately but could potentially be wiped out by our inputs due to pipelining?
-        if (std::holds_alternative<vr::HmdVector2_t>(inputEntry.value_)) {
+        if (std::holds_alternative<vr::HmdVector2_t>(input_entry.value_)) {
             //TODO: this will be to allow for joysticks in the future and can be ignored for now
-        } else if (std::holds_alternative<float>(inputEntry.value_) && std::holds_alternative<VrScalarInputComponent*>(propVariant)) {
-            const auto& val = std::get<float>(inputEntry.value_);
-            auto* prop = std::get<VrScalarInputComponent*>(propVariant);
+        } else if (std::holds_alternative<float>(input_entry.value_) && std::holds_alternative<VrScalarInputComponent*>(prop_variant)) {
+            const auto& val = std::get<float>(input_entry.value_);
+            auto* prop = std::get<VrScalarInputComponent*>(prop_variant);
             prop->Update(val);
-        } else if (std::holds_alternative<bool>(inputEntry.value_) && std::holds_alternative<VrBooleanInputComponent*>(propVariant)) {
-            const auto& val = std::get<bool>(inputEntry.value_);
-            auto* prop = std::get<VrBooleanInputComponent*>(propVariant);
+        } else if (std::holds_alternative<bool>(input_entry.value_) && std::holds_alternative<VrBooleanInputComponent*>(prop_variant)) {
+            const auto& val = std::get<bool>(input_entry.value_);
+            auto* prop = std::get<VrBooleanInputComponent*>(prop_variant);
             prop->Update(val);
         } else {
             LOG_INFO(
                 "Failed to process input for path: '{}'; Either the payload value didn't match the input type or path_inputs_map_ is missing an entry for the given key",
-                inputEntry.path_);
-            warningStrings.push_back(std::format(
+                input_entry.full_path_);
+            warning_strings.push_back(std::format(
                 "Failed to process input for path: '{}'; Either the payload value didn't match the input type or path_inputs_map_ is missing an entry for the given key",
-                inputEntry.path_));
+                input_entry.full_path_));
         }
     }
 
     // If we had any warnings from certain paths failing attach them to our response
-    if (!warningStrings.empty()) {
-        response["warnings"] = warningStrings;
+    if (!warning_strings.empty()) {
+        response["warnings"] = warning_strings;
     }
 
     // Copy our response into the provided buffer.
