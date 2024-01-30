@@ -1,5 +1,6 @@
 #pragma once
 
+#include "VrMaths.h"
 #include "openvr_driver.h"
 
 #include <optional>
@@ -21,10 +22,13 @@ enum class InputPaths {
     UNKNOWN
 };
 
+// TODO: check if we should namespace these as they may conflict.
+using InputValue = std::variant<bool, float, vr::HmdVector2_t>;
+using SettingsValue = std::variant<bool, float, VrVec3>;
+
 class DebugRequestPayload{
 public:
-    using InputValue = std::variant<bool, float, vr::HmdVector2_t>;
-    using SettingsValue = std::variant<bool, float>;
+
 
     class InputEntry {
     public:

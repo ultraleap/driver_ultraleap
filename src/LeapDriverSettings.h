@@ -14,10 +14,18 @@ class LeapDriverSettings {
     [[nodiscard]] auto HmdTrackerOffset() const -> VrVec3 { return hmd_tracker_offset_; }
     [[nodiscard]] auto DesktopTrackerOffset() const -> VrVec3 { return desktop_tracker_offset_; }
     [[nodiscard]] auto EnableElbowTrackers() const -> bool { return enable_elbow_trackers_; }
+    [[nodiscard]] auto InputFromDriver() const -> bool { return input_from_driver_; }
+
+    auto UpdateTrackingMode(const eLeapTrackingMode value) -> void { tracking_mode_ = value; }
+    auto UpdateHmdTrackerOffset(const VrVec3& value) -> void { hmd_tracker_offset_ = value; }
+    auto UpdateDesktopTrackerOffset(const VrVec3& value) -> void { desktop_tracker_offset_ = value; }
+    auto UpdateEnableElbowTrackers(const bool value) -> void { enable_elbow_trackers_ = value; }
+    auto UpdateInputFromDriver(const bool value) -> void { input_from_driver_ = value; }
 
   private:
     std::atomic<eLeapTrackingMode> tracking_mode_;
     std::atomic<VrVec3> hmd_tracker_offset_{};
     std::atomic<VrVec3> desktop_tracker_offset_{};
     std::atomic<bool> enable_elbow_trackers_{};
+    std::atomic<bool> input_from_driver_{};
 };

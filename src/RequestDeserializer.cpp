@@ -81,12 +81,20 @@ auto DebugRequestPayload::ParseSettings(const nlohmann::json& request) -> std::v
                 setting_value = value.get<bool>();
             } else if (value.is_number_float()) {
                 setting_value = value.get<float>();
+            } else if (value.is_array() && value.size() == 3) {
+                const auto& x = value.at(0);
+                const auto& y = value.at(1);
+                const auto& z = value.at(2);
+
+                if (x.is_number_float() && y.is_number_float() && z.is_number_float()) {
+                    setting_value = VrVec3{x.get<float>(), y.get<float>(), z.get<float>()};
+                }
             }
 
             if (setting_value.has_value()) {
                 settings.emplace_back(item.key(), setting_value.value());
             } else {
-                LOG_INFO("Settings Key's '{}' value is invalid. Must be a float or bool", item.key());
+                LOG_INFO("Settings Key's '{}' value is invalid. Must be a float or bool an array of floats with a size of 3 ([x,y,x])", item.key());
             }
         }
     }

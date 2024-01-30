@@ -19,16 +19,18 @@ auto LeapDriverSettings::LoadSettings() -> void {
     }
 
     hmd_tracker_offset_ = VrVec3{
-        VrSettings::Get<float>("hmd_offset_x"),
-        VrSettings::Get<float>("hmd_offset_y"),
-        VrSettings::Get<float>("hmd_offset_z"),
+        VrSettings::Get<float>("hmd_tracker_offset_x"),
+        VrSettings::Get<float>("hmd_tracker_offset_y"),
+        VrSettings::Get<float>("hmd_tracker_offset_z"),
     };
 
     desktop_tracker_offset_ = VrVec3{
-        VrSettings::Get<float>("desktop_offset_x"),
-        VrSettings::Get<float>("desktop_offset_y"),
-        VrSettings::Get<float>("desktop_offset_z"),
+        VrSettings::Get<float>("desktop_tracker_offset_x"),
+        VrSettings::Get<float>("desktop_tracker_offset_y"),
+        VrSettings::Get<float>("desktop_tracker_offset_z"),
     };
 
     enable_elbow_trackers_ = VrSettings::Get<bool>("enable_elbow_trackers");
+
+    input_from_driver_ = VrSettings::Get<bool>("input_from_driver");
 }
