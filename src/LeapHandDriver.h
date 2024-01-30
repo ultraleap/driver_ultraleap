@@ -32,6 +32,8 @@ class LeapHandDriver final : public vr::ITrackedDeviceServerDriver {
 
   private:
     auto SetInitialBoneTransforms() -> void;
+    auto ProcessDebugRequestInputs(const DebugRequestPayload& request_payload, nlohmann::json& response) const -> void;
+    auto ProcessDebugRequestSettings(const DebugRequestPayload& request_payload, nlohmann::json& response) -> void;
 
     uint32_t id_;
     std::atomic<bool> active_ = false;
@@ -56,4 +58,7 @@ class LeapHandDriver final : public vr::ITrackedDeviceServerDriver {
     VrScalarInputComponent input_pinky_finger_;
 
     std::unordered_map<InputPaths, InputComponent> path_inputs_map_;
+    inline static const std::string response_result_key_ = "result";
+    inline static const std::string response_warnings_key_ = "warnings";
+    inline static const std::string response_errors_key_ = "errors";
 };
