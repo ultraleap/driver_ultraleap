@@ -35,6 +35,16 @@ class LeapHandDriver final : public vr::ITrackedDeviceServerDriver {
     auto ProcessDebugRequestInputs(const DebugRequestPayload& request_payload, nlohmann::json& response) const -> void;
     auto ProcessDebugRequestSettings(const DebugRequestPayload& request_payload, nlohmann::json& response) -> void;
 
+    template <typename T>
+    auto UpdateSetting(const std::function<void(T)>& update_func, nlohmann::json& response, std::string_view key, SettingsValue value) -> void {
+        if (std::holds_alternative<T>(value)) {
+            UpdateFunc(std::get<T>(value));
+        } else {
+            LOG_INFO("Incorrect type passed in for key: '{}'. Expected: '{}'", key, typeid(T).name);
+            response[response_warnings_key_] += std::format("Incorrect type passed in for key: '{}'. Expected: '{}'", key, typeid(T).name);
+        }
+    };
+
     uint32_t id_;
     std::atomic<bool> active_ = false;
 

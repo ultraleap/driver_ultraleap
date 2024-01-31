@@ -338,32 +338,33 @@ auto LeapHandDriver::ProcessDebugRequestInputs(const DebugRequestPayload& reques
 }
 
 auto LeapHandDriver::ProcessDebugRequestSettings(const DebugRequestPayload& request_payload, nlohmann::json& response) -> void {
-    auto UpdateSetting = [&]<typename T>(const std::function<void()>& UpdateFunc, std::string_view key, SettingsValue value) {
-        if (std::holds_alternative<T>(value)) {
-            UpdateFunc(std::get<T>(value));
-        } else {
-            LOG_INFO("Incorrect type passed in for key: '{}'. Expected: '{}'", key, typeid(T).name);
-            response[response_warnings_key_] += std::format("Incorrect type passed in for key: '{}'. Expected: '{}'", key, typeid(T).name);
-        }
-    };
-
+    /* TODO: Tried to use this lambda along with the calling conventions below but had no luck, revise this.
+     *  UpdateSetting.operator()<VrVec3>(settings_->UpdateHmdTrackerOffset, setting.key_, setting.value_);
+     *  UpdateSetting<bool>(settings_->UpdateInputFromDriver, setting.key_, setting.value_);
+     *  auto UpdateSetting = [&]<typename T>(const std::function<void(T)>& UpdateFunc, std::string_view key, SettingsValue value) {
+     *       if (std::holds_alternative<T>(value)) {
+     *           UpdateFunc(std::get<T>(value));
+     *       } else {
+     *           LOG_INFO("Incorrect type passed in for key: '{}'. Expected: '{}'", key, typeid(T).name);
+     *           response[response_warnings_key_] += std::format("Incorrect type passed in for key: '{}'. Expected: '{}'", key, typeid(T).name);
+     *       }
+     *  };
+     */
 
     for (const auto& setting : request_payload.settings_) {
-        switch(setting.key_) {
-        case "tracking_mode": /* TODO, Not sure how we want to handle a tracking mode enum externally. */ break;
-        case "hmd_tracker_offset": UpdateSetting<VrVec3>(settings_->UpdateHmdTrackerOffset, setting.key_, setting.value_); continue;
-        case "desktop_tracker_offset":
-        case "enable_elbow_trackers":
-        case "input_from_driver":
-        default:
+        if (setting.key_ == "tracking_mode") {
+            // TODO, Not sure how we want to handle a tracking mode enum externally.
+        } else if (setting.key_ == "hmd_tracker_offset") {
+            UpdateSetting<VrVec3>(settings_->UpdateHmdTrackerOffset, response, setting.key_, setting.value_);
+        } else if (setting.key_ == "desktop_tracker_offset") {
+            UpdateSetting<VrVec3>(settings_->UpdateDesktopTrackerOffset, response, setting.key_, setting.value_);
+        } else if (setting.key_ == "enable_elbow_trackers") {
+            UpdateSetting<bool>(settings_->UpdateEnableElbowTrackers, response, setting.key_, setting.value_);
+        } else if (setting.key_ == "input_from_driver") {
+            UpdateSetting<bool>(settings_->UpdateInputFromDriver, response, setting.key_, setting.value_);
+        } else {
             LOG_INFO("Failed to find setting with key: '{}', skipping...", setting.key_);
             response[response_warnings_key_] += std::format("Failed to find setting with key: '{}'", setting.key_);
         }
-
-        // std::atomic<eLeapTrackingMode> tracking_mode_;
-        // std::atomic<VrVec3> hmd_tracker_offset_{};
-        // std::atomic<VrVec3> desktop_tracker_offset_{};
-        // std::atomic<bool> enable_elbow_trackers_{};
-        // std::atomic<bool> input_from_driver_{};
     }
 }
