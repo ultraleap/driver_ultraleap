@@ -5,7 +5,9 @@
 #include <atomic>
 #include <unordered_map>
 #include <variant>
+#include <typeinfo>
 
+#include "VrLogging.h"
 #include "VrUtils.h"
 #include "RequestDeserializer.h"
 
@@ -36,12 +38,12 @@ class LeapHandDriver final : public vr::ITrackedDeviceServerDriver {
     auto ProcessDebugRequestSettings(const DebugRequestPayload& request_payload, nlohmann::json& response) -> void;
 
     template <typename T>
-    auto UpdateSetting(const std::function<void(T)>& update_func, nlohmann::json& response, std::string_view key, SettingsValue value) -> void {
+    static auto UpdateSetting(std::function<void(T)> update_func, nlohmann::json& response, std::string_view key, SettingsValue value) -> void {
         if (std::holds_alternative<T>(value)) {
-            UpdateFunc(std::get<T>(value));
+            update_func(std::get<T>(value));
         } else {
-            LOG_INFO("Incorrect type passed in for key: '{}'. Expected: '{}'", key, typeid(T).name);
-            response[response_warnings_key_] += std::format("Incorrect type passed in for key: '{}'. Expected: '{}'", key, typeid(T).name);
+            LOG_INFO("Incorrect type passed in for key: '{}'. Expected: '{}'", key, typeid(T).name());
+            response[response_warnings_key_] += std::format("Incorrect type passed in for key: '{}'. Expected: '{}'", key, typeid(T).name());
         }
     };
 

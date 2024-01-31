@@ -8,7 +8,6 @@
 #include <format>
 
 #include "VrUtils.h"
-#include "VrLogging.h"
 #include "VrMaths.h"
 
 
@@ -346,7 +345,8 @@ auto LeapHandDriver::ProcessDebugRequestSettings(const DebugRequestPayload& requ
      *           UpdateFunc(std::get<T>(value));
      *       } else {
      *           LOG_INFO("Incorrect type passed in for key: '{}'. Expected: '{}'", key, typeid(T).name);
-     *           response[response_warnings_key_] += std::format("Incorrect type passed in for key: '{}'. Expected: '{}'", key, typeid(T).name);
+     *           response[response_warnings_key_] += std::format("Incorrect type passed in for key: '{}'. Expected: '{}'", key,
+     * typeid(T).name);
      *       }
      *  };
      */
@@ -355,13 +355,33 @@ auto LeapHandDriver::ProcessDebugRequestSettings(const DebugRequestPayload& requ
         if (setting.key_ == "tracking_mode") {
             // TODO, Not sure how we want to handle a tracking mode enum externally.
         } else if (setting.key_ == "hmd_tracker_offset") {
-            UpdateSetting<VrVec3>(settings_->UpdateHmdTrackerOffset, response, setting.key_, setting.value_);
+            UpdateSetting<VrVec3>(
+                [&](const VrVec3& val) { settings_->UpdateHmdTrackerOffset(val); },
+                response,
+                setting.key_,
+                setting.value_
+            );
         } else if (setting.key_ == "desktop_tracker_offset") {
-            UpdateSetting<VrVec3>(settings_->UpdateDesktopTrackerOffset, response, setting.key_, setting.value_);
+            UpdateSetting<VrVec3>(
+                [&](const VrVec3& val) { settings_->UpdateDesktopTrackerOffset(val); },
+                response,
+                setting.key_,
+                setting.value_
+            );
         } else if (setting.key_ == "enable_elbow_trackers") {
-            UpdateSetting<bool>(settings_->UpdateEnableElbowTrackers, response, setting.key_, setting.value_);
+            UpdateSetting<bool>(
+                [&](const bool& val) { settings_->UpdateEnableElbowTrackers(val); },
+                response,
+                setting.key_,
+                setting.value_
+            );
         } else if (setting.key_ == "input_from_driver") {
-            UpdateSetting<bool>(settings_->UpdateInputFromDriver, response, setting.key_, setting.value_);
+            UpdateSetting<bool>(
+                [&](const bool& val) { settings_->UpdateInputFromDriver(val); },
+                response,
+                setting.key_,
+                setting.value_
+            );
         } else {
             LOG_INFO("Failed to find setting with key: '{}', skipping...", setting.key_);
             response[response_warnings_key_] += std::format("Failed to find setting with key: '{}'", setting.key_);
