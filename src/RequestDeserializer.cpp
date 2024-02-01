@@ -24,11 +24,15 @@ auto DebugRequestPayload::ParseInputs(const nlohmann::json& request) -> std::uno
     std::unordered_map<InputPaths, InputEntry> parsed_inputs;
 
     // First ensure that there is an entry in this json for inputs and it has values.
-    if (request.contains(inputs_json_key_) && request[inputs_json_key_].is_array() && !request[inputs_json_key_].empty()) {
+    if (request.contains(inputs_json_key_) && !request[inputs_json_key_].empty()) {
         for (const auto& input : request[inputs_json_key_].items()) {
             const std::string& input_path_string = input.key();
             auto values = input.value();
             const InputPaths input_path_key = GetInputPath(input_path_string);
+
+            if (input_path_key == InputPaths::UNKNOWN) {
+                continue;
+            }
 
             // If theres X and Y values; process them first and ignore them later as we want them processed together.
             if (values.contains("x") && values.contains("y")) {
@@ -72,7 +76,7 @@ auto DebugRequestPayload::ParseInputs(const nlohmann::json& request) -> std::uno
 
 auto DebugRequestPayload::ParseSettings(const nlohmann::json& request) -> std::vector<SettingsEntry> {
     std::vector<SettingsEntry> settings;
-    if (request.contains(settings_json_key_) && request[settings_json_key_].is_array() && !request[settings_json_key_].empty()) {
+    if (request.contains(settings_json_key_) && !request[settings_json_key_].empty()) {
         for(const auto& item : request[settings_json_key_].items()) {
             std::optional<SettingsValue> setting_value;
             const auto& value = item.value();
