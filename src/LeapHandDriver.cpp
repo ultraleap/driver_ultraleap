@@ -198,8 +198,8 @@ auto LeapHandDriver::GetPose() -> vr::DriverPose_t {
 }
 
 auto LeapHandDriver::UpdateFromLeapFrame(const LEAP_TRACKING_EVENT* frame) -> void {
-    // Check we've been activated before allowing updates from the tracking thread.
-    if (!active_) {
+    // Check we've been activated before allowing updates from the tracking thread OR if we've been disabled via settings.
+    if (!active_ || !settings_->InputFromDriver()) {
         return;
     }
 
@@ -310,6 +310,8 @@ auto LeapHandDriver::ProcessDebugRequestInputs(const DebugRequestPayload& reques
         - Check if we need to be sending an offset with the Update. Not sure how immediate firing plays with out pipelining.
     */
 
+    const auto time_offset = static_cast<double>(LeapGetNow()) * std::micro::num / std::micro::den;
+
     // Loop through all the received InputEvents and fire off updates to the corresponding inputs.
     for (const auto& [key, input_entry] : request_payload.inputs_) {
         const auto& prop_variant = path_inputs_map_.at(key);
@@ -321,11 +323,11 @@ auto LeapHandDriver::ProcessDebugRequestInputs(const DebugRequestPayload& reques
         } else if (std::holds_alternative<float>(input_entry.value_) && std::holds_alternative<VrScalarInputComponent*>(prop_variant)) {
             const auto& val = std::get<float>(input_entry.value_);
             auto* prop = std::get<VrScalarInputComponent*>(prop_variant);
-            prop->Update(val);
+            prop->Update(val, time_offset);
         } else if (std::holds_alternative<bool>(input_entry.value_) && std::holds_alternative<VrBooleanInputComponent*>(prop_variant)) {
             const auto& val = std::get<bool>(input_entry.value_);
             auto* prop = std::get<VrBooleanInputComponent*>(prop_variant);
-            prop->Update(val);
+            prop->Update(val, time_offset);
         } else {
             LOG_INFO("Failed to process input for path: '{}'; Either the payload value didn't match the input type or path_inputs_map_ is missing an entry for the given key",
                 input_entry.full_path_);
