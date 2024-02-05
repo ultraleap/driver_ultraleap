@@ -7,16 +7,10 @@
 #include <ratio>
 
 #include "VrUtils.h"
-#include "VrLogging.h"
 #include "VrMaths.h"
 
-#include <numeric>
-#include <ranges>
-#include <thread>
-
 LeapElbowDriver::LeapElbowDriver(const std::shared_ptr<LeapDriverSettings>& settings, const eLeapHandType hand)
-    : id_{vr::k_unTrackedDeviceIndexInvalid},
-      settings_{settings},
+    : LeapTrackedDriver{vr::k_unTrackedDeviceIndexInvalid, settings},
       hand_type_{hand},
       pose_{kDefaultPose} {
 }
@@ -64,15 +58,6 @@ auto LeapElbowDriver::GetComponent(const char* component_name_and_version) -> vo
     }
 
     return nullptr;
-}
-
-auto LeapElbowDriver::DebugRequest(const char* request, char* response_buffer, const uint32_t response_buffer_size) -> void {
-    if (id_ != vr::k_unTrackedDeviceIndexInvalid) {
-        // TODO: Implement any required debugging here, for now just clear the buffer.
-        if (response_buffer_size > 0) {
-            std::memset(response_buffer, 0, response_buffer_size);
-        }
-    }
 }
 
 auto LeapElbowDriver::GetPose() -> vr::DriverPose_t {
@@ -137,4 +122,9 @@ auto LeapElbowDriver::UpdateFromLeapFrame(const LEAP_TRACKING_EVENT* frame) -> v
 
     // Update the pose for this virtual hand;
     vr::VRServerDriverHost()->TrackedDevicePoseUpdated(id_, pose_, sizeof(pose_));
+}
+
+auto LeapElbowDriver::ProcessDebugRequestInputs(const DebugRequestPayload& request_payload, nlohmann::json& response) const
+    -> void {
+    // TODO: Handle any input related debug requests here.
 }

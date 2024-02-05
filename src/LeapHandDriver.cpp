@@ -7,9 +7,7 @@
 #include <ratio>
 #include <format>
 
-#include "VrUtils.h"
 #include "VrMaths.h"
-
 
 const vr::VRBoneTransform_t kInitialHand[31]{
     {{{0.000000, 0.000000, 0.000000, 1.000000f}}, {0.000000, 0.000000, 0.000000, 0.000000}},
@@ -46,8 +44,7 @@ const vr::VRBoneTransform_t kInitialHand[31]{
 };
 
 LeapHandDriver::LeapHandDriver(const std::shared_ptr<LeapDriverSettings>& settings, const eLeapHandType hand)
-    : id_{vr::k_unTrackedDeviceIndexInvalid},
-      settings_{settings},
+    : LeapTrackedDriver{vr::k_unTrackedDeviceIndexInvalid, settings},
       hand_type_{hand},
       pose_{kDefaultPose} {
 }
@@ -139,67 +136,13 @@ auto LeapHandDriver::GetComponent(const char* component_name_and_version) -> voi
     return nullptr;
 }
 
-auto LeapHandDriver::DebugRequest(const char* request, char* response_buffer, const uint32_t response_buffer_size) -> void {
-    auto SendResponse = [&](const nlohmann::json& response) {
-        static const nlohmann::json buffer_insufficient_response = {
-            {response_result_key_, "error"},
-            {response_errors_key_, nlohmann::json::array({"Buffer Size Insufficient"})}
-        };
-        static const auto buffer_insufficient_string = buffer_insufficient_response.dump();
-        const auto response_string = response.dump();
-
-        // Attempt to send the correct response, otherwise attempt to fit the buffer insufficient error in it instead.
-        if (response_string.size() <= response_buffer_size) {
-            strcpy_s(response_buffer, response_buffer_size, response_string.c_str());
-        } else if (buffer_insufficient_string.size() < response_buffer_size) {
-            strcpy_s(response_buffer, response_buffer_size, buffer_insufficient_string.c_str());
-        }
-    };
-
-    if (id_ == vr::k_unTrackedDeviceIndexInvalid) {
-        LOG_INFO("Id of hand driver is invalid, implying driver hasnt been initialized yet; skipping....");
-        return;
-    }
-
-    if (response_buffer_size <= 0) {
-        LOG_INFO("Response Buffer for a debug payload was zero; Ignoring request...");
-        return;
-    }
-
-    // After safety checks we can now parse our received payload and process.
-    const auto debug_request_payload = DebugRequestPayload::Parse(request);
-    nlohmann::json response;
-    response[response_result_key_] = "success";
-    response[response_warnings_key_] = nlohmann::json::array();
-    response[response_errors_key_] = nlohmann::json::array();
-
-    if (!debug_request_payload.has_value()) {
-        LOG_INFO("Failed to parse debug json, skipping...");
-        response[response_result_key_] = "error";
-        response[response_errors_key_] += "Failed to parse debug json.";
-        SendResponse(response);
-        return;
-    }
-
-    ProcessDebugRequestInputs(debug_request_payload.value(), response);
-    ProcessDebugRequestSettings(debug_request_payload.value(), response);
-
-    // If we had any errors change our result to a failure
-    if (!response[response_errors_key_].empty()) {
-        response[response_result_key_] = "error";
-    }
-
-    // Copy our response into the provided buffer.
-    SendResponse(response);
-}
-
 auto LeapHandDriver::GetPose() -> vr::DriverPose_t {
     return pose_;
 }
 
 auto LeapHandDriver::UpdateFromLeapFrame(const LEAP_TRACKING_EVENT* frame) -> void {
-    // Check we've been activated before allowing updates from the tracking thread OR if we've been disabled via settings.
-    if (!active_ || !settings_->InputFromDriver()) {
+    // Check we've been activated before allowing updates from the tracking thread.
+    if (!active_) {
         return;
     }
 
@@ -243,56 +186,60 @@ auto LeapHandDriver::UpdateFromLeapFrame(const LEAP_TRACKING_EVENT* frame) -> vo
             pose_.poseIsValid = false;
         }
 
-        // Parse this hand into a VrHand
-        const auto hand = VrHand{leap_hand};
+        // After the pose has been updated, check if our inputs are being overriden by debug sources before updating them.
+        if (settings_->InputFromDriver()) {
+            // Parse this hand into a VrHand
+            const auto hand = VrHand{leap_hand};
 
-        // Update input components and skeleton
-        input_proximity_.Update(true, time_offset);
+            // Update input components and skeleton
+            input_proximity_.Update(true, time_offset);
 
-        // Update the Skeleton and finger curl.
-        input_skeleton_.Update(vr::VRSkeletalMotionRange_WithController, hand.GetBoneTransforms());
-        input_skeleton_.Update(vr::VRSkeletalMotionRange_WithoutController, hand.GetBoneTransforms());
-        input_index_finger_.Update(hand.GetIndexFingerCurl(), time_offset);
-        input_middle_finger_.Update(hand.GetMiddleFingerCurl(), time_offset);
-        input_ring_finger_.Update(hand.GetRingFingerCurl(), time_offset);
-        input_pinky_finger_.Update(hand.GetPinkyFingerCurl(), time_offset);
+            // Update the Skeleton and finger curl.
+            input_skeleton_.Update(vr::VRSkeletalMotionRange_WithController, hand.GetBoneTransforms());
+            input_skeleton_.Update(vr::VRSkeletalMotionRange_WithoutController, hand.GetBoneTransforms());
+            input_index_finger_.Update(hand.GetIndexFingerCurl(), time_offset);
+            input_middle_finger_.Update(hand.GetMiddleFingerCurl(), time_offset);
+            input_ring_finger_.Update(hand.GetRingFingerCurl(), time_offset);
+            input_pinky_finger_.Update(hand.GetPinkyFingerCurl(), time_offset);
 
-        input_pinch_.Update(hand.GetPinchStrength(), time_offset);
-        input_grip_.Update(hand.GetGrabStrength(), time_offset);
+            input_pinch_.Update(hand.GetPinchStrength(), time_offset);
+            input_grip_.Update(hand.GetGrabStrength(), time_offset);
 
-        // TODO: Make this a proper classifier.
-        if (frame->nHands == 2) {
-            const auto& hand1 = frame->pHands[0];
-            const auto& hand2 = frame->pHands[1];
+            // TODO: Make this a proper classifier.
+            if (frame->nHands == 2) {
+                const auto& hand1 = frame->pHands[0];
+                const auto& hand2 = frame->pHands[1];
 
-            const double index_tip_distance = VrVec3{hand1.index.distal.next_joint - hand2.index.distal.next_joint}.Length();
-            const double thumb_tip_distance = VrVec3{hand1.thumb.distal.next_joint - hand2.thumb.distal.next_joint}.Length();
+                const double index_tip_distance = VrVec3{hand1.index.distal.next_joint - hand2.index.distal.next_joint}.Length();
+                const double thumb_tip_distance = VrVec3{hand1.thumb.distal.next_joint - hand2.thumb.distal.next_joint}.Length();
 
-            if (index_tip_distance < 20 && thumb_tip_distance < 20) {
-                input_system_menu_.Update(true);
+                if (index_tip_distance < 20 && thumb_tip_distance < 20) {
+                    input_system_menu_.Update(true);
+                } else {
+                    input_system_menu_.Update(false);
+                }
             } else {
                 input_system_menu_.Update(false);
             }
-        } else {
-            input_system_menu_.Update(false);
         }
-
     } else {
         pose_.result = vr::TrackingResult_Running_OutOfRange;
         pose_.poseIsValid = false;
         pose_.deviceIsConnected = true;
 
-        // Mark all input components as zero'ed values.
-        input_system_menu_.Update(false, time_offset);
-        input_proximity_.Update(false, time_offset);
+        // Mark all input components as zero'ed values if we are currently driving inputs.
+        if (settings_->InputFromDriver()) {
+            input_system_menu_.Update(false, time_offset);
+            input_proximity_.Update(false, time_offset);
 
-        input_index_finger_.Update(0.0, time_offset);
-        input_middle_finger_.Update(0.0, time_offset);
-        input_ring_finger_.Update(0.0, time_offset);
-        input_pinky_finger_.Update(0.0, time_offset);
+            input_index_finger_.Update(0.0, time_offset);
+            input_middle_finger_.Update(0.0, time_offset);
+            input_ring_finger_.Update(0.0, time_offset);
+            input_pinky_finger_.Update(0.0, time_offset);
 
-        input_pinch_.Update(0.0, time_offset);
-        input_grip_.Update(0.0, time_offset);
+            input_pinch_.Update(0.0, time_offset);
+            input_grip_.Update(0.0, time_offset);
+        }
     }
 
     // Update the pose for this virtual hand;
@@ -306,7 +253,8 @@ auto LeapHandDriver::SetInitialBoneTransforms() -> void {
 
 auto LeapHandDriver::ProcessDebugRequestInputs(const DebugRequestPayload& request_payload, nlohmann::json& response) const -> void {
     /* TODO: For review:
-        - See if theres a way we can lambda func the if chain logic with template parameters since both VrScalarInputComponent AND VrBooleanInputComponent have update funcs.
+        - See if theres a way we can lambda func the if chain logic with template parameters since both VrScalarInputComponent AND
+       VrBooleanInputComponent have update funcs.
         - Check if we need to be sending an offset with the Update. Not sure how immediate firing plays with out pipelining.
     */
 
@@ -319,7 +267,7 @@ auto LeapHandDriver::ProcessDebugRequestInputs(const DebugRequestPayload& reques
         // Special case for joysticks as x and y are sent together. Beyond that ensure that the types we've parsed
         // from the debug payload correctly match our input types.
         if (std::holds_alternative<vr::HmdVector2_t>(input_entry.value_)) {
-            //TODO: this will allow for joysticks in the future and can be ignored for now.
+            // TODO: this will allow for joysticks in the future and can be ignored for now.
         } else if (std::holds_alternative<float>(input_entry.value_) && std::holds_alternative<VrScalarInputComponent*>(prop_variant)) {
             const auto& val = std::get<float>(input_entry.value_);
             auto* prop = std::get<VrScalarInputComponent*>(prop_variant);
@@ -329,64 +277,16 @@ auto LeapHandDriver::ProcessDebugRequestInputs(const DebugRequestPayload& reques
             auto* prop = std::get<VrBooleanInputComponent*>(prop_variant);
             prop->Update(val, time_offset);
         } else {
-            LOG_INFO("Failed to process input for path: '{}'; Either the payload value didn't match the input type or path_inputs_map_ is missing an entry for the given key",
-                input_entry.full_path_);
+            LOG_INFO(
+                "Failed to process input for path: '{}'; Either the payload value didn't match the input type or path_inputs_map_ "
+                "is missing an entry for the given key",
+                input_entry.full_path_
+            );
             response[response_warnings_key_] += std::format(
-                "Failed to process input for path: '{}'; Either the payload value didn't match the input type or path_inputs_map_ is missing an entry for the given key",
-                input_entry.full_path_);
-        }
-    }
-}
-
-auto LeapHandDriver::ProcessDebugRequestSettings(const DebugRequestPayload& request_payload, nlohmann::json& response) -> void {
-    /* TODO: Tried to use this lambda along with the calling conventions below but had no luck, revise this.
-     *  UpdateSetting.operator()<VrVec3>(settings_->UpdateHmdTrackerOffset, setting.key_, setting.value_);
-     *  UpdateSetting<bool>(settings_->UpdateInputFromDriver, setting.key_, setting.value_);
-     *  auto UpdateSetting = [&]<typename T>(const std::function<void(T)>& UpdateFunc, std::string_view key, SettingsValue value) {
-     *       if (std::holds_alternative<T>(value)) {
-     *           UpdateFunc(std::get<T>(value));
-     *       } else {
-     *           LOG_INFO("Incorrect type passed in for key: '{}'. Expected: '{}'", key, typeid(T).name);
-     *           response[response_warnings_key_] += std::format("Incorrect type passed in for key: '{}'. Expected: '{}'", key,
-     * typeid(T).name);
-     *       }
-     *  };
-     */
-
-    for (const auto& setting : request_payload.settings_) {
-        if (setting.key_ == "tracking_mode") {
-            // TODO, Not sure how we want to handle a tracking mode enum externally.
-        } else if (setting.key_ == "hmd_tracker_offset") {
-            UpdateSetting<VrVec3>(
-                [&](const VrVec3& val) { settings_->UpdateHmdTrackerOffset(val); },
-                response,
-                setting.key_,
-                setting.value_
+                "Failed to process input for path: '{}'; Either the payload value didn't match the input type or path_inputs_map_ "
+                "is missing an entry for the given key",
+                input_entry.full_path_
             );
-        } else if (setting.key_ == "desktop_tracker_offset") {
-            UpdateSetting<VrVec3>(
-                [&](const VrVec3& val) { settings_->UpdateDesktopTrackerOffset(val); },
-                response,
-                setting.key_,
-                setting.value_
-            );
-        } else if (setting.key_ == "enable_elbow_trackers") {
-            UpdateSetting<bool>(
-                [&](const bool& val) { settings_->UpdateEnableElbowTrackers(val); },
-                response,
-                setting.key_,
-                setting.value_
-            );
-        } else if (setting.key_ == "input_from_driver") {
-            UpdateSetting<bool>(
-                [&](const bool& val) { settings_->UpdateInputFromDriver(val); },
-                response,
-                setting.key_,
-                setting.value_
-            );
-        } else {
-            LOG_INFO("Failed to find setting with key: '{}', skipping...", setting.key_);
-            response[response_warnings_key_] += std::format("Failed to find setting with key: '{}'", setting.key_);
         }
     }
 }

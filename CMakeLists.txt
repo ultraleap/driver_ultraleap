@@ -38,6 +38,8 @@ add_library(driver_ultraleap SHARED
         src/LeapDriverSettings.h
         src/RequestDeserializer.cpp
         src/RequestDeserializer.h
+        src/LeapTrackedDriver.cpp
+        src/LeapTrackedDriver.h
 )
 target_compile_features(driver_ultraleap
     PUBLIC

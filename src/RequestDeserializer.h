@@ -4,6 +4,7 @@
 #include "openvr_driver.h"
 
 #include <optional>
+#include <utility>
 #include <variant>
 #include <string>
 #include <unordered_map>
@@ -24,7 +25,7 @@ enum class InputPaths {
 
 // TODO: check if we should namespace these as they may conflict.
 using InputValue = std::variant<bool, float, vr::HmdVector2_t>;
-using SettingsValue = std::variant<bool, float, VrVec3>;
+using SettingsValue = std::variant<bool, float, VrVec3, std::string>;
 
 class DebugRequestPayload{
 public:
@@ -40,7 +41,7 @@ public:
 
     class SettingsEntry {
     public:
-        SettingsEntry(std::string_view keyStr, SettingsValue val) : key_{keyStr}, value_{val} {};
+        SettingsEntry(std::string_view keyStr, SettingsValue val) : key_{keyStr}, value_{std::move(val)} {};
         const std::string key_;
         const SettingsValue value_;
     };

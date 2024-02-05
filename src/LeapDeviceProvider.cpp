@@ -195,7 +195,7 @@ auto LeapDeviceProvider::CreateDeviceDriver(const std::shared_ptr<LeapDevice>& l
     // Track the device by serial-number
     auto [leapDeviceDriver, _] = leap_device_driver_by_serial_.emplace(
         leap_device->SerialNumber(),
-        std::make_shared<LeapDeviceDriver>(leap_device)
+        std::make_shared<LeapDeviceDriver>(leap_device, settings_)
     );
 
     // Register the device driver.

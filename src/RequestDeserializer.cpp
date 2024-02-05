@@ -94,6 +94,8 @@ auto DebugRequestPayload::ParseSettings(const nlohmann::json& request) -> std::v
                 if (x.is_number_float() && y.is_number_float() && z.is_number_float()) {
                     setting_value = VrVec3{x.get<float>(), y.get<float>(), z.get<float>()};
                 }
+            } else if (value.is_string()) {
+                setting_value = value.get<std::string>();
             }
 
             if (setting_value.has_value()) {
