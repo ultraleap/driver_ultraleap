@@ -31,6 +31,7 @@ auto DebugRequestPayload::ParseInputs(const nlohmann::json& request) -> std::uno
             const InputPaths input_path_key = GetInputPath(input_path_string);
 
             if (input_path_key == InputPaths::UNKNOWN) {
+                LOG_INFO("Path isn't matched to a corresponding key. Skipping...");
                 continue;
             }
 
