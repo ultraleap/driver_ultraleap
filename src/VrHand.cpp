@@ -106,7 +106,7 @@ VrHand::VrHand(const LEAP_HAND& leap_hand)
         const auto total_finger_angles = glm::acos(glm::dot(bone_directions[0], bone_directions[1])) // Proximal
                                        + glm::acos(glm::dot(bone_directions[1], bone_directions[2])) // Intermediate
                                        + glm::acos(glm::dot(bone_directions[2], bone_directions[3]));
-        return static_cast<float>(glm::clamp(total_finger_angles / (std::numbers::pi * 3.0 / 2.0), 0.0, 1.0));
+        return static_cast<float>(glm::clamp(total_finger_angles / std::numbers::pi, 0.0, 1.0));
     };
 
     const auto root_position = GetBonePosition(Root);
