@@ -3,7 +3,7 @@
 #include "VrLogging.h"
 
 auto DebugRequestPayload::Parse(const char* jsonString) -> std::optional<DebugRequestPayload> {
-    // First attempt to destructure the json string into a json object for interigation.
+    // First attempt to destructure the json string into a json object for interrogation.
     nlohmann::json request;
     try {
         request = nlohmann::json::parse(jsonString);

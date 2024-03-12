@@ -23,14 +23,11 @@ enum class InputPaths {
     UNKNOWN
 };
 
-// TODO: check if we should namespace these as they may conflict.
 using InputValue = std::variant<bool, float, vr::HmdVector2_t>;
 using SettingsValue = std::variant<bool, float, VrVec3, std::string>;
 
 class DebugRequestPayload{
 public:
-
-
     class InputEntry {
     public:
         InputEntry(std::string_view pathStr, std::string_view key, InputValue val) : full_path_{pathStr}, key_{key}, value_{val} {};

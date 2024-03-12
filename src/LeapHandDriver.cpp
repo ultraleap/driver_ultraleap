@@ -188,7 +188,7 @@ auto LeapHandDriver::UpdateFromLeapFrame(const LEAP_TRACKING_EVENT* frame) -> vo
         }
 
         // After the pose has been updated, check if our inputs are being overriden by debug sources before updating them.
-        if (settings_->InputFromDriver()) {
+        if (!settings_->ExternalInputOnly()) {
             // Parse this hand into a VrHand
             const auto hand = VrHand{leap_hand};
 
@@ -229,7 +229,7 @@ auto LeapHandDriver::UpdateFromLeapFrame(const LEAP_TRACKING_EVENT* frame) -> vo
         pose_.deviceIsConnected = true;
 
         // Mark all input components as zero'ed values if we are currently driving inputs.
-        if (settings_->InputFromDriver()) {
+        if (!settings_->ExternalInputOnly()) {
             input_system_menu_.Update(false, time_offset);
             input_proximity_.Update(false, time_offset);
 
@@ -253,12 +253,6 @@ auto LeapHandDriver::SetInitialBoneTransforms() -> void {
 }
 
 auto LeapHandDriver::ProcessDebugRequestInputs(const DebugRequestPayload& request_payload, nlohmann::json& response) const -> void {
-    /* TODO: For review:
-        - See if theres a way we can lambda func the if chain logic with template parameters since both VrScalarInputComponent AND
-       VrBooleanInputComponent have update funcs.
-        - Check if we need to be sending an offset with the Update. Not sure how immediate firing plays with out pipelining.
-    */
-
     const auto time_offset = static_cast<double>(LeapGetNow()) * std::micro::num / std::micro::den;
 
     // Loop through all the received InputEvents and fire off updates to the corresponding inputs.

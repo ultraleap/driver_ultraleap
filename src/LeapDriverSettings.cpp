@@ -32,5 +32,5 @@ auto LeapDriverSettings::LoadSettings() -> void {
 
     enable_elbow_trackers_ = VrSettings::Get<bool>("enable_elbow_trackers");
 
-    input_from_driver_ = VrSettings::Get<bool>("input_from_driver");
+    external_input_only = VrSettings::Get<bool>("external_input_only");
 }

@@ -56,20 +56,6 @@ auto LeapTrackedDriver::DebugRequest(const char* request, char* response_buffer,
 }
 auto LeapTrackedDriver::ProcessDebugRequestSettings(const DebugRequestPayload& request_payload, nlohmann::json& response) const
     -> void {
-    /* TODO: Tried to use this lambda along with the calling conventions below but had no luck, revise this.
-     *  UpdateSetting.operator()<VrVec3>(settings_->UpdateHmdTrackerOffset, setting.key_, setting.value_);
-     *  UpdateSetting<bool>(settings_->UpdateInputFromDriver, setting.key_, setting.value_);
-     *  auto UpdateSetting = [&]<typename T>(const std::function<void(T)>& UpdateFunc, std::string_view key, SettingsValue value) {
-     *       if (std::holds_alternative<T>(value)) {
-     *           UpdateFunc(std::get<T>(value));
-     *       } else {
-     *           LOG_INFO("Incorrect type passed in for key: '{}'. Expected: '{}'", key, typeid(T).name);
-     *           response[response_warnings_key_] += std::format("Incorrect type passed in for key: '{}'. Expected: '{}'", key,
-     * typeid(T).name);
-     *       }
-     *  };
-     */
-
     for (const auto& setting : request_payload.settings_) {
         if (setting.key_ == "tracking_mode") {
             // This one is a bit special as we're mapping the string to an internal enum
@@ -108,9 +94,9 @@ auto LeapTrackedDriver::ProcessDebugRequestSettings(const DebugRequestPayload& r
                 setting.key_,
                 setting.value_
             );
-        } else if (setting.key_ == "input_from_driver") {
+        } else if (setting.key_ == "external_input_only") {
             UpdateSetting<bool>(
-                [&](const bool& val) { settings_->UpdateInputFromDriver(val); },
+                [&](const bool& val) { settings_->UpdateExternalInputOnly(val); },
                 response,
                 setting.key_,
                 setting.value_

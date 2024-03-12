@@ -12,7 +12,7 @@
     "desktop_tracker_offset_y": -0.2,
     "desktop_tracker_offset_z": -0.35,
     "enable_elbow_trackers": true,
-    "input_from_driver": true
+    "external_input_only": false
   },
 
   "trackers": {
