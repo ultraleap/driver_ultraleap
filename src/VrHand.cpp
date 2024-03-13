@@ -167,3 +167,17 @@ VrHand::VrHand(const LEAP_HAND& leap_hand)
     ring_finger_curl_ = ComputeFingerCurl(leap_hand.ring);
     pinky_finger_curl_ = ComputeFingerCurl(leap_hand.pinky);
 }
+
+auto VrHand::GetSystemMenuTriggered(std::span<const LEAP_HAND> hands) -> bool {
+    // We need both hands to be tracked to trigger this pose.
+    if (hands.size() != 2) {
+        return false;
+    }
+
+    // Below defines the pose of making a triangle by bringing both hands index fingers and thumbs together.
+    const auto& hand1 = hands[0];
+    const auto& hand2 = hands[1];
+    const double index_tip_distance = VrVec3{hand1.index.distal.next_joint - hand2.index.distal.next_joint}.Length();
+    const double thumb_tip_distance = VrVec3{hand1.thumb.distal.next_joint - hand2.thumb.distal.next_joint}.Length();
+    return index_tip_distance < 20 && thumb_tip_distance < 20;
+}

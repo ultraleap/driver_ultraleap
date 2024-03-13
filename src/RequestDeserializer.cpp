@@ -127,6 +127,12 @@ auto DebugRequestPayload::GetInputPath(std::string_view path) -> InputPaths {
     if (path.starts_with("/input/finger/pinky")) {
         return InputPaths::PINKY_FINGER;
     }
+    if (path.starts_with("/time_offset")) {
+        return InputPaths::TIME_OFFSET;
+    }
+    if (path.starts_with("/proximity")) {
+        return InputPaths::PROXIMITY;
+    }
 
     return InputPaths::UNKNOWN;
 }

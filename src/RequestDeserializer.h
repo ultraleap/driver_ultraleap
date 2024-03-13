@@ -20,6 +20,7 @@ enum class InputPaths {
     MIDDLE_FINGER,
     RING_FINGER,
     PINKY_FINGER,
+    TIME_OFFSET,
     UNKNOWN
 };
 

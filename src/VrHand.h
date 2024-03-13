@@ -23,6 +23,8 @@ class VrHand {
     [[nodiscard]] auto GetRingFingerCurl() const -> float { return ring_finger_curl_; }
     [[nodiscard]] auto GetPinkyFingerCurl() const -> float { return pinky_finger_curl_; }
 
+    [[nodiscard]] static auto GetSystemMenuTriggered(std::span<const LEAP_HAND> hands) -> bool;
+
 private:
     std::array<vr::VRBoneTransform_t, 31> bones_transforms_{};
 
