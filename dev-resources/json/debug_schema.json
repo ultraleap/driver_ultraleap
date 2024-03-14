@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/ultraleap/driver_ultraleap/dev-resources/json/debug_schema.json",
+
+  "title": "Ultraleap Steam Driver Debug Payload",
+  "description": "Schema for the the debug payload that can be send to the debug API of the Ultraleap steam driver",
+
+  "$defs": {
+    "tracking_mode": {
+      "enum": [
+        "hmd",
+        "desktop"
+      ]
+    },
+    "vector2": {
+      "type": "array",
+      "items": {
+        "type": "number",
+        "minItems": 2,
+        "maxItems": 2
+      }
+    },
+    "vector3": {
+      "type": "array",
+      "items": {
+        "type": "number",
+        "minItems": 3,
+        "maxItems": 3
+      }
+    }
+  },
+
+  "writeOnly": true,
+  "type": "object",
+  "properties": {
+    "inputs": {
+      "type": "object",
+      "properties": {
+        "time_offset": {"type": "number"},
+        "paths": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "/input/pinch": {"type": "number"},
+              "/input/grip": {"type": "number"}
+            },
+            "additionalProperties": {
+              "anyOf": [
+                {"type": "boolean"},
+                {"type": "number"},
+                {"$ref": "#/$defs/vector2"}
+              ]
+            }
+          }
+        }
+      }
+    },
+
+    "settings": {
+      "type": "object",
+      "properties": {
+        "tracking_mode": {"$ref": "#/$defs/tracking_mode"},
+        "hmd_tracker_offset": {"$ref": "#/$defs/vector3"},
+        "desktop_tracker_offset": {"$ref": "#/$defs/vector3"},
+        "enable_elbow_trackers": {"type": "boolean"},
+        "external_input_only": {"type": "boolean"}
+      },
+      "additionalProperties": {
+        "anyOf": [
+          {"type": "boolean"},
+          {"type": "number"},
+          {"type": "string"},
+          {"$ref": "#/$defs/vector3"}
+        ]
+      }
+    }
+  }
+}
