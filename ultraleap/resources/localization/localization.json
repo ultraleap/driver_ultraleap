@@ -8,6 +8,9 @@
     "3di": "Ultraleap 3Di",
 
     "ultraleap_hand": "Ultraleap Tracked Hand",
+    "ultraleap_hand_extended": "Ultraleap Tracked Hand (with Extensions)",
+    "ultraleap_elbow": "Ultraleap Tracked Elbow",
+
     "left_hand": "Left Hand",
     "right_hand": "Right Hand",
 
