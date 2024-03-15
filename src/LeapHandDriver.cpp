@@ -233,17 +233,13 @@ auto LeapHandDriver::SetInitialBoneTransforms() -> void {
 }
 
 auto LeapHandDriver::ProcessDebugRequestInputs(const DebugRequestPayload& request_payload, nlohmann::json& response) const -> void {
-    // first check the payload if there is a given specified time offset for the inputs, otherwise default to 0.
-    auto time_offset = 0.0f;
-    if (request_payload.inputs_.contains(InputPaths::TIME_OFFSET)
-        && std::holds_alternative<float>(request_payload.inputs_.at(InputPaths::TIME_OFFSET).value_)) {
-        time_offset = std::get<float>(request_payload.inputs_.at(InputPaths::TIME_OFFSET).value_);
-    }
-
     // Loop through all the received InputEvents and fire off updates to the corresponding inputs.
     for (const auto& [key, input_entry] : request_payload.inputs_) {
         // Some Input Paths like time_offset dont directly relate to a OVR component and should be skipped.
-        if (!path_inputs_map_.contains(key)) { continue; }
+        if (!path_inputs_map_.contains(key)) {
+            LOG_INFO("No mapping to an InputComponent exists for the key: {}", DebugRequestPayload::InputPathToString(key));
+            continue;
+        }
         const auto& prop_variant = path_inputs_map_.at(key);
 
         // Special case for joysticks as x and y are sent together. Beyond that ensure that the types we've parsed
@@ -253,11 +249,11 @@ auto LeapHandDriver::ProcessDebugRequestInputs(const DebugRequestPayload& reques
         } else if (std::holds_alternative<float>(input_entry.value_) && std::holds_alternative<VrScalarInputComponent*>(prop_variant)) {
             const auto& val = std::get<float>(input_entry.value_);
             auto* prop = std::get<VrScalarInputComponent*>(prop_variant);
-            prop->Update(val, time_offset);
+            prop->Update(val, input_entry.time_offset_);
         } else if (std::holds_alternative<bool>(input_entry.value_) && std::holds_alternative<VrBooleanInputComponent*>(prop_variant)) {
             const auto& val = std::get<bool>(input_entry.value_);
             auto* prop = std::get<VrBooleanInputComponent*>(prop_variant);
-            prop->Update(val, time_offset);
+            prop->Update(val, input_entry.time_offset_);
         } else {
             LOG_INFO(
                 "Failed to process input for path: '{}'; Either the payload value didn't match the input type or path_inputs_map_ "

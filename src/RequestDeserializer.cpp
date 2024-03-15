@@ -23,49 +23,25 @@ auto DebugRequestPayload::Parse(const char* jsonString) -> std::optional<DebugRe
 auto DebugRequestPayload::ParseInputs(const nlohmann::json& request) -> std::unordered_map<InputPaths, InputEntry> {
     std::unordered_map<InputPaths, InputEntry> parsed_inputs;
 
-    // First ensure that there is an entry in this json for inputs and it has values.
-    if (request.contains(inputs_json_key_) && !request[inputs_json_key_].empty()) {
-        for (const auto& input : request[inputs_json_key_].items()) {
-            const std::string& input_path_string = input.key();
-            auto values = input.value();
-            const InputPaths input_path_key = GetInputPath(input_path_string);
+    // Ensure that there is an entry in this json for inputs and it has values.
+    if (request.contains(inputs_json_key_)) {
+        // Check for a time offset within here as all other InputEntry's will use this.
+        const auto& inputs_object = request[inputs_json_key_];
+        auto time_offset = 0.0f;
+        if (inputs_object.contains(inputs_time_offset_json_key_) && inputs_object[inputs_time_offset_json_key_].is_number_float()) {
+            time_offset = inputs_object[inputs_time_offset_json_key_].get<float>();
+        }
 
-            if (input_path_key == InputPaths::UNKNOWN) {
-                LOG_INFO("Path isn't matched to a corresponding key. Skipping...");
-                continue;
-            }
+        // Check for the paths array and process the input paths accordingly.
+        if (inputs_object.contains(inputs_paths_json_key_) && inputs_object[inputs_paths_json_key_].is_array()) {
+            for(const auto& path_iter : inputs_object[inputs_paths_json_key_].items()) {
+                auto path_object = path_iter.value();
+                auto key = path_object.items().begin().key();
+                auto value = path_object.items().begin().value();
+                const auto parsed_optional = ParseInputPath(key, value, time_offset);
 
-            // If theres X and Y values; process them first and ignore them later as we want them processed together.
-            if (values.contains("x") && values.contains("y")) {
-                const auto& x = values["x"];
-                const auto& y = values["y"];
-
-                if (x.is_number_float() && y.is_number_float()) {
-                    vr::HmdVector2_t point = {x.get<float>(), y.get<float>()};
-                    parsed_inputs.insert({input_path_key, InputEntry{input_path_string, "joystick", point}});
-                } else {
-                    LOG_INFO("The X and Y values for the path '{}' arent the correct type. Expected float.", input_path_string);
-                }
-            }
-
-            // Otherwise iterate through each entry and make InputEntry's for each;
-            // Shared paths / keys dont matter here. If we have multiple for a given path thats fine.
-            for (const auto& item : values.items()) {
-                // Since we've already processed these keys above, skip them.
-                if (item.key() == "x" || item.key() == "y") {
-                    continue;
-                }
-
-                std::optional<InputValue> input_value;
-                const auto& value = item.value();
-                if (value.is_boolean()) {
-                    input_value = value.get<bool>();
-                } else if (value.is_number_float()) {
-                    input_value = value.get<float>();
-                }
-
-                if (input_value.has_value()) {
-                    parsed_inputs.insert({input_path_key, InputEntry{input_path_string, item.key(), input_value.value()}});
+                if (parsed_optional.has_value()) {
+                    parsed_inputs.insert(parsed_optional.value());
                 }
             }
         }
@@ -73,6 +49,38 @@ auto DebugRequestPayload::ParseInputs(const nlohmann::json& request) -> std::uno
 
     // Finally returned the inputs we've parsed.
     return parsed_inputs;
+}
+
+auto DebugRequestPayload::ParseInputPath(std::string_view path_string, const nlohmann::basic_json<>& value, float time_offset)
+    -> std::optional<std::pair<InputPaths, InputEntry>> {
+    // Lookup to make sure the path is a valid one we support
+    const auto input_path = StringToInputPath(path_string);
+    if (input_path == InputPaths::UNKNOWN) {
+        LOG_INFO("Path: {}, isn't a supported path. skipping...", path_string);
+        return std::nullopt;
+    }
+
+    // Finally do validation against the input path vs the value given
+    switch(input_path) {
+    // Float based input paths
+    case InputPaths::PINCH:
+    case InputPaths::GRIP:
+    case InputPaths::INDEX_FINGER:
+    case InputPaths::MIDDLE_FINGER:
+    case InputPaths::RING_FINGER:
+    case InputPaths::PINKY_FINGER:
+        if (!value.is_number_float()) { break; }
+        return std::pair{input_path, InputEntry{path_string, InputValue{value.get<float>()}, time_offset}};
+    // Boolean based input paths
+    case InputPaths::SYSTEM_MENU:
+    case InputPaths::PROXIMITY:
+        if (!value.is_boolean()) { break; }
+        return std::pair{input_path, InputEntry{path_string, InputValue{value.get<bool>()}, time_offset}};
+    }
+
+    // Failthrough for unsupported path
+    LOG_INFO("Incorrect value type given for path: '{}'", path_string);
+    return std::nullopt;
 }
 
 auto DebugRequestPayload::ParseSettings(const nlohmann::json& request) -> std::vector<SettingsEntry> {
@@ -108,7 +116,10 @@ auto DebugRequestPayload::ParseSettings(const nlohmann::json& request) -> std::v
     return settings;
 }
 
-auto DebugRequestPayload::GetInputPath(std::string_view path) -> InputPaths {
+auto DebugRequestPayload::StringToInputPath(std::string_view path) -> InputPaths {
+    if (path.starts_with("/input/system/click")) {
+        return InputPaths::SYSTEM_MENU;
+    }
     if (path.starts_with("/input/pinch")) {
         return InputPaths::PINCH;
     }
@@ -127,12 +138,25 @@ auto DebugRequestPayload::GetInputPath(std::string_view path) -> InputPaths {
     if (path.starts_with("/input/finger/pinky")) {
         return InputPaths::PINKY_FINGER;
     }
-    if (path.starts_with("/time_offset")) {
-        return InputPaths::TIME_OFFSET;
-    }
     if (path.starts_with("/proximity")) {
         return InputPaths::PROXIMITY;
     }
 
     return InputPaths::UNKNOWN;
+}
+
+auto DebugRequestPayload::InputPathToString(InputPaths path) -> std::string {
+    switch(path) {
+    case InputPaths::SYSTEM_MENU: return "/input/system/click";
+    case InputPaths::PROXIMITY: return "/proximity";
+    case InputPaths::PINCH: return "/input/pinch";
+    case InputPaths::GRIP: return "/input/grip";
+    case InputPaths::INDEX_FINGER: return "/input/finger/index";
+    case InputPaths::MIDDLE_FINGER: return "/input/finger/middle";
+    case InputPaths::RING_FINGER: return "/input/finger/ring";
+    case InputPaths::PINKY_FINGER: return "/input/finger/pinky";
+    case InputPaths::UNKNOWN:
+    default:
+        return "UNKNOWN_PATH";
+    }
 }

@@ -60,12 +60,12 @@ auto LeapTrackedDriver::ProcessDebugRequestSettings(const DebugRequestPayload& r
         if (setting.key_ == "tracking_mode") {
             // This one is a bit special as we're mapping the string to an internal enum
             if (std::holds_alternative<std::string>(setting.value_)) {
-                const auto& valueString = std::get<std::string>(setting.value_);
-                if (valueString == "hmd") {
+                const auto& value_string = std::get<std::string>(setting.value_);
+                if (value_string == "hmd") {
                     settings_->UpdateTrackingMode(eLeapTrackingMode_HMD);
                     continue;
                 }
-                if (valueString == "desktop") {
+                if (value_string == "desktop") {
                     settings_->UpdateTrackingMode(eLeapTrackingMode_Desktop);
                     continue;
                 }
