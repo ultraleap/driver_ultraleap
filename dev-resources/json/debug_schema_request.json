@@ -1,9 +1,9 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/ultraleap/driver_ultraleap/dev-resources/json/debug_schema.json",
+  "$id": "https://github.com/ultraleap/driver_ultraleap/dev-resources/json/debug_schema_request.json",
 
-  "title": "Ultraleap Steam Driver Debug Payload",
-  "description": "Schema for the the debug payload that can be send to the debug API of the Ultraleap steam driver",
+  "title": "Ultraleap OVR Debug Request",
+  "description": "Schema for the the debug payload request that can be sent to the debug API of the Ultraleap steam driver",
 
   "$defs": {
     "tracking_mode": {
