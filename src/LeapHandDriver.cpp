@@ -5,14 +5,9 @@
 #include <span>
 #include <numbers>
 #include <ratio>
+#include <format>
 
-#include "VrUtils.h"
-#include "VrLogging.h"
 #include "VrMaths.h"
-
-#include <numeric>
-#include <ranges>
-#include <thread>
 
 const vr::VRBoneTransform_t kInitialHand[31]{
     {{{0.000000, 0.000000, 0.000000, 1.000000f}}, {0.000000, 0.000000, 0.000000, 0.000000}},
@@ -49,8 +44,7 @@ const vr::VRBoneTransform_t kInitialHand[31]{
 };
 
 LeapHandDriver::LeapHandDriver(const std::shared_ptr<LeapDriverSettings>& settings, const eLeapHandType hand)
-    : id_{vr::k_unTrackedDeviceIndexInvalid},
-      settings_{settings},
+    : LeapTrackedDriver{vr::k_unTrackedDeviceIndexInvalid, settings},
       hand_type_{hand},
       pose_{kDefaultPose} {
 }
@@ -83,11 +77,29 @@ auto LeapHandDriver::Activate(const uint32_t object_id) -> vr::EVRInitError {
 
         // System input paths.
         input_system_menu_ = properties.CreateBooleanInput("/input/system/click");
-        input_proximity_ = properties.CreateBooleanInput("/proximity");
+        path_inputs_map_.insert({InputPaths::SYSTEM_MENU, &input_system_menu_});
 
-        // Hand specific infput paths.
+        input_proximity_ = properties.CreateBooleanInput("/proximity");
+        path_inputs_map_.insert({InputPaths::PROXIMITY, &input_proximity_});
+
+        // Hand specific input paths.
         input_pinch_ = properties.CreateAbsoluteScalarInput("/input/pinch/value", vr::VRScalarUnits_NormalizedOneSided);
+        path_inputs_map_.insert({InputPaths::PINCH, &input_pinch_});
+
         input_grip_ = properties.CreateAbsoluteScalarInput("/input/grip/value", vr::VRScalarUnits_NormalizedOneSided);
+        path_inputs_map_.insert({InputPaths::GRIP, &input_grip_});
+
+        input_index_finger_ = properties.CreateAbsoluteScalarInput("/input/finger/index/value", vr::VRScalarUnits_NormalizedOneSided);
+        path_inputs_map_.insert({InputPaths::INDEX_FINGER, &input_index_finger_});
+
+        input_middle_finger_ = properties.CreateAbsoluteScalarInput("/input/finger/middle/value", vr::VRScalarUnits_NormalizedOneSided);
+        path_inputs_map_.insert({InputPaths::MIDDLE_FINGER, &input_middle_finger_});
+
+        input_ring_finger_ = properties.CreateAbsoluteScalarInput("/input/finger/ring/value", vr::VRScalarUnits_NormalizedOneSided);
+        path_inputs_map_.insert({InputPaths::RING_FINGER, &input_ring_finger_});
+
+        input_pinky_finger_ = properties.CreateAbsoluteScalarInput("/input/finger/pinky/value", vr::VRScalarUnits_NormalizedOneSided);
+        path_inputs_map_.insert({InputPaths::PINKY_FINGER, &input_pinky_finger_});
 
         // Setup hand-skeleton to have full tracking with no supplied transforms.
         input_skeleton_ = properties.CreateSkeletonInput(
@@ -96,10 +108,6 @@ auto LeapHandDriver::Activate(const uint32_t object_id) -> vr::EVRInitError {
             "/pose/raw",
             vr::VRSkeletalTracking_Full
         );
-        input_index_finger_ = properties.CreateAbsoluteScalarInput("/input/finger/index", vr::VRScalarUnits_NormalizedOneSided);
-        input_middle_finger_ = properties.CreateAbsoluteScalarInput("/input/finger/middle", vr::VRScalarUnits_NormalizedOneSided);
-        input_ring_finger_ = properties.CreateAbsoluteScalarInput("/input/finger/ring", vr::VRScalarUnits_NormalizedOneSided);
-        input_pinky_finger_ = properties.CreateAbsoluteScalarInput("/input/finger/pinky", vr::VRScalarUnits_NormalizedOneSided);
 
         // Send Skeleton data straight away.
         SetInitialBoneTransforms();
@@ -127,15 +135,6 @@ auto LeapHandDriver::GetComponent(const char* component_name_and_version) -> voi
     }
 
     return nullptr;
-}
-
-auto LeapHandDriver::DebugRequest(const char* request, char* response_buffer, const uint32_t response_buffer_size) -> void {
-    if (id_ != vr::k_unTrackedDeviceIndexInvalid) {
-        // TODO: Implement any required debugging here, for now just clear the buffer.
-        if (response_buffer_size > 0) {
-            std::memset(response_buffer, 0, response_buffer_size);
-        }
-    }
 }
 
 auto LeapHandDriver::GetPose() -> vr::DriverPose_t {
@@ -188,13 +187,8 @@ auto LeapHandDriver::UpdateFromLeapFrame(const LEAP_TRACKING_EVENT* frame) -> vo
             pose_.poseIsValid = false;
         }
 
-        // Parse this hand into a VrHand
+        // Update the skeletal and finger curl data as we alway drive direct hand data
         const auto hand = VrHand{leap_hand};
-
-        // Update input components and skeleton
-        input_proximity_.Update(true, time_offset);
-
-        // Update the Skeleton and finger curl.
         input_skeleton_.Update(vr::VRSkeletalMotionRange_WithController, hand.GetBoneTransforms());
         input_skeleton_.Update(vr::VRSkeletalMotionRange_WithoutController, hand.GetBoneTransforms());
         input_index_finger_.Update(hand.GetIndexFingerCurl(), time_offset);
@@ -202,42 +196,31 @@ auto LeapHandDriver::UpdateFromLeapFrame(const LEAP_TRACKING_EVENT* frame) -> vo
         input_ring_finger_.Update(hand.GetRingFingerCurl(), time_offset);
         input_pinky_finger_.Update(hand.GetPinkyFingerCurl(), time_offset);
 
-        input_pinch_.Update(hand.GetPinchStrength(), time_offset);
-        input_grip_.Update(hand.GetGrabStrength(), time_offset);
-
-        // TODO: Make this a proper classifier.
-        if (frame->nHands == 2) {
-            const auto& hand1 = frame->pHands[0];
-            const auto& hand2 = frame->pHands[1];
-
-            const double index_tip_distance = VrVec3{hand1.index.distal.next_joint - hand2.index.distal.next_joint}.Length();
-            const double thumb_tip_distance = VrVec3{hand1.thumb.distal.next_joint - hand2.thumb.distal.next_joint}.Length();
-
-            if (index_tip_distance < 20 && thumb_tip_distance < 20) {
-                input_system_menu_.Update(true);
-            } else {
-                input_system_menu_.Update(false);
-            }
-        } else {
-            input_system_menu_.Update(false);
+        // If external input only isn't set then also update the interaction based components of the profile
+        if (!settings_->ExternalInputOnly()) {
+            input_proximity_.Update(true, time_offset);
+            input_pinch_.Update(hand.GetPinchStrength(), time_offset);
+            input_grip_.Update(hand.GetGrabStrength(), time_offset);
+            input_system_menu_.Update(VrHand::GetSystemMenuTriggered(hands), time_offset);
         }
-
     } else {
         pose_.result = vr::TrackingResult_Running_OutOfRange;
         pose_.poseIsValid = false;
         pose_.deviceIsConnected = true;
 
-        // Mark all input components as zero'ed values.
-        input_system_menu_.Update(false, time_offset);
-        input_proximity_.Update(false, time_offset);
+        // Mark all input components as zero'ed values if we are currently driving inputs.
+        if (!settings_->ExternalInputOnly()) {
+            input_system_menu_.Update(false, time_offset);
+            input_proximity_.Update(false, time_offset);
+            input_pinch_.Update(0.0, time_offset);
+            input_grip_.Update(0.0, time_offset);
+        }
 
+        // Still update the finger curl values as we are always driving them alongside the skeletal data.
         input_index_finger_.Update(0.0, time_offset);
         input_middle_finger_.Update(0.0, time_offset);
         input_ring_finger_.Update(0.0, time_offset);
         input_pinky_finger_.Update(0.0, time_offset);
-
-        input_pinch_.Update(0.0, time_offset);
-        input_grip_.Update(0.0, time_offset);
     }
 
     // Update the pose for this virtual hand;
@@ -247,4 +230,41 @@ auto LeapHandDriver::UpdateFromLeapFrame(const LEAP_TRACKING_EVENT* frame) -> vo
 auto LeapHandDriver::SetInitialBoneTransforms() -> void {
     input_skeleton_.Update(vr::VRSkeletalMotionRange_WithController, kInitialHand);
     input_skeleton_.Update(vr::VRSkeletalMotionRange_WithoutController, kInitialHand);
+}
+
+auto LeapHandDriver::ProcessDebugRequestInputs(const DebugRequestPayload& request_payload, nlohmann::json& response) const -> void {
+    // Loop through all the received InputEvents and fire off updates to the corresponding inputs.
+    for (const auto& [key, input_entry] : request_payload.inputs_) {
+        // Some Input Paths like time_offset dont directly relate to a OVR component and should be skipped.
+        if (!path_inputs_map_.contains(key)) {
+            LOG_INFO("No mapping to an InputComponent exists for the key: {}", DebugRequestPayload::InputPathToString(key));
+            continue;
+        }
+        const auto& prop_variant = path_inputs_map_.at(key);
+
+        // Special case for joysticks as x and y are sent together. Beyond that ensure that the types we've parsed
+        // from the debug payload correctly match our input types.
+        if (std::holds_alternative<vr::HmdVector2_t>(input_entry.value_)) {
+            // TODO: this will allow for joysticks in the future and can be ignored for now.
+        } else if (std::holds_alternative<float>(input_entry.value_) && std::holds_alternative<VrScalarInputComponent*>(prop_variant)) {
+            const auto& val = std::get<float>(input_entry.value_);
+            auto* prop = std::get<VrScalarInputComponent*>(prop_variant);
+            prop->Update(val, input_entry.time_offset_);
+        } else if (std::holds_alternative<bool>(input_entry.value_) && std::holds_alternative<VrBooleanInputComponent*>(prop_variant)) {
+            const auto& val = std::get<bool>(input_entry.value_);
+            auto* prop = std::get<VrBooleanInputComponent*>(prop_variant);
+            prop->Update(val, input_entry.time_offset_);
+        } else {
+            LOG_INFO(
+                "Failed to process input for path: '{}'; Either the payload value didn't match the input type or path_inputs_map_ "
+                "is missing an entry for the given key",
+                input_entry.full_path_
+            );
+            response[response_warnings_key_] += std::format(
+                "Failed to process input for path: '{}'; Either the payload value didn't match the input type or path_inputs_map_ "
+                "is missing an entry for the given key",
+                input_entry.full_path_
+            );
+        }
+    }
 }

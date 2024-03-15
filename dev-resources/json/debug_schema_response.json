@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/ultraleap/driver_ultraleap/dev-resources/json/debug_schema_response.json",
+
+  "title": "Ultraleap OVR Debug Request",
+  "description": "Schema for the the debug payload response that is received from the Ultraleap steam driver",
+
+  "readOnly": true,
+  "type": "object",
+  "properties": {
+    "result": {"enum": ["success", "error"]},
+    "warnings": {"type": "array", "items": {"type": "string"}},
+    "errors": {"type": "array", "items": {"type": "string"}}
+  }
+}

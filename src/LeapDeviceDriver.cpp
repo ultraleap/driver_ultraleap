@@ -3,8 +3,8 @@
 #include "VrUtils.h"
 #include "VrLogging.h"
 
-LeapDeviceDriver::LeapDeviceDriver(const std::shared_ptr<LeapDevice>& leap_device)
-    : id_(vr::k_unTrackedDeviceIndexInvalid),
+LeapDeviceDriver::LeapDeviceDriver(const std::shared_ptr<LeapDevice>& leap_device, const std::shared_ptr<LeapDriverSettings>& settings)
+    : LeapTrackedDriver{vr::k_unTrackedDeviceIndexInvalid, settings},
       leap_device_{leap_device} {
 }
 
@@ -57,15 +57,6 @@ auto LeapDeviceDriver::GetComponent(const char* component_name_and_version) -> v
     }
 
     return nullptr;
-}
-
-auto LeapDeviceDriver::DebugRequest(const char* request, char* response_buffer, const uint32_t response_buffer_size) -> void {
-    if (id_ != vr::k_unTrackedDeviceIndexInvalid) {
-        // TODO: Implement any required debugging here, for now just clear the buffer.
-        if (response_buffer_size > 0) {
-            std::memset(response_buffer, 0, response_buffer_size);
-        }
-    }
 }
 
 auto LeapDeviceDriver::GetPose() -> vr::DriverPose_t {
@@ -145,4 +136,9 @@ auto LeapDeviceDriver::SetDeviceModelProperties(const VrDeviceProperties& proper
         break;
     }
     }
+}
+
+auto LeapDeviceDriver::ProcessDebugRequestInputs(const DebugRequestPayload& request_payload, nlohmann::json& response) const
+    -> void {
+    // TODO: Handle any potential input related debug requests here.
 }
