@@ -25,17 +25,21 @@
       "order": 2
     },
 
-    "/input/raw": {
+    "/pose/raw": {
       "type": "pose",
       "binding_image_point": [65, 105]
     },
     "/input/handgrip": {
+    "/pose/tip": {
+      "type": "pose",
+      "binding_image_point": [0, 0]
+    },
+    "/pose/grip": {
       "type": "pose",
       "binding_image_point": [65, 105]
     },
-    "/input/tip": {
       "type": "pose",
-      "binding_image_point": [0, 0]
+      "binding_image_point": [65, 105]
     },
 
     "/input/skeleton/left": {
