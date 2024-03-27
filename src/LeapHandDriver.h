@@ -1,6 +1,6 @@
 #pragma once
 
-#include <unordered_map>
+#include <map>
 
 #include "LeapTrackedDriver.h"
 #include "VrUtils.h"
@@ -9,7 +9,7 @@
 
 class LeapHandDriver final : public LeapTrackedDriver {
   public:
-    using InputComponent = std::variant<VrScalarInputComponent*, VrBooleanInputComponent*>;
+    using VrInputComponent = std::variant<VrScalarInputComponent*, VrBooleanInputComponent*>;
     LeapHandDriver(const std::shared_ptr<LeapDriverSettings>& settings, eLeapHandType hand);
     ~LeapHandDriver() override = default;
 
@@ -39,11 +39,13 @@ class LeapHandDriver final : public LeapTrackedDriver {
     VrScalarInputComponent input_grip_;
 
     VrSkeletonInputComponent input_skeleton_;
+
+    VrScalarInputComponent input_thumb_finger_;
     VrScalarInputComponent input_index_finger_;
     VrScalarInputComponent input_middle_finger_;
     VrScalarInputComponent input_ring_finger_;
     VrScalarInputComponent input_pinky_finger_;
 
     // Used to store mappings of our Vr*InputComponents to the received paths from the Debug Request Parser
-    std::unordered_map<InputPaths, InputComponent> path_inputs_map_;
+    std::map<InputPath, VrInputComponent> path_inputs_map_;
 };

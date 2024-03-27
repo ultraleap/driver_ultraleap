@@ -10,17 +10,17 @@
     "ultraleap_hand": "Ultraleap Tracked Hand",
     "ultraleap_elbow": "Ultraleap Tracked Elbow",
 
-    "left_hand": "Left Hand",
-    "right_hand": "Right Hand",
+    "left_hand": "Left-hand",
+    "right_hand": "Right-hand",
     "left_elbow": "Left Elbow",
     "right_elbow": "Right Elbow",
 
     "/user/elbow/left": "Left Elbow",
     "/user/elbow/right": "Right Elbow",
 
-    "/input/pinch": "Pinch Gesture",
-    "/input/grip": "Grip",
+    "/input/index_pinch": "Input Pinch",
 
+    "/input/finger/thumb": "Thumb",
     "/input/finger/index": "Index Finger",
     "/input/finger/middle": "Middle Finger",
     "/input/finger/ring": "Ring Finger",

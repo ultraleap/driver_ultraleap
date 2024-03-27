@@ -12,7 +12,15 @@
     "image": "{ultraleap}/bindingui/ultraleap_hand.svg"
   },
   "input_source": {
-    "/input/pinch": {
+    "/input/pinch" : {
+      "type" : "pinch",
+      "value_source" : "/input/index_pinch",
+      "capsense_source" : "/input/finger/index",
+      "force_source" : "/input/index_pinch",
+      "binding_image_point" : [96, 32],
+      "order" : 0
+    },
+    "/input/index_pinch": {
       "type": "trigger",
       "binding_image_point": [96, 32],
       "value": true,
@@ -29,7 +37,6 @@
       "type": "pose",
       "binding_image_point": [65, 105]
     },
-    "/input/handgrip": {
     "/pose/tip": {
       "type": "pose",
       "binding_image_point": [0, 0]
@@ -38,6 +45,7 @@
       "type": "pose",
       "binding_image_point": [65, 105]
     },
+    "/pose/handgrip": {
       "type": "pose",
       "binding_image_point": [65, 105]
     },
@@ -55,6 +63,12 @@
       "binding_image_point": [65, 105]
     },
 
+    "/input/finger/thumb": {
+      "type": "trigger",
+      "binding_image_point": [55, 8],
+      "value": true,
+      "order": 100
+    },
     "/input/finger/index": {
       "type": "trigger",
       "binding_image_point": [55, 8],
