@@ -7,21 +7,57 @@
 #include <utility>
 #include <variant>
 #include <string>
-#include <unordered_map>
+#include <map>
 
 #include <nlohmann/json.hpp>
 
-enum class InputPaths {
-    SYSTEM_MENU,
+enum class InputSource {
+    SYSTEM,
     PROXIMITY,
     PINCH,
     GRIP,
+
+    THUMB_FINGER,
     INDEX_FINGER,
     MIDDLE_FINGER,
     RING_FINGER,
     PINKY_FINGER,
-    UNKNOWN
+
+    UNKNOWN,
 };
+
+enum class InputComponent {
+    TOUCH,
+    CLICK,
+    FORCE,
+    VALUE,
+    X,
+    Y,
+    NONE,
+};
+
+const std::map<std::string, InputSource> kInputSourceMapping = {
+    {"/input/system", InputSource::SYSTEM},
+    {"/input/index_pinch", InputSource::PINCH},
+    {"/input/grip", InputSource::GRIP},
+    {"/input/finger/index", InputSource::INDEX_FINGER},
+    {"/input/finger/middle", InputSource::MIDDLE_FINGER},
+    {"/input/finger/ring", InputSource::RING_FINGER},
+    {"/input/finger/pinky", InputSource::PINKY_FINGER},
+    {"/proximity", InputSource::PROXIMITY},
+};
+
+const std::map<std::string, InputComponent> kInputComponentMapping = {
+    {"/touch", InputComponent::TOUCH},
+    {"/click", InputComponent::CLICK},
+    {"/force", InputComponent::FORCE},
+    {"/value", InputComponent::VALUE},
+    {"/x", InputComponent::X},
+    {"/y", InputComponent::Y},
+};
+
+
+using InputPath = std::pair<InputSource, InputComponent>;
 
 using InputValue = std::variant<bool, float, vr::HmdVector2_t>;
 using SettingsValue = std::variant<bool, float, VrVec3, std::string>;
@@ -41,25 +77,25 @@ public:
 
     class SettingsEntry {
     public:
-        SettingsEntry(std::string_view key_str, SettingsValue val) : key_{key_str}, value_{std::move(val)} {};
+        SettingsEntry(std::string_view key_str, SettingsValue val) : key_{key_str}, value_{std::move(val)} {}
         const std::string key_;
         const SettingsValue value_;
     };
 
     static auto Parse(const char* json_string) -> std::optional<DebugRequestPayload>;
-    static auto StringToInputPath(std::string_view path) -> InputPaths;
-    static auto InputPathToString(InputPaths path) -> std::string;
+    static auto StringToInputPath(std::string_view path) -> InputPath;
+    static auto InputPathToString(InputPath path) -> std::string;
 
-    std::unordered_map<InputPaths, InputEntry> inputs_;
+    std::map<InputPath, InputEntry> inputs_;
     std::vector<SettingsEntry> settings_;
 private:
     DebugRequestPayload() = default;
-    DebugRequestPayload(std::unordered_map<InputPaths, InputEntry> input_values, std::vector<SettingsEntry> setting_values)
+    DebugRequestPayload(std::map<InputPath, InputEntry> input_values, std::vector<SettingsEntry> setting_values)
         : inputs_{std::move(input_values)},
-          settings_{std::move(setting_values)} {};
+          settings_{std::move(setting_values)} {}
 
-    static auto ParseInputs(const nlohmann::json& request) -> std::unordered_map<InputPaths, InputEntry>;
-    static auto ParseInputPath(std::string_view path_string, const nlohmann::basic_json<>& value, float time_offset) -> std::optional<std::pair<InputPaths, InputEntry>>;
+    static auto ParseInputs(const nlohmann::json& request) -> std::map<InputPath, InputEntry>;
+    static auto ParseInputPath(std::string_view path_string, const nlohmann::basic_json<>& value, float time_offset) -> std::optional<std::pair<InputPath, InputEntry>>;
     static auto ParseSettings(const nlohmann::json& request) -> std::vector<SettingsEntry>;
 
     inline static const std::string inputs_json_key_ = "inputs";

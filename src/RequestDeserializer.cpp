@@ -1,5 +1,7 @@
 #include "RequestDeserializer.h"
 
+#include <sstream>
+
 #include "VrLogging.h"
 
 auto DebugRequestPayload::Parse(const char* jsonString) -> std::optional<DebugRequestPayload> {
@@ -20,8 +22,8 @@ auto DebugRequestPayload::Parse(const char* jsonString) -> std::optional<DebugRe
     return DebugRequestPayload{std::move(inputs), std::move(settings)};
 }
 
-auto DebugRequestPayload::ParseInputs(const nlohmann::json& request) -> std::unordered_map<InputPaths, InputEntry> {
-    std::unordered_map<InputPaths, InputEntry> parsed_inputs;
+auto DebugRequestPayload::ParseInputs(const nlohmann::json& request) -> std::map<InputPath, InputEntry> {
+    std::map<InputPath, InputEntry> parsed_inputs;
 
     // Ensure that there is an entry in this json for inputs and it has values.
     if (request.contains(inputs_json_key_)) {
@@ -52,30 +54,43 @@ auto DebugRequestPayload::ParseInputs(const nlohmann::json& request) -> std::uno
 }
 
 auto DebugRequestPayload::ParseInputPath(std::string_view path_string, const nlohmann::basic_json<>& value, float time_offset)
-    -> std::optional<std::pair<InputPaths, InputEntry>> {
+    -> std::optional<std::pair<InputPath, InputEntry>> {
     // Lookup to make sure the path is a valid one we support
     const auto input_path = StringToInputPath(path_string);
-    if (input_path == InputPaths::UNKNOWN) {
+    const auto [input_source, input_component] = input_path;
+
+    if (input_source == InputSource::UNKNOWN) {
         LOG_INFO("Path: {}, isn't a supported path. skipping...", path_string);
         return std::nullopt;
     }
 
-    // Finally do validation against the input path vs the value given
-    switch(input_path) {
-    // Float based input paths
-    case InputPaths::PINCH:
-    case InputPaths::GRIP:
-    case InputPaths::INDEX_FINGER:
-    case InputPaths::MIDDLE_FINGER:
-    case InputPaths::RING_FINGER:
-    case InputPaths::PINKY_FINGER:
-        if (!value.is_number_float()) { break; }
-        return std::pair{input_path, InputEntry{path_string, InputValue{value.get<float>()}, time_offset}};
-    // Boolean based input paths
-    case InputPaths::SYSTEM_MENU:
-    case InputPaths::PROXIMITY:
-        if (!value.is_boolean()) { break; }
-        return std::pair{input_path, InputEntry{path_string, InputValue{value.get<bool>()}, time_offset}};
+    if (input_source == InputSource::PROXIMITY) {
+        if (value.is_boolean()) {
+            return std::pair{input_path, InputEntry{path_string, InputValue{value.get<bool>()}, time_offset}};
+        } else {
+            return std::nullopt;
+        }
+    }
+
+    // Use the appropriate type look for the component path that's been requested.
+    switch (input_component) {
+    case InputComponent::TOUCH:
+    case InputComponent::CLICK: {
+        if (value.is_boolean()) {
+            return std::pair{input_path, InputEntry{path_string, InputValue{value.get<bool>()}, time_offset}};
+        }
+        break;
+    }
+    case InputComponent::FORCE:
+    case InputComponent::VALUE:
+    case InputComponent::X:
+    case InputComponent::Y:
+        if (value.is_number_float()) {
+            return std::pair{input_path, InputEntry{path_string, InputValue{value.get<float>()}, time_offset}};
+        }
+        break;
+    case InputComponent::NONE:
+        return std::nullopt;
     }
 
     // Failthrough for unsupported path
@@ -116,47 +131,48 @@ auto DebugRequestPayload::ParseSettings(const nlohmann::json& request) -> std::v
     return settings;
 }
 
-auto DebugRequestPayload::StringToInputPath(std::string_view path) -> InputPaths {
-    if (path.starts_with("/input/system/click")) {
-        return InputPaths::SYSTEM_MENU;
-    }
-    if (path.starts_with("/input/pinch")) {
-        return InputPaths::PINCH;
-    }
-    if (path.starts_with("/input/grip")) {
-        return InputPaths::GRIP;
-    }
-    if (path.starts_with("/input/finger/index")) {
-        return InputPaths::INDEX_FINGER;
-    }
-    if (path.starts_with("/input/finger/middle")) {
-        return InputPaths::MIDDLE_FINGER;
-    }
-    if (path.starts_with("/input/finger/ring")) {
-        return InputPaths::RING_FINGER;
-    }
-    if (path.starts_with("/input/finger/pinky")) {
-        return InputPaths::PINKY_FINGER;
-    }
-    if (path.starts_with("/proximity")) {
-        return InputPaths::PROXIMITY;
+auto DebugRequestPayload::StringToInputPath(std::string_view path) -> InputPath {
+    auto input_source = InputSource::UNKNOWN;
+    auto input_component = InputComponent::NONE;
+
+    for (auto& [path_prefix, source] : kInputSourceMapping) {
+        if (path.starts_with(path_prefix)) {
+            input_source = source;
+            break;
+        }
     }
 
-    return InputPaths::UNKNOWN;
+    for (auto& [path_suffix, component] : kInputComponentMapping) {
+        if (path.ends_with(path_suffix)) {
+            input_component = component;
+            break;
+        }
+    }
+
+    return {input_source, input_component};
 }
 
-auto DebugRequestPayload::InputPathToString(InputPaths path) -> std::string {
-    switch(path) {
-    case InputPaths::SYSTEM_MENU: return "/input/system/click";
-    case InputPaths::PROXIMITY: return "/proximity";
-    case InputPaths::PINCH: return "/input/pinch";
-    case InputPaths::GRIP: return "/input/grip";
-    case InputPaths::INDEX_FINGER: return "/input/finger/index";
-    case InputPaths::MIDDLE_FINGER: return "/input/finger/middle";
-    case InputPaths::RING_FINGER: return "/input/finger/ring";
-    case InputPaths::PINKY_FINGER: return "/input/finger/pinky";
-    case InputPaths::UNKNOWN:
-    default:
-        return "UNKNOWN_PATH";
+auto DebugRequestPayload::InputPathToString(InputPath path) -> std::string {
+    auto ss = std::stringstream{};
+    auto& [input_source, input_component] = path;
+
+    for (auto& [path_prefix, source] : kInputSourceMapping) {
+        if (input_source == source) {
+            ss << path_prefix;
+            break;
+        }
     }
+
+    for (auto& [path_suffix, component] : kInputComponentMapping) {
+        if (input_component == component) {
+            ss << path_suffix;
+            break;
+        }
+    }
+
+    if (auto string = ss.str(); !string.empty()) {
+        return string;
+    }
+
+    return "UNKNOWN_PATH";
 }

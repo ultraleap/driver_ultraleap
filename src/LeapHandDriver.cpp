@@ -78,29 +78,32 @@ auto LeapHandDriver::Activate(const uint32_t object_id) -> vr::EVRInitError {
 
         // System input paths.
         input_system_menu_ = properties.CreateBooleanInput("/input/system/click");
-        path_inputs_map_.insert({InputPaths::SYSTEM_MENU, &input_system_menu_});
+        path_inputs_map_.insert({InputPath{InputSource::SYSTEM, InputComponent::CLICK}, &input_system_menu_});
 
         input_proximity_ = properties.CreateBooleanInput("/proximity");
-        path_inputs_map_.insert({InputPaths::PROXIMITY, &input_proximity_});
+        path_inputs_map_.insert({{InputSource::PROXIMITY, InputComponent::NONE}, &input_proximity_});
 
         // Hand specific input paths.
-        input_pinch_ = properties.CreateAbsoluteScalarInput("/input/pinch/value", vr::VRScalarUnits_NormalizedOneSided);
-        path_inputs_map_.insert({InputPaths::PINCH, &input_pinch_});
+        input_pinch_ = properties.CreateAbsoluteScalarInput("/input/index_pinch/value", vr::VRScalarUnits_NormalizedOneSided);
+        path_inputs_map_.insert({{InputSource::PINCH, InputComponent::VALUE}, &input_pinch_});
 
         input_grip_ = properties.CreateAbsoluteScalarInput("/input/grip/value", vr::VRScalarUnits_NormalizedOneSided);
-        path_inputs_map_.insert({InputPaths::GRIP, &input_grip_});
+        path_inputs_map_.insert({{InputSource::GRIP, InputComponent::VALUE}, &input_grip_});
+
+        input_thumb_finger_ = properties.CreateAbsoluteScalarInput("/input/finger/thumb/value", vr::VRScalarUnits_NormalizedOneSided);
+        path_inputs_map_.insert({{InputSource::THUMB_FINGER, InputComponent::VALUE}, &input_thumb_finger_});
 
         input_index_finger_ = properties.CreateAbsoluteScalarInput("/input/finger/index/value", vr::VRScalarUnits_NormalizedOneSided);
-        path_inputs_map_.insert({InputPaths::INDEX_FINGER, &input_index_finger_});
+        path_inputs_map_.insert({{InputSource::INDEX_FINGER, InputComponent::VALUE}, &input_index_finger_});
 
         input_middle_finger_ = properties.CreateAbsoluteScalarInput("/input/finger/middle/value", vr::VRScalarUnits_NormalizedOneSided);
-        path_inputs_map_.insert({InputPaths::MIDDLE_FINGER, &input_middle_finger_});
+        path_inputs_map_.insert({{InputSource::MIDDLE_FINGER, InputComponent::VALUE}, &input_middle_finger_});
 
         input_ring_finger_ = properties.CreateAbsoluteScalarInput("/input/finger/ring/value", vr::VRScalarUnits_NormalizedOneSided);
-        path_inputs_map_.insert({InputPaths::RING_FINGER, &input_ring_finger_});
+        path_inputs_map_.insert({{InputSource::RING_FINGER, InputComponent::VALUE}, &input_ring_finger_});
 
         input_pinky_finger_ = properties.CreateAbsoluteScalarInput("/input/finger/pinky/value", vr::VRScalarUnits_NormalizedOneSided);
-        path_inputs_map_.insert({InputPaths::PINKY_FINGER, &input_pinky_finger_});
+        path_inputs_map_.insert({{InputSource::PINKY_FINGER, InputComponent::VALUE}, &input_pinky_finger_});
 
         // Setup hand-skeleton to have full tracking with no supplied transforms.
         input_skeleton_ = properties.CreateSkeletonInput(
