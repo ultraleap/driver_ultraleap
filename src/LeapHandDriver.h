@@ -7,7 +7,7 @@
 
 #include <LeapC.h>
 
-class LeapHandDriver final : public LeapTrackedDriver {
+class LeapHandDriver : public LeapTrackedDriver {
   public:
     using VrInputComponent = std::variant<VrScalarInputComponent*, VrBooleanInputComponent*>;
     LeapHandDriver(const std::shared_ptr<LeapDriverSettings>& settings, eLeapHandType hand);
@@ -22,7 +22,7 @@ class LeapHandDriver final : public LeapTrackedDriver {
 
     auto UpdateFromLeapFrame(const LEAP_TRACKING_EVENT* frame) -> void;
 
-  private:
+  protected:
     auto SetInitialBoneTransforms() -> void;
     auto ProcessDebugRequestInputs(const DebugRequestPayload& request_payload, nlohmann::json& response) const -> void override;
 
