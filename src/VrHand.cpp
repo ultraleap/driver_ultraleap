@@ -162,6 +162,7 @@ VrHand::VrHand(const LEAP_HAND& leap_hand)
     pinch_strength_ = leap_hand.pinch_strength;
 
     // Compute the scalar finger curls.
+    thumb_finger_curl_ = ComputeFingerCurl(leap_hand.thumb);
     index_finger_curl_ = ComputeFingerCurl(leap_hand.index);
     middle_finger_curl_ = ComputeFingerCurl(leap_hand.middle);
     ring_finger_curl_ = ComputeFingerCurl(leap_hand.ring);
