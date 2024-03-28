@@ -14,6 +14,7 @@
 enum class InputSource {
     SYSTEM,
     PROXIMITY,
+
     PINCH,
     GRIP,
 
@@ -27,7 +28,7 @@ enum class InputSource {
     BUTTON_B,
     TRIGGER,
     TRACKPAD,
-    JOYSTICK,
+    THUMBSTICK,
 
     UNKNOWN,
 };

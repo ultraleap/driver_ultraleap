@@ -19,17 +19,6 @@
       "order": 1
     },
 
-    "$comment:": {
-      "/input/pinch" : {
-        "type" : "pinch",
-        "value_source" : "/input/trigger",
-        "capsense_source" : "/input/finger/index",
-        "force_source" : "/input/trackpad",
-        "binding_image_point" : [ 27, 37 ],
-        "order" : 8
-      }
-    },
-
     "/input/grip": {
       "type": "trigger",
       "binding_image_point": [65, 105],
