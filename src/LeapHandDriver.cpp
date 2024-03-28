@@ -90,19 +90,16 @@ auto LeapHandDriver::Activate(const uint32_t object_id) -> vr::EVRInitError {
         input_grip_ = properties.CreateAbsoluteScalarInput("/input/grip/value", vr::VRScalarUnits_NormalizedOneSided);
         path_inputs_map_.insert({{InputSource::GRIP, InputComponent::VALUE}, &input_grip_});
 
+        // Finger curl amounts.
         input_thumb_finger_ = properties.CreateAbsoluteScalarInput("/input/finger/thumb/value", vr::VRScalarUnits_NormalizedOneSided);
-        path_inputs_map_.insert({{InputSource::THUMB_FINGER, InputComponent::VALUE}, &input_thumb_finger_});
-
         input_index_finger_ = properties.CreateAbsoluteScalarInput("/input/finger/index/value", vr::VRScalarUnits_NormalizedOneSided);
-        path_inputs_map_.insert({{InputSource::INDEX_FINGER, InputComponent::VALUE}, &input_index_finger_});
-
         input_middle_finger_ = properties.CreateAbsoluteScalarInput("/input/finger/middle/value", vr::VRScalarUnits_NormalizedOneSided);
-        path_inputs_map_.insert({{InputSource::MIDDLE_FINGER, InputComponent::VALUE}, &input_middle_finger_});
-
         input_ring_finger_ = properties.CreateAbsoluteScalarInput("/input/finger/ring/value", vr::VRScalarUnits_NormalizedOneSided);
-        path_inputs_map_.insert({{InputSource::RING_FINGER, InputComponent::VALUE}, &input_ring_finger_});
-
         input_pinky_finger_ = properties.CreateAbsoluteScalarInput("/input/finger/pinky/value", vr::VRScalarUnits_NormalizedOneSided);
+        path_inputs_map_.insert({{InputSource::THUMB_FINGER, InputComponent::VALUE}, &input_thumb_finger_});
+        path_inputs_map_.insert({{InputSource::INDEX_FINGER, InputComponent::VALUE}, &input_index_finger_});
+        path_inputs_map_.insert({{InputSource::MIDDLE_FINGER, InputComponent::VALUE}, &input_middle_finger_});
+        path_inputs_map_.insert({{InputSource::RING_FINGER, InputComponent::VALUE}, &input_ring_finger_});
         path_inputs_map_.insert({{InputSource::PINKY_FINGER, InputComponent::VALUE}, &input_pinky_finger_});
 
         // Setup hand-skeleton to have full tracking with no supplied transforms.
@@ -195,6 +192,7 @@ auto LeapHandDriver::UpdateFromLeapFrame(const LEAP_TRACKING_EVENT* frame) -> vo
         const auto hand = VrHand{leap_hand};
         input_skeleton_.Update(vr::VRSkeletalMotionRange_WithController, hand.GetBoneTransforms());
         input_skeleton_.Update(vr::VRSkeletalMotionRange_WithoutController, hand.GetBoneTransforms());
+        input_thumb_finger_.Update(hand.GetThumbCurl(), time_offset);
         input_index_finger_.Update(hand.GetIndexFingerCurl(), time_offset);
         input_middle_finger_.Update(hand.GetMiddleFingerCurl(), time_offset);
         input_ring_finger_.Update(hand.GetRingFingerCurl(), time_offset);
