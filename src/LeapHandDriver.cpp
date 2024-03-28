@@ -84,7 +84,7 @@ auto LeapHandDriver::Activate(const uint32_t object_id) -> vr::EVRInitError {
         path_inputs_map_.insert({{InputSource::PROXIMITY, InputComponent::NONE}, &input_proximity_});
 
         // Hand specific input paths.
-        input_pinch_ = properties.CreateAbsoluteScalarInput("/input/index_pinch/value", vr::VRScalarUnits_NormalizedOneSided);
+        input_pinch_ = properties.CreateAbsoluteScalarInput("/input/pinch/value", vr::VRScalarUnits_NormalizedOneSided);
         path_inputs_map_.insert({{InputSource::PINCH, InputComponent::VALUE}, &input_pinch_});
 
         input_grip_ = properties.CreateAbsoluteScalarInput("/input/grip/value", vr::VRScalarUnits_NormalizedOneSided);
