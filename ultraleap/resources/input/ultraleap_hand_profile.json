@@ -29,7 +29,7 @@
       "type": "pose",
       "binding_image_point": [65, 105]
     },
-    "/pose/tip": {
+    "/pose/aim": {
       "type": "pose",
       "binding_image_point": [0, 0]
     },
