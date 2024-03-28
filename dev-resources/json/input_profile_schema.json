@@ -116,7 +116,14 @@
             "force": {"type": "boolean"},
             "input_activity_path": {"type": "string"},
             "input_activity_threshold": {"type": "number"},
-            "visibility": {"const": "InputValueVisibility_AvailableButHidden"}
+            "visibility": {
+              "enum": [
+                "InputValueVisibility_AvailableButHidden",
+                "InputValueVisibility_None",
+                "InputValueVisibility_Public",
+                "InputValueVisibility_SteamVRInternal"
+              ]
+            }
           },
           "required": [
             "type",
