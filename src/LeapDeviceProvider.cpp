@@ -240,12 +240,12 @@ auto LeapDeviceProvider::CreateHandControllers() -> void {
     right_hand_ = std::make_unique<LeapHandDriver>(settings_, eLeapHandType_Right);
 
     if (!vr::VRServerDriverHost()
-             ->TrackedDeviceAdded("LeftHand", vr::ETrackedDeviceClass::TrackedDeviceClass_Controller, left_hand_.get())) {
+             ->TrackedDeviceAdded("left_hand", vr::ETrackedDeviceClass::TrackedDeviceClass_Controller, left_hand_.get())) {
         LOG_INFO("Failed to add Ultraleap left hand controller");
     }
 
     if (!vr::VRServerDriverHost()
-             ->TrackedDeviceAdded("RightHand", vr::ETrackedDeviceClass::TrackedDeviceClass_Controller, right_hand_.get())) {
+             ->TrackedDeviceAdded("right_hand", vr::ETrackedDeviceClass::TrackedDeviceClass_Controller, right_hand_.get())) {
         LOG_INFO("Failed to add Ultraleap right hand controller");
     }
     LOG_INFO("Added virtual hand devices");
@@ -255,12 +255,12 @@ auto LeapDeviceProvider::CreateHandControllers() -> void {
         right_elbow_ = std::make_unique<LeapElbowDriver>(settings_, eLeapHandType_Right);
 
         if (!vr::VRServerDriverHost()
-                 ->TrackedDeviceAdded("LeftElbow", vr::ETrackedDeviceClass::TrackedDeviceClass_GenericTracker, left_elbow_.get())) {
+                 ->TrackedDeviceAdded("left_elbow", vr::ETrackedDeviceClass::TrackedDeviceClass_GenericTracker, left_elbow_.get())) {
             LOG_INFO("Failed to add Ultraleap left elbow controller");
                  }
 
         if (!vr::VRServerDriverHost()
-                 ->TrackedDeviceAdded("RightElbow", vr::ETrackedDeviceClass::TrackedDeviceClass_GenericTracker, right_elbow_.get())) {
+                 ->TrackedDeviceAdded("right_elbow", vr::ETrackedDeviceClass::TrackedDeviceClass_GenericTracker, right_elbow_.get())) {
             LOG_INFO("Failed to add Ultraleap right elbow controller");
                  }
         LOG_INFO("Added virtual elbow devices");

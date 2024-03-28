@@ -8,17 +8,15 @@
     "3di": "Ultraleap 3Di",
 
     "ultraleap_hand": "Ultraleap Tracked Hand",
+    "left_hand": "Left Hand",
+    "right_hand": "Right Hand",
+
     "ultraleap_elbow": "Ultraleap Tracked Elbow",
+    "ultraleap_left_elbow": "Left Elbow",
+    "ultraleap_right_elbow": "Right Elbow",
 
-    "left_hand": "Left-hand",
-    "right_hand": "Right-hand",
-    "left_elbow": "Left Elbow",
-    "right_elbow": "Right Elbow",
-
-    "/user/elbow/left": "Left Elbow",
-    "/user/elbow/right": "Right Elbow",
-
-    "/input/index_pinch": "Input Pinch",
+    "/input/pinch": "Pinch Gesture",
+    "/input/grip": "Grip",
 
     "/input/finger/thumb": "Thumb",
     "/input/finger/index": "Index Finger",
