@@ -9,9 +9,5 @@
   },
 
   "input_source": {
-    "/pose/raw": {
-      "type": "pose",
-      "binding_image_point": [50, 50]
-    }
   }
 }

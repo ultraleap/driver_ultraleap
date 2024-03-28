@@ -46,7 +46,8 @@ constexpr vr::VRBoneTransform_t kInitialHand[31]{
 LeapHandDriver::LeapHandDriver(const std::shared_ptr<LeapDriverSettings>& settings, const eLeapHandType hand)
     : LeapTrackedDriver{vr::k_unTrackedDeviceIndexInvalid, settings},
       hand_type_{hand},
-      pose_{kDefaultPose} {
+      pose_{kDefaultPose},
+      extended{settings_->ExtendedHandProfile()} {
 }
 
 auto LeapHandDriver::Activate(const uint32_t object_id) -> vr::EVRInitError {
@@ -54,16 +55,24 @@ auto LeapHandDriver::Activate(const uint32_t object_id) -> vr::EVRInitError {
 
     try {
         const auto properties = VrDeviceProperties::FromDeviceId(id_);
-        properties.Set(vr::Prop_ControllerType_String, "ultraleap_hand");
-        properties.Set(vr::Prop_ControllerHandSelectionPriority_Int32, 0);
+
         properties.Set(vr::Prop_ManufacturerName_String, "Ultraleap");
-        properties.Set(vr::Prop_InputProfilePath_String, "{ultraleap}/input/ultraleap_hand_profile.json");
+        properties.Set(vr::Prop_ControllerHandSelectionPriority_Int32, 0);
 
         // Device capabilities.
         properties.Set(vr::Prop_DeviceIsWireless_Bool, true);
         properties.Set(vr::Prop_DeviceCanPowerOff_Bool, false);
         properties.Set(vr::Prop_DeviceProvidesBatteryStatus_Bool, false);
         properties.Set(vr::Prop_Identifiable_Bool, false);
+
+        // Setup the controller in normal or extended mode.
+        if (!extended) {
+            properties.Set(vr::Prop_ControllerType_String, "ultraleap_hand");
+            properties.Set(vr::Prop_InputProfilePath_String, "{ultraleap}/input/ultraleap_hand_profile.json");
+        } else {
+            properties.Set(vr::Prop_ControllerType_String, "ultraleap_hand_extended");
+            properties.Set(vr::Prop_InputProfilePath_String, "{ultraleap}/input/ultraleap_hand_extended_profile.json");
+        }
 
         // Setup properties that are different per hand.
         if (hand_type_ == eLeapHandType_Left) {
@@ -109,6 +118,44 @@ auto LeapHandDriver::Activate(const uint32_t object_id) -> vr::EVRInitError {
             "/pose/raw",
             vr::VRSkeletalTracking_Full
         );
+
+        // Setup additional input paths if operating in extended mode.
+        if (extended) {
+            input_button_a_click_ = properties.CreateBooleanInput("/input/a/click");
+            input_button_a_touch_ = properties.CreateBooleanInput("/input/a/touch");
+            path_inputs_map_.insert({{InputSource::BUTTON_A, InputComponent::CLICK}, &input_button_a_click_});
+            path_inputs_map_.insert({{InputSource::BUTTON_A, InputComponent::TOUCH}, &input_button_a_touch_});
+
+            input_button_b_click_ = properties.CreateBooleanInput("/input/b/click");
+            input_button_b_touch_ = properties.CreateBooleanInput("/input/b/touch");
+            path_inputs_map_.insert({{InputSource::BUTTON_B, InputComponent::CLICK}, &input_button_b_click_});
+            path_inputs_map_.insert({{InputSource::BUTTON_B, InputComponent::TOUCH}, &input_button_b_touch_});
+
+            input_trigger_click_ = properties.CreateBooleanInput("/input/trigger/click");
+            input_trigger_touch_ = properties.CreateBooleanInput("/input/trigger/touch");
+            input_trigger_value_ = properties.CreateAbsoluteScalarInput("/input/trigger/value", vr::VRScalarUnits_NormalizedTwoSided);
+            path_inputs_map_.insert({{InputSource::TRIGGER, InputComponent::CLICK}, &input_trigger_click_});
+            path_inputs_map_.insert({{InputSource::TRIGGER, InputComponent::TOUCH}, &input_trigger_touch_});
+            path_inputs_map_.insert({{InputSource::TRIGGER, InputComponent::VALUE}, &input_trigger_value_});
+
+            input_trackpad_force_ = properties.CreateAbsoluteScalarInput("/input/trackpad/force", vr::VRScalarUnits_NormalizedOneSided);
+            input_trackpad_touch_ = properties.CreateBooleanInput("/input/trackpad/touch");
+            input_trackpad_x_ = properties.CreateAbsoluteScalarInput("/input/trackpad/x", vr::VRScalarUnits_NormalizedTwoSided);
+            input_trackpad_y_ = properties.CreateAbsoluteScalarInput("/input/trackpad/y", vr::VRScalarUnits_NormalizedTwoSided);
+            path_inputs_map_.insert({{InputSource::TRACKPAD, InputComponent::FORCE}, &input_trackpad_force_});
+            path_inputs_map_.insert({{InputSource::TRACKPAD, InputComponent::TOUCH}, &input_trackpad_touch_});
+            path_inputs_map_.insert({{InputSource::TRACKPAD, InputComponent::X}, &input_trackpad_x_});
+            path_inputs_map_.insert({{InputSource::TRACKPAD, InputComponent::Y}, &input_trackpad_y_});
+
+            input_thumbstick_click_ = properties.CreateBooleanInput("/input/thumbstick/click");
+            input_thumbstick_touch_ = properties.CreateBooleanInput("/input/thumbstick/touch");
+            input_thumbstick_x_ = properties.CreateAbsoluteScalarInput("/input/thumbstick/x", vr::VRScalarUnits_NormalizedTwoSided);
+            input_thumbstick_y_ = properties.CreateAbsoluteScalarInput("/input/thumbstick/y", vr::VRScalarUnits_NormalizedTwoSided);
+            path_inputs_map_.insert({{InputSource::THUMBSTICK, InputComponent::CLICK}, &input_thumbstick_click_});
+            path_inputs_map_.insert({{InputSource::THUMBSTICK, InputComponent::TOUCH}, &input_thumbstick_touch_});
+            path_inputs_map_.insert({{InputSource::THUMBSTICK, InputComponent::X}, &input_thumbstick_x_});
+            path_inputs_map_.insert({{InputSource::THUMBSTICK, InputComponent::Y}, &input_thumbstick_y_});
+        }
 
         // Send Skeleton data straight away.
         SetInitialBoneTransforms();
