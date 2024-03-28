@@ -23,6 +23,12 @@ enum class InputSource {
     RING_FINGER,
     PINKY_FINGER,
 
+    BUTTON_A,
+    BUTTON_B,
+    TRIGGER,
+    TRACKPAD,
+    JOYSTICK,
+
     UNKNOWN,
 };
 
