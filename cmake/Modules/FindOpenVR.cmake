@@ -1,7 +1,4 @@
-# Note that OpenVR lacks a useful install tree. This should work if
-# `OpenVR_ROOT` is set to the source directory of OpenVR.
-
-# TODO: fails for universal builds
+# Not this bitness check does not work for universal builds.
 if (CMAKE_SIZEOF_VOID_P EQUAL 8)
     set(_openvr_bitness 64)
 else ()
@@ -23,24 +20,36 @@ else ()
 endif ()
 
 find_path(OpenVR_INCLUDE_DIR
-        NAMES
+    NAMES
         openvr.h
-        PATH_SUFFIXES
-        openvr
+        openvr_driver.h
+    PATH_SUFFIXES
         headers
-        public/headers
-        steam
-        public/steam
-        DOC "OpenVR include directory")
+    DOC
+        "OpenVR include directory")
 mark_as_advanced(OpenVR_INCLUDE_DIR)
 
 find_library(OpenVR_LIBRARY
-        NAMES openvr_api64 openvr_api
-        PATH_SUFFIXES
-        "${OpenVR_PLATFORM}"
-        "bin/${OpenVR_PLATFORM}"
-        DOC "OpenVR API library")
+    NAMES
+        openvr_api
+    PATHS
+        ${OpenVR_ROOT}
+    PATH_SUFFIXES
+        "lib/${OpenVR_PLATFORM}"
+    DOC
+        "OpenVR API library")
 mark_as_advanced(OpenVR_LIBRARY)
+
+find_file(OpenVR_BINARY
+    NAMES
+        openvr_api.dll
+    PATHS
+        ${OpenVR_ROOT}
+    PATH_SUFFIXES
+        "bin/${OpenVR_PLATFORM}"
+    DOC
+        "OpenVR API library binary")
+mark_as_advanced(OpenVR_BINARY)
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(OpenVR
@@ -49,10 +58,22 @@ find_package_handle_standard_args(OpenVR
 if (OpenVR_FOUND)
     set(OpenVR_INCLUDE_DIRS "${OpenVR_INCLUDE_DIR}")
     set(OpenVR_LIBRARIES "${OpenVR_LIBRARY}")
-    if (NOT TARGET OpenVR::OpenVR)
-        add_library(OpenVR::OpenVR UNKNOWN IMPORTED)
-        set_target_properties(OpenVR::OpenVR PROPERTIES
-                IMPORTED_LOCATION "${OpenVR_LIBRARY}"
+
+    # OpenVR API requires the client DLL.
+    if (NOT TARGET OpenVR::API)
+        add_library(OpenVR::API SHARED IMPORTED)
+        set_target_properties(OpenVR::API
+            PROPERTIES
+                IMPORTED_IMPLIB "${OpenVR_LIBRARY}"
+                IMPORTED_LOCATION "${OpenVR_BINARY}"
+                INTERFACE_INCLUDE_DIRECTORIES "${OpenVR_INCLUDE_DIR}")
+    endif ()
+
+    # OpenVR Driver API is header only.
+    if (NOT TARGET OpenVR::Driver)
+        add_library(OpenVR::Driver INTERFACE IMPORTED)
+        set_target_properties(OpenVR::Driver
+            PROPERTIES
                 INTERFACE_INCLUDE_DIRECTORIES "${OpenVR_INCLUDE_DIR}")
     endif ()
 endif ()
