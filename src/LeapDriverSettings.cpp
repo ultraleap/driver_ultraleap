@@ -7,8 +7,7 @@ LeapDriverSettings::LeapDriverSettings() : tracking_mode_{} {
 }
 
 auto LeapDriverSettings::LoadSettings() -> void {
-    const auto tracking_mode = VrSettings::Get<std::string>("tracking_mode");
-    if (tracking_mode == "hmd") {
+    if (const auto tracking_mode = VrSettings::Get<std::string>("tracking_mode"); tracking_mode == "hmd") {
         tracking_mode_ = eLeapTrackingMode_HMD;
     } else if (tracking_mode == "desktop") {
         tracking_mode_ = eLeapTrackingMode_Desktop;
@@ -31,6 +30,6 @@ auto LeapDriverSettings::LoadSettings() -> void {
     };
 
     enable_elbow_trackers_ = VrSettings::Get<bool>("enable_elbow_trackers");
-
     external_input_only = VrSettings::Get<bool>("external_input_only");
+    extended_hand_profile = VrSettings::Get<bool>("extended_hand_profile");
 }
