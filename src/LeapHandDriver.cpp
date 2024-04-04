@@ -133,7 +133,7 @@ auto LeapHandDriver::Activate(const uint32_t object_id) -> vr::EVRInitError {
 
             input_trigger_click_ = properties.CreateBooleanInput("/input/trigger/click");
             input_trigger_touch_ = properties.CreateBooleanInput("/input/trigger/touch");
-            input_trigger_value_ = properties.CreateAbsoluteScalarInput("/input/trigger/value", vr::VRScalarUnits_NormalizedTwoSided);
+            input_trigger_value_ = properties.CreateAbsoluteScalarInput("/input/trigger/value", vr::VRScalarUnits_NormalizedOneSided);
             path_inputs_map_.insert({{InputSource::TRIGGER, InputComponent::CLICK}, &input_trigger_click_});
             path_inputs_map_.insert({{InputSource::TRIGGER, InputComponent::TOUCH}, &input_trigger_touch_});
             path_inputs_map_.insert({{InputSource::TRIGGER, InputComponent::VALUE}, &input_trigger_value_});
