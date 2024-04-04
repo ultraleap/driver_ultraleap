@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.22.1)
+cmake_minimum_required(VERSION 3.26)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
 project(driver_ultraleap)
@@ -61,14 +61,13 @@ add_custom_command(
         COMMAND_EXPAND_LISTS
 )
 
-# Copy the localization, resources and manifests.
+add_custom_target(driver_ultraleap_resources)
 add_custom_command(
-        TARGET driver_ultraleap POST_BUILD
+        TARGET driver_ultraleap_resources POST_BUILD
         COMMENT "Copying Resources & Manifest"
-        DEPENDS ${CMAKE_SOURCE_DIR}/ultraleap
-        BYPRODUCTS ${CMAKE_BINARY_DIR}/ultraleap
-        COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/ultraleap ${CMAKE_BINARY_DIR}/ultraleap
+        COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different ${CMAKE_SOURCE_DIR}/ultraleap ${CMAKE_BINARY_DIR}/ultraleap
 )
+add_dependencies(driver_ultraleap driver_ultraleap_resources)
 
 # Build test applications if requested.
 if (BUILD_TEST_APPS)
