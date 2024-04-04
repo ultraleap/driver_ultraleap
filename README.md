@@ -29,19 +29,27 @@ To overwrite the defaults navigate to `${SteamInstallFolder}/config` and edit th
 whilst SteamVR **isn't** open.
 
 When adding the following key value pair configurations, ensure that they are only added under the
-`driver_ultraleap` section. Any values that aren't defined in `steamvr.vrsettings` will fallback to defaults
+`driver_ultraleap` section. Any values that aren't defined in `steamvr.vrsettings` will fallback to defaults,
 so you should only redefine the ones you actively want changed.
 
-#### Key-Value pairs:
-- `tracker_mode`: Forces the service to be set to the requested tracking mode. Values: `hmd`, `desktop`. Default: `hmd`.
-- `hmd_offset_x`: tracker offset in the x-axis when mounted to an HMD in meters. Values: `{float}`. Default: `0.0`.
-- `hmd_offset_y`: tracker offset in the y-axis when mounted to an HMD in meters. Values: `{float}`. Default: `0.0`.
-- `hmd_offset_z`: tracker offset in the x-axis when mounted to an HMD in meters. Values: `{float}`. Default: `-0.08`.
-- `desktop_offset_x`: tracker offset in the x-axis when on the tabletop in front of you in meters. Values: `{float}`. Default: `0.0`.
-- `desktop_offset_y`: tracker offset in the y-axis when on the tabletop in front of you in meters. Values: `{float}`. Default: `-0.2`.
-- `desktop_offset_z`: tracker offset in the x-axis when on the tabletop in front of you in meters. Values: `{float}`. Default: `-0.35`.
+### Valid Configuration Keys
 
-**TODO** - Make gnomon diagrams for both HMD and Desktop co-ordinate directions.
+| Key                     | Description                                        | Type/Values      | Default |
+|-------------------------|----------------------------------------------------|------------------|---------|
+| `tracker_mode`          | Sets the requested tracking mode                   | `hmd`, `desktop` | `hmd`   |
+| `hmd_offset_x`          | X-axis tracker offset for HMD mode                 | _meters_         | `0.0`   |
+| `hmd_offset_y`          | Y-axis tracker offset for HMD mode                 | _meters_         | `0.0`   |
+| `hmd_offset_z`          | Z-axis tracker offset for HMD mode                 | _meters_         | `-0.08` |
+| `desktop_offset_x`      | X-axis tracker offset for desktop mode             | _meters_         | `0.0`   |
+| `desktop_offset_y`      | Y-axis tracker offset for desktop mode             | _meters_         | `-0.2`  |
+| `desktop_offset_z`      | Z-axis tracker offset for desktop mode             | _meters_         | `-0.35` |
+| `enable_elbow_trackers` | Enable elbow trackers                              | `true`/`false`   | `true`  |
+| `external_input_only`   | Disable driver input (for external input)          | `true`/`false`   | `false` |
+| `extended_hand_profile` | Extended hand-profile support (for external input) | `true`/`false`   | `false` |
+
+> **NOTE:** HMD offsets follow the [OpenXR View space convention](https://openxr-tutorial.com/windows/opengl/_images/ViewSpace.png).
+
+### Example
 
 A simplified example of the `steamvr.vrsettings` would look like the following:
 
@@ -69,8 +77,9 @@ A simplified example of the `steamvr.vrsettings` would look like the following:
 }
 ```
 
-> **NOTE**: Trailing commas will cause the parsing of the settings file to break and automatically fall back
-> to defaults. Ensure the last element in each section doesn't have a trailing comma!
+> **NOTE**: This settings file _must_ be valid JSON. Errors like additional trailing commas will cause issues
+> when loading settings, resulting in default values being used instead. Ensure you check your JSON with a suitable
+> [JSON validator](https://jsonlint.com/) before saving.
 
 ## Uninstallation
 To remove the driver:
