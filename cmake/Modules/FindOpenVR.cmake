@@ -1,4 +1,4 @@
-# Not this bitness check does not work for universal builds.
+# Note: this bitness check does not work for universal builds.
 if (CMAKE_SIZEOF_VOID_P EQUAL 8)
     set(_openvr_bitness 64)
 else ()
