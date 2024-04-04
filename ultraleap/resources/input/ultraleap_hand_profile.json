@@ -57,35 +57,35 @@
 
     "/input/finger/thumb": {
       "type": "trigger",
-      "visibility" : "InputValueVisibility_AvailableButHidden",
+      "visibility": "InputValueVisibility_AvailableButHidden",
       "binding_image_point": [96, 32],
       "value": true,
       "order": 100
     },
     "/input/finger/index": {
       "type": "trigger",
-      "visibility" : "InputValueVisibility_AvailableButHidden",
+      "visibility": "InputValueVisibility_AvailableButHidden",
       "binding_image_point": [55, 8],
       "value": true,
       "order": 101
     },
     "/input/finger/middle": {
       "type": "trigger",
-      "visibility" : "InputValueVisibility_AvailableButHidden",
+      "visibility": "InputValueVisibility_AvailableButHidden",
       "binding_image_point": [35, 9],
       "value": true,
       "order": 102
     },
     "/input/finger/ring": {
       "type": "trigger",
-      "visibility" : "InputValueVisibility_AvailableButHidden",
+      "visibility": "InputValueVisibility_AvailableButHidden",
       "binding_image_point": [12, 21],
       "value": true,
       "order": 103
     },
     "/input/finger/pinky": {
       "type": "trigger",
-      "visibility" : "InputValueVisibility_AvailableButHidden",
+      "visibility": "InputValueVisibility_AvailableButHidden",
       "binding_image_point": [9, 48],
       "value": true,
       "order": 104
