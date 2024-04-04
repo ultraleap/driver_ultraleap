@@ -1,7 +1,7 @@
 #include "LeapTrackedDriver.h"
 
 
-auto LeapTrackedDriver::DebugRequest(const char* request, char* response_buffer, uint32_t response_buffer_size) -> void {
+auto LeapTrackedDriver::DebugRequest(const char* request, char* response_buffer, const uint32_t response_buffer_size) -> void {
     auto SendResponse = [&](const nlohmann::json& response) {
         static const nlohmann::json buffer_insufficient_response = {
             {response_result_key_, "error"},

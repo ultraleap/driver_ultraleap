@@ -12,7 +12,7 @@
 
 class LeapTrackedDriver : public vr::ITrackedDeviceServerDriver {
 public:
-    LeapTrackedDriver(const uint32_t id, const std::shared_ptr<LeapDriverSettings>& settings) : id_{id}, settings_{settings} {};
+    LeapTrackedDriver(const uint32_t id, const std::shared_ptr<LeapDriverSettings>& settings) : id_{id}, settings_{settings} {}
     virtual ~LeapTrackedDriver() = default;
 
     // ITrackedDeviceServerDriver
@@ -51,5 +51,5 @@ private:
               typeid(T).name()
           );
       }
-  };
+  }
 };

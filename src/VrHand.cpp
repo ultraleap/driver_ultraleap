@@ -100,22 +100,22 @@ VrHand::VrHand(const LEAP_HAND& leap_hand)
         };
 
     const auto ComputeThumbCurl = [&](const LEAP_DIGIT& finger) -> float {
-        const auto bone_directions = std::ranges::views::transform(finger.bones, [](const LEAP_BONE& bone) -> glm::dvec3 {
+        const auto bone_directions = std::ranges::views::transform(finger.bones, [](const LEAP_BONE& bone) -> dvec3 {
             return (bone.next_joint - bone.prev_joint).Normalised();
         });
-        const auto angle1 = glm::acos(glm::dot(bone_directions[1], bone_directions[2])); // Intermediate
-        const auto angle2 = glm::acos(glm::dot(bone_directions[2], bone_directions[3])); // Distal
-        return static_cast<float>(glm::clamp(glm::max(angle1, angle2) / (std::numbers::pi / 5.0), 0.0, 1.0));
+        const auto angle1 = acos(dot(bone_directions[1], bone_directions[2])); // Intermediate
+        const auto angle2 = acos(dot(bone_directions[2], bone_directions[3])); // Distal
+        return static_cast<float>(clamp(max(angle1, angle2) / (std::numbers::pi / 5.0), 0.0, 1.0));
     };
 
     const auto ComputeFingerCurl = [&](const LEAP_DIGIT& finger) -> float {
-        const auto bone_directions = std::ranges::views::transform(finger.bones, [](const LEAP_BONE& bone) -> glm::dvec3 {
+        const auto bone_directions = std::ranges::views::transform(finger.bones, [](const LEAP_BONE& bone) -> dvec3 {
             return (bone.next_joint - bone.prev_joint).Normalised();
         });
-        const auto total_finger_angles = glm::acos(glm::dot(bone_directions[0], bone_directions[1]))  // Proximal
-                                       + glm::acos(glm::dot(bone_directions[1], bone_directions[2]))  // Intermediate
-                                       + glm::acos(glm::dot(bone_directions[2], bone_directions[3])); // Distal
-        return static_cast<float>(glm::clamp(total_finger_angles / std::numbers::pi, 0.0, 1.0));
+        const auto total_finger_angles = acos(dot(bone_directions[0], bone_directions[1]))  // Proximal
+                                       + acos(dot(bone_directions[1], bone_directions[2]))  // Intermediate
+                                       + acos(dot(bone_directions[2], bone_directions[3])); // Distal
+        return static_cast<float>(clamp(total_finger_angles / std::numbers::pi, 0.0, 1.0));
     };
 
     const auto root_position = GetBonePosition(Root);
@@ -178,7 +178,7 @@ VrHand::VrHand(const LEAP_HAND& leap_hand)
     pinky_finger_curl_ = ComputeFingerCurl(leap_hand.pinky);
 }
 
-auto VrHand::GetSystemMenuTriggered(std::span<const LEAP_HAND> hands) -> bool {
+auto VrHand::GetSystemMenuTriggered(const std::span<const LEAP_HAND> hands) -> bool {
     // We need both hands to be tracked to trigger this pose.
     if (hands.size() != 2) {
         return false;

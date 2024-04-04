@@ -1,8 +1,9 @@
 #include "LeapDriverSettings.h"
 
 #include "VrUtils.h"
+#include "VrLogging.h"
 
-LeapDriverSettings::LeapDriverSettings() : tracking_mode_{} {
+LeapDriverSettings::LeapDriverSettings() {
     LoadSettings();
 }
 
@@ -13,7 +14,7 @@ auto LeapDriverSettings::LoadSettings() -> void {
         tracking_mode_ = eLeapTrackingMode_Desktop;
     } else {
         // Default to HMD if this is set incorrectly.
-        LOG_INFO("Unrecogonised setting for \"tracking_mode\": \"{}\" (should be \"hmd\" or \"desktop\")", tracking_mode);
+        LOG_INFO(R"(Unrecogonised setting for "tracking_mode": "{}" (should be "hmd" or "desktop"))", tracking_mode);
         tracking_mode_ = eLeapTrackingMode_HMD;
     }
 

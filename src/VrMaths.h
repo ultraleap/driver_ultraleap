@@ -127,7 +127,7 @@ class VrVec3 : public dvec3 {
     [[nodiscard]] auto Cross(const Vector3 auto& other) const -> VrVec3 { return cross(*this, make_vec3(other.v)); }
     [[nodiscard]] auto Cross(const VrVec3& other) const -> VrVec3 { return VrVec3{cross(*this, make_vec3(other.data.data))}; }
     [[nodiscard]] auto Length() const -> value_type { return glm::length(static_cast<dvec3>(*this)); }
-    [[nodiscard]] auto Normalised() const -> VrVec3 { return VrVec3{glm::normalize(*this)}; }
+    [[nodiscard]] auto Normalised() const -> VrVec3 { return VrVec3{normalize(*this)}; }
 
     auto CopyToArray(double destination[3]) const -> void { std::ranges::copy(this->data.data, destination); }
 
@@ -156,6 +156,8 @@ inline const VrVec3 VrVec3::Forward = {0.0, 0.0, -1.0};
 inline const VrVec3 VrVec3::Backward = {0.0, 0.0, 1.0};
 
 // Global operators to allow operation on standard types and interop between VrVec3 and VrQuat.
+// Disable warnings here as they are used as part of implicit conversions.
+// ReSharper disable once CppDFAUnreachableFunctionCall
 static auto operator*(const VrVec3& lhs, const VrQuat& rhs) -> VrVec3 {
     return VrVec3{static_cast<dvec3>(lhs) * rhs};
 }
