@@ -284,7 +284,7 @@ auto LeapHandDriver::SetInitialBoneTransforms() -> void {
 auto LeapHandDriver::ProcessDebugRequestInputs(const DebugRequestPayload& request_payload, nlohmann::json& response) const -> void {
     // Loop through all the received InputEvents and fire off updates to the corresponding inputs.
     for (const auto& [key, input_entry] : request_payload.inputs_) {
-        // Some Input Paths like time_offset dont directly relate to a OVR component and should be skipped.
+        // Skip input components which don't exist.
         if (!path_inputs_map_.contains(key)) {
             LOG_INFO("No mapping to an InputComponent exists for the key: {}", DebugRequestPayload::InputPathToString(key));
             continue;

@@ -16,9 +16,8 @@ struct TrackedDeviceInfo {
     std::string model;
 };
 
-
-auto GetStringProperty(vr::TrackedDeviceIndex_t id, vr::ETrackedDeviceProperty prop) -> std::string {
-    if (auto size = gOvrSystem->GetStringTrackedDeviceProperty(id, prop, nullptr, 0); size > 0) {
+auto GetStringProperty(const vr::TrackedDeviceIndex_t id, const vr::ETrackedDeviceProperty prop) -> std::string {
+    if (const auto size = gOvrSystem->GetStringTrackedDeviceProperty(id, prop, nullptr, 0); size > 0) {
         std::string outstr;
         outstr.resize(size);
         gOvrSystem->GetStringTrackedDeviceProperty(id, prop, outstr.data(), size);
@@ -27,7 +26,7 @@ auto GetStringProperty(vr::TrackedDeviceIndex_t id, vr::ETrackedDeviceProperty p
     return std::string{};
 }
 
-auto DebugRequestToDriver(vr::TrackedDeviceIndex_t id, const std::string& payload) {
+auto DebugRequestToDriver(const vr::TrackedDeviceIndex_t id, const std::string& payload) {
     std::string response;
     size_t size = 2048;
     response.resize(size);
@@ -37,12 +36,12 @@ auto DebugRequestToDriver(vr::TrackedDeviceIndex_t id, const std::string& payloa
     std::cout << "Response: " << nlohmann::json::parse(response) << std::endl;
 }
 
-auto SendDebugPayload(vr::TrackedDeviceIndex_t id, bool secondValues) {
+auto SendDebugPayload(const vr::TrackedDeviceIndex_t id, const bool secondValues) {
     nlohmann::json full_payload;
 
     if (secondValues) {
 
-    full_payload = nlohmann::json::parse(R"(
+        full_payload = nlohmann::json::parse(R"(
         {
           "inputs": {
             "time_offset": -0.123,
@@ -61,7 +60,7 @@ auto SendDebugPayload(vr::TrackedDeviceIndex_t id, bool secondValues) {
         }
     )");
     } else {
-    full_payload = nlohmann::json::parse(R"(
+        full_payload = nlohmann::json::parse(R"(
         {
           "inputs": {
             "time_offset": -0.321,
@@ -86,23 +85,20 @@ auto SendDebugPayload(vr::TrackedDeviceIndex_t id, bool secondValues) {
 }
 
 auto SendBrokenPayload(vr::TrackedDeviceIndex_t id) {
-    std::string payload = R"({"inputs"=[{"Greg": 0.25f}]})";
+    const std::string payload = R"({"inputs"=[{"Greg": 0.25f}]})";
     DebugRequestToDriver(id, payload);
 }
 
 auto EnableDriverInput(vr::TrackedDeviceIndex_t id) {
     nlohmann::json payload;
-    nlohmann::json settings = {
-        { "external_input_only", false }
-    };
+    const nlohmann::json settings = {{"external_input_only", false}};
     payload["settings"] = settings;
 
-    std::string payloadString = payload.dump();
+    const std::string payloadString = payload.dump();
     DebugRequestToDriver(id, payloadString);
 }
 
-int main()
-{
+int main() {
     vr::EVRInitError init_error = vr::VRInitError_None;
     const char* pStartupInfo = "";
 
@@ -117,8 +113,8 @@ int main()
 
     // Loop through the tracked devices to find out what we have access too
     for (vr::TrackedDeviceIndex_t i = 0; i < vr::k_unMaxTrackedDeviceCount; ++i) {
-        vr::TrackedDeviceClass device_class = gOvrSystem->GetTrackedDeviceClass(i);
-        if (device_class != vr::TrackedDeviceClass_Invalid) {
+        if (vr::TrackedDeviceClass device_class = gOvrSystem->GetTrackedDeviceClass(i);
+            device_class != vr::TrackedDeviceClass_Invalid) {
             std::string manifacturer = GetStringProperty(i, vr::Prop_ManufacturerName_String);
             std::string model = GetStringProperty(i, vr::Prop_ModelNumber_String);
             tracked_devices.emplace_back(TrackedDeviceInfo{i, device_class, std::move(manifacturer), std::move(model)});
@@ -135,11 +131,8 @@ int main()
 
     std::cout << "Please Select device desired send payload:\n";
     std::cout << "  ID -------- Manifacturer -------- Model\n";
-    for (const auto& device : tracked_devices) {
-        std::cout << "  "
-        << device.device_index << " -------- "
-        << device.manifacturer << " -------- "
-        << device.model << "\n";
+    for (const auto& [device_index, device_class, manifacturer, model] : tracked_devices) {
+        std::cout << "  " << device_index << " -------- " << manifacturer << " -------- " << model << "\n";
     }
     std::cout << std::endl;
 
@@ -162,4 +155,3 @@ int main()
     vr::VR_Shutdown();
     return 0;
 }
-
