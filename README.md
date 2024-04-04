@@ -53,7 +53,7 @@ so you should only redefine the ones you actively want changed.
 
 A simplified example of the `steamvr.vrsettings` would look like the following:
 
-```
+```json
 {
    "DesktopUI" : {
       "controllerbinding_desktop" : "151,39,1920,1073,0"
