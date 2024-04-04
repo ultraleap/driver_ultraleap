@@ -31,6 +31,6 @@ auto LeapDriverSettings::LoadSettings() -> void {
     };
 
     enable_elbow_trackers_ = VrSettings::Get<bool>("enable_elbow_trackers");
-    external_input_only = VrSettings::Get<bool>("external_input_only");
-    extended_hand_profile = VrSettings::Get<bool>("extended_hand_profile");
+    external_input_only_ = VrSettings::Get<bool>("external_input_only");
+    extended_hand_profile_ = VrSettings::Get<bool>("extended_hand_profile");
 }
