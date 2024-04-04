@@ -65,7 +65,7 @@ template <> struct [[maybe_unused]] std::formatter<eLeapRS> {
             default: return "eLeapRS_Invalid(Unknown)";
             }
         }(input));
-    };
+    }
 };
 
 template <> struct [[maybe_unused]] std::formatter<eLeapEventType> {
@@ -96,7 +96,7 @@ template <> struct [[maybe_unused]] std::formatter<eLeapEventType> {
             default: return "eLeapEventType_Invalid(Unknown)";
             }
         }(input));
-    };
+    }
 };
 
 template <> struct [[maybe_unused]] std::formatter<LEAP_VERSION> {

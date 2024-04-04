@@ -4,11 +4,11 @@
 
 #include "VrLogging.h"
 
-auto DebugRequestPayload::Parse(const char* jsonString) -> std::optional<DebugRequestPayload> {
+auto DebugRequestPayload::Parse(const char* json_string) -> std::optional<DebugRequestPayload> {
     // First attempt to destructure the json string into a json object for interrogation.
     nlohmann::json request;
     try {
-        request = nlohmann::json::parse(jsonString);
+        request = nlohmann::json::parse(json_string);
     } catch (...) {
         LOG_INFO("Error parsing JSON input");
         return std::nullopt;
@@ -40,9 +40,8 @@ auto DebugRequestPayload::ParseInputs(const nlohmann::json& request) -> std::map
                 auto path_object = path_iter.value();
                 auto key = path_object.items().begin().key();
                 auto value = path_object.items().begin().value();
-                const auto parsed_optional = ParseInputPath(key, value, time_offset);
 
-                if (parsed_optional.has_value()) {
+                if (const auto parsed_optional = ParseInputPath(key, value, time_offset); parsed_optional.has_value()) {
                     parsed_inputs.insert(parsed_optional.value());
                 }
             }
@@ -53,7 +52,7 @@ auto DebugRequestPayload::ParseInputs(const nlohmann::json& request) -> std::map
     return parsed_inputs;
 }
 
-auto DebugRequestPayload::ParseInputPath(std::string_view path_string, const nlohmann::basic_json<>& value, float time_offset)
+auto DebugRequestPayload::ParseInputPath(std::string_view path_string, const nlohmann::basic_json<>& value, const float time_offset)
     -> std::optional<std::pair<InputPath, InputEntry>> {
     // Lookup to make sure the path is a valid one we support
     const auto input_path = StringToInputPath(path_string);
@@ -67,9 +66,8 @@ auto DebugRequestPayload::ParseInputPath(std::string_view path_string, const nlo
     if (input_source == InputSource::PROXIMITY) {
         if (value.is_boolean()) {
             return std::pair{input_path, InputEntry{path_string, InputValue{value.get<bool>()}, time_offset}};
-        } else {
-            return std::nullopt;
         }
+        return std::nullopt;
     }
 
     // Use the appropriate type look for the component path that's been requested.
@@ -103,16 +101,17 @@ auto DebugRequestPayload::ParseSettings(const nlohmann::json& request) -> std::v
     if (request.contains(settings_json_key_) && !request[settings_json_key_].empty()) {
         for(const auto& item : request[settings_json_key_].items()) {
             std::optional<SettingsValue> setting_value;
-            const auto& value = item.value();
 
-            if (value.is_boolean()) {
+            if (const auto& value = item.value(); value.is_boolean()) {
                 setting_value = value.get<bool>();
             } else if (value.is_number_float()) {
                 setting_value = value.get<float>();
             } else if (value.is_array() && value.size() == 3) {
+                // ReSharper disable CppTooWideScopeInitStatement
                 const auto& x = value.at(0);
                 const auto& y = value.at(1);
                 const auto& z = value.at(2);
+                // ReSharper restore CppTooWideScopeInitStatement
 
                 if (x.is_number_float() && y.is_number_float() && z.is_number_float()) {
                     setting_value = VrVec3{x.get<float>(), y.get<float>(), z.get<float>()};
@@ -131,7 +130,7 @@ auto DebugRequestPayload::ParseSettings(const nlohmann::json& request) -> std::v
     return settings;
 }
 
-auto DebugRequestPayload::StringToInputPath(std::string_view path) -> InputPath {
+auto DebugRequestPayload::StringToInputPath(const std::string_view path) -> InputPath {
     auto input_source = InputSource::UNKNOWN;
     auto input_component = InputComponent::NONE;
 

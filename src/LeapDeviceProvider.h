@@ -32,7 +32,7 @@ class LeapDeviceProvider final : public vr::IServerTrackedDeviceProvider {
     auto ServiceMessageLoop() -> void;
     auto DeviceDetected(uint32_t device_id, const LEAP_DEVICE_EVENT* event) -> void;
     auto DeviceLost(uint32_t device_id, const LEAP_DEVICE_EVENT* event) -> void;
-    auto DeviceStatusChanged(uint32_t device_id, const LEAP_DEVICE_STATUS_CHANGE_EVENT* event) -> void;
+    auto DeviceStatusChanged(uint32_t device_id, const LEAP_DEVICE_STATUS_CHANGE_EVENT* event) const -> void;
     auto TrackingFrame([[maybe_unused]] uint32_t device_id, const LEAP_TRACKING_EVENT* event) const -> void;
     auto TrackingModeChanged(uint32_t device_id, const LEAP_TRACKING_MODE_EVENT* event) const -> void;
 

@@ -73,10 +73,10 @@ class DebugRequestPayload{
 public:
     class InputEntry {
     public:
-        InputEntry(std::string_view path_str, InputValue val, float time_offset = 0.0f)
+        InputEntry(const std::string_view path_str, const InputValue val, const float time_offset = 0.0f)
             : full_path_{path_str},
               value_{val},
-              time_offset_{time_offset} {};
+              time_offset_{time_offset} {}
         const std::string full_path_;
         const InputValue value_;
         const float time_offset_;
@@ -84,7 +84,7 @@ public:
 
     class SettingsEntry {
     public:
-        SettingsEntry(std::string_view key_str, SettingsValue val) : key_{key_str}, value_{std::move(val)} {}
+        SettingsEntry(const std::string_view key_str, SettingsValue val) : key_{key_str}, value_{std::move(val)} {}
         const std::string key_;
         const SettingsValue value_;
     };

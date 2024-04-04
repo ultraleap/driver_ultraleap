@@ -8,6 +8,8 @@
 #include <openvr_driver.h>
 
 #include "VrMaths.h"
+
+// ReSharper disable once CppUnusedIncludeDirective
 #include "VrLogging.h"
 
 // Platform specific export macros.

@@ -53,7 +53,7 @@ auto LeapDeviceDriver::EnterStandby() -> void {
 
 auto LeapDeviceDriver::GetComponent(const char* component_name_and_version) -> void* {
     if (std::string_view{component_name_and_version} == vr::ITrackedDeviceServerDriver_Version) {
-        return dynamic_cast<vr::ITrackedDeviceServerDriver*>(this);
+        return dynamic_cast<ITrackedDeviceServerDriver*>(this);
     }
 
     return nullptr;
@@ -61,7 +61,7 @@ auto LeapDeviceDriver::GetComponent(const char* component_name_and_version) -> v
 
 auto LeapDeviceDriver::GetPose() -> vr::DriverPose_t {
     // Initialise our tracker structure.
-    vr::DriverPose_t tracker_pose{0};
+    vr::DriverPose_t tracker_pose{};
     tracker_pose.qWorldFromDriverRotation.w = 1.f;
     tracker_pose.qDriverFromHeadRotation.w = 1.0f;
 

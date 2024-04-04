@@ -3,6 +3,7 @@
 #include "VrLogging.h"
 #include "VrUtils.h"
 
+// ReSharper disable once CppParameterMayBeConst
 LeapDevice::LeapDevice(LEAP_CONNECTION leap_connection, const LEAP_DEVICE_REF leap_device_reference)
     : leap_device_{nullptr},
       leap_device_info_{sizeof(leap_device_info_)},

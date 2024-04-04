@@ -54,7 +54,7 @@ auto LeapElbowDriver::EnterStandby() -> void {
 
 auto LeapElbowDriver::GetComponent(const char* component_name_and_version) -> void* {
     if (std::string_view{component_name_and_version} == vr::ITrackedDeviceServerDriver_Version) {
-        return dynamic_cast<vr::ITrackedDeviceServerDriver*>(this);
+        return dynamic_cast<ITrackedDeviceServerDriver*>(this);
     }
 
     return nullptr;

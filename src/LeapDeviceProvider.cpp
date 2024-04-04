@@ -1,6 +1,5 @@
 #include "LeapDeviceProvider.h"
 
-#include <algorithm>
 #include <ranges>
 
 #if defined(_WIN32)
@@ -143,7 +142,7 @@ auto LeapDeviceProvider::TrackingFrame([[maybe_unused]] const uint32_t device_id
     }
 }
 
-auto LeapDeviceProvider::TrackingModeChanged(const uint32_t device_id, const LEAP_TRACKING_MODE_EVENT* event) const -> void {
+auto LeapDeviceProvider::TrackingModeChanged(const uint32_t device_id, const LEAP_TRACKING_MODE_EVENT* /*event*/) const -> void {
     const auto& leapDevice = leap_device_by_id_.at(device_id);
     UpdateServiceAndDriverTrackingMode(settings_->TrackingMode(), leapDevice.get());
 }
@@ -180,7 +179,7 @@ auto LeapDeviceProvider::DeviceLost(const uint32_t /*device_id*/, const LEAP_DEV
     }
 }
 
-auto LeapDeviceProvider::DeviceStatusChanged(const uint32_t /*device_id*/, const LEAP_DEVICE_STATUS_CHANGE_EVENT* event) -> void {
+auto LeapDeviceProvider::DeviceStatusChanged(const uint32_t /*device_id*/, const LEAP_DEVICE_STATUS_CHANGE_EVENT* event) const -> void {
     // WARNING!
     // In this context, device_id will be 0 as this is a system message, for the ID of the affected device, use event->device.id.
 
@@ -192,14 +191,12 @@ auto LeapDeviceProvider::DeviceStatusChanged(const uint32_t /*device_id*/, const
 }
 
 auto LeapDeviceProvider::CreateDeviceDriver(const std::shared_ptr<LeapDevice>& leap_device) -> void {
-    // Track the device by serial-number
-    auto [leapDeviceDriver, _] = leap_device_driver_by_serial_.emplace(
-        leap_device->SerialNumber(),
-        std::make_shared<LeapDeviceDriver>(leap_device, settings_)
-    );
-
-    // Register the device driver.
-    if (!vr::VRServerDriverHost()->TrackedDeviceAdded(
+    // Track the device by serial-number and register the device driver.
+    if (auto [leapDeviceDriver, _] = leap_device_driver_by_serial_.emplace(
+            leap_device->SerialNumber(),
+            std::make_shared<LeapDeviceDriver>(leap_device, settings_)
+        );
+        !vr::VRServerDriverHost()->TrackedDeviceAdded(
             leap_device->SerialNumber().c_str(),
             vr::ETrackedDeviceClass::TrackedDeviceClass_TrackingReference,
             leapDeviceDriver->second.get()
