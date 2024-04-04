@@ -15,6 +15,8 @@ add_subdirectory(3rdparty/json EXCLUDE_FROM_ALL)
 add_custom_target(uninstall)
 add_subdirectory(${GLM_ROOT})
 
+option(BUILD_TEST_APPS "Build test applications" ON)
+
 add_library(driver_ultraleap SHARED
         src/LeapDriverFactory.cpp
         src/LeapDeviceProvider.cpp
@@ -41,25 +43,22 @@ add_library(driver_ultraleap SHARED
         src/LeapTrackedDriver.cpp
         src/LeapTrackedDriver.h
 )
-target_compile_features(driver_ultraleap
-    PUBLIC
-        cxx_std_20
-)
+target_compile_features(driver_ultraleap PUBLIC cxx_std_20)
 target_link_libraries(driver_ultraleap
     PRIVATE
-        OpenVR::OpenVR
+        OpenVR::Driver
         LeapSDK::LeapC
         glm::glm
         nlohmann_json::nlohmann_json
 )
 set_target_properties(driver_ultraleap PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/ultraleap/bin/win64)
 
-# Copy the required LeapC.dll to the output folder.
+# Copy the required DLL dependencies.
 add_custom_command(
         TARGET driver_ultraleap POST_BUILD
-        COMMENT "Copying DLL: LeapC.dll"
-        DEPENDS $<TARGET_FILE:LeapSDK::LeapC>
-        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:LeapSDK::LeapC> $<TARGET_FILE_DIR:driver_ultraleap>
+        COMMENT "Copying DLLs"
+        COMMAND ${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:driver_ultraleap> $<TARGET_RUNTIME_DLLS:driver_ultraleap>
+        COMMAND_EXPAND_LISTS
 )
 
 # Copy the localization, resources and manifests.
@@ -70,3 +69,22 @@ add_custom_command(
         BYPRODUCTS ${CMAKE_BINARY_DIR}/ultraleap
         COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/ultraleap ${CMAKE_BINARY_DIR}/ultraleap
 )
+
+# Build test applications if requested.
+if (BUILD_TEST_APPS)
+    add_executable(test_debug_request test/TestDebugRequest.cpp)
+    target_compile_features(test_debug_request PUBLIC cxx_std_20)
+    target_link_libraries(test_debug_request
+        PRIVATE
+            OpenVR::API
+            nlohmann_json::nlohmann_json
+    )
+
+    # Copy the required DLL dependencies.
+    add_custom_command(
+        TARGET test_debug_request POST_BUILD
+        COMMENT "Copying DLLs"
+        COMMAND ${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:test_debug_request> $<TARGET_RUNTIME_DLLS:test_debug_request>
+        COMMAND_EXPAND_LISTS
+    )
+endif()
