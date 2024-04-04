@@ -103,9 +103,9 @@ VrHand::VrHand(const LEAP_HAND& leap_hand)
         const auto bone_directions = std::ranges::views::transform(finger.bones, [](const LEAP_BONE& bone) -> glm::dvec3 {
             return (bone.next_joint - bone.prev_joint).Normalised();
         });
-        const auto total_finger_angles = glm::acos(glm::dot(bone_directions[1], bone_directions[2])) // Intermediate
-                                       + glm::acos(glm::dot(bone_directions[2], bone_directions[3])); // Distal
-        return static_cast<float>(glm::clamp(total_finger_angles / std::numbers::pi, 0.0, 1.0));
+        const auto angle1 = glm::acos(glm::dot(bone_directions[1], bone_directions[2])); // Intermediate
+        const auto angle2 = glm::acos(glm::dot(bone_directions[2], bone_directions[3])); // Distal
+        return static_cast<float>(glm::clamp(glm::max(angle1, angle2) / (std::numbers::pi / 5.0), 0.0, 1.0));
     };
 
     const auto ComputeFingerCurl = [&](const LEAP_DIGIT& finger) -> float {
@@ -115,7 +115,7 @@ VrHand::VrHand(const LEAP_HAND& leap_hand)
         const auto total_finger_angles = glm::acos(glm::dot(bone_directions[0], bone_directions[1]))  // Proximal
                                        + glm::acos(glm::dot(bone_directions[1], bone_directions[2]))  // Intermediate
                                        + glm::acos(glm::dot(bone_directions[2], bone_directions[3])); // Distal
-        return static_cast<float>(glm::clamp(total_finger_angles / (std::numbers::pi / 2.0), 0.0, 1.0));
+        return static_cast<float>(glm::clamp(total_finger_angles / std::numbers::pi, 0.0, 1.0));
     };
 
     const auto root_position = GetBonePosition(Root);
