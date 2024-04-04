@@ -23,6 +23,14 @@
         "minItems": 2,
         "maxItems": 2
       }
+    },
+    "input_visibility": {
+      "enum": [
+        "InputValueVisibility_AvailableButHidden",
+        "InputValueVisibility_None",
+        "InputValueVisibility_Public",
+        "InputValueVisibility_SteamVRInternal"
+      ]
     }
   },
 
@@ -80,7 +88,7 @@
             "force": {"type": "boolean"},
             "input_activity_path": {"type": "string"},
             "input_activity_threshold": {"type": "number"},
-            "visibility": {"const": "InputValueVisibility_AvailableButHidden"}
+            "visibility": {"$ref": "#/$defs/input_visibility"}
           },
           "required": [
             "type",
@@ -116,14 +124,7 @@
             "force": {"type": "boolean"},
             "input_activity_path": {"type": "string"},
             "input_activity_threshold": {"type": "number"},
-            "visibility": {
-              "enum": [
-                "InputValueVisibility_AvailableButHidden",
-                "InputValueVisibility_None",
-                "InputValueVisibility_Public",
-                "InputValueVisibility_SteamVRInternal"
-              ]
-            }
+            "visibility": {"$ref": "#/$defs/input_visibility"}
           },
           "required": [
             "type",
