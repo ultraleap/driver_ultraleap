@@ -14,7 +14,7 @@
         },
         {
           "from": "/user/hand/right/input/trigger",
-          "to": "/user/hand/right/input/pinch"
+          "to": "/user/hand/right/input/index_pinch"
         },
         {
           "from": "/user/hand/right/input/grip",

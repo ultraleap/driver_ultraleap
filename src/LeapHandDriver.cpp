@@ -93,8 +93,8 @@ auto LeapHandDriver::Activate(const uint32_t object_id) -> vr::EVRInitError {
         path_inputs_map_.insert({{InputSource::PROXIMITY, InputComponent::NONE}, &input_proximity_});
 
         // Hand specific input paths.
-        input_pinch_ = properties.CreateAbsoluteScalarInput("/input/pinch/value", vr::VRScalarUnits_NormalizedOneSided);
-        path_inputs_map_.insert({{InputSource::INDEX_PINCH, InputComponent::VALUE}, &input_pinch_});
+        input_index_pinch_ = properties.CreateAbsoluteScalarInput("/input/index_pinch/value", vr::VRScalarUnits_NormalizedOneSided);
+        path_inputs_map_.insert({{InputSource::INDEX_PINCH, InputComponent::VALUE}, &input_index_pinch_});
 
         input_grip_ = properties.CreateAbsoluteScalarInput("/input/grip/value", vr::VRScalarUnits_NormalizedOneSided);
         path_inputs_map_.insert({{InputSource::GRIP, InputComponent::VALUE}, &input_grip_});
@@ -248,7 +248,7 @@ auto LeapHandDriver::UpdateFromLeapFrame(const LEAP_TRACKING_EVENT* frame) -> vo
         // If external input only isn't set then also update the interaction based components of the profile
         if (!settings_->ExternalInputOnly()) {
             input_proximity_.Update(true, time_offset);
-            input_pinch_.Update(hand.GetPinchStrength(), time_offset);
+            input_index_pinch_.Update(hand.GetPinchStrength(), time_offset);
             input_grip_.Update(hand.GetGrabStrength(), time_offset);
             input_system_menu_.Update(VrHand::GetSystemMenuTriggered(hands), time_offset);
         }
@@ -261,7 +261,7 @@ auto LeapHandDriver::UpdateFromLeapFrame(const LEAP_TRACKING_EVENT* frame) -> vo
         if (!settings_->ExternalInputOnly()) {
             input_system_menu_.Update(false, time_offset);
             input_proximity_.Update(false, time_offset);
-            input_pinch_.Update(0.0, time_offset);
+            input_index_pinch_.Update(0.0, time_offset);
             input_grip_.Update(0.0, time_offset);
         }
 

@@ -12,7 +12,7 @@
     "image": "{ultraleap}/bindingui/ultraleap_hand.svg"
   },
   "input_source": {
-    "/input/pinch": {
+    "/input/index_pinch": {
       "type": "trigger",
       "binding_image_point": [96, 32],
       "value": true,
