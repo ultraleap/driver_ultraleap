@@ -66,7 +66,7 @@ const std::map<std::string, InputComponent> kInputComponentMapping = {
 
 using InputPath = std::pair<InputSource, InputComponent>;
 
-using InputValue = std::variant<bool, float, vr::HmdVector2_t>;
+using InputValue = std::variant<bool, float>;
 using SettingsValue = std::variant<bool, float, VrVec3, std::string>;
 
 class DebugRequestPayload{

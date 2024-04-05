@@ -286,16 +286,19 @@ auto LeapHandDriver::ProcessDebugRequestInputs(const DebugRequestPayload& reques
     for (const auto& [key, input_entry] : request_payload.inputs_) {
         // Skip input components which don't exist.
         if (!path_inputs_map_.contains(key)) {
-            LOG_INFO("No mapping to an InputComponent exists for the key: {}", DebugRequestPayload::InputPathToString(key));
+            const auto warning = std::format(
+                "Input path {} does not exist on controller id {}, ignoring",
+                this->id_,
+                DebugRequestPayload::InputPathToString(key)
+            );
+            LOG_WARN("{}", warning);
+            response[response_warnings_key_] += warning;
             continue;
         }
-        const auto& prop_variant = path_inputs_map_.at(key);
 
-        // Special case for joysticks as x and y are sent together. Beyond that ensure that the types we've parsed
-        // from the debug payload correctly match our input types.
-        if (std::holds_alternative<vr::HmdVector2_t>(input_entry.value_)) {
-            // TODO: this will allow for joysticks in the future and can be ignored for now.
-        } else if (std::holds_alternative<float>(input_entry.value_) && std::holds_alternative<VrScalarInputComponent*>(prop_variant)) {
+        // Ensure the type of the input matches the supplied payload and update if so.
+        if (const auto& prop_variant = path_inputs_map_.at(key);
+            std::holds_alternative<float>(input_entry.value_) && std::holds_alternative<VrScalarInputComponent*>(prop_variant)) {
             const auto& val = std::get<float>(input_entry.value_);
             auto* prop = std::get<VrScalarInputComponent*>(prop_variant);
             prop->Update(val, input_entry.time_offset_);
@@ -304,16 +307,12 @@ auto LeapHandDriver::ProcessDebugRequestInputs(const DebugRequestPayload& reques
             auto* prop = std::get<VrBooleanInputComponent*>(prop_variant);
             prop->Update(val, input_entry.time_offset_);
         } else {
-            LOG_INFO(
-                "Failed to process input for path: '{}'; Either the payload value didn't match the input type or path_inputs_map_ "
-                "is missing an entry for the given key",
+            const auto warning = std::format(
+                "Failed to process input for path: '{}'; The payload value didn't match the input type",
                 input_entry.full_path_
             );
-            response[response_warnings_key_] += std::format(
-                "Failed to process input for path: '{}'; Either the payload value didn't match the input type or path_inputs_map_ "
-                "is missing an entry for the given key",
-                input_entry.full_path_
-            );
+            LOG_WARN("{}", warning);
+            response[response_warnings_key_] += warning;
         }
     }
 }
