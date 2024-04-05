@@ -9,7 +9,7 @@
     },
     "aim": {
       "component_local": {
-        "origin": [0.0, 0.0, 0],
+        "origin": [0.0, 0.0, 0.0],
         "rotate_xyz": [-60.0, 0.0, 0.0]
       }
     },
