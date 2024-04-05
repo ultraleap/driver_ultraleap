@@ -15,11 +15,11 @@ a [JSON Schema](../dev-resources/json/debug_response_schema.json) included with 
 This object contains the input data for the system. It has the following properties:
 
 - `time_offset`: A floating-point number representing the time offset in seconds from now.
--
-- `paths`: An array containing objects, each representing a unique input path and its corresponding value
-    - Example: `{"/input/pinch": 0.5}` indicates the path `/input/pinch` with a corresponding value of `0.5`.
-    - Example: `{"/input/dpad": [0.1, 0.2]}` indicates the path `/input/dpad` with a corresponding value
-      of `[0.1, 0.2]` (for the `x` and `y` component).
+
+- `paths`: An object containing a unique input path and its corresponding value:
+  - Example: `{"/input/pinch": 0.5}` indicates the path `/input/pinch` with a corresponding value of `0.5`.
+  - Example: `{"/input/dpad": [0.1, 0.2]}` indicates the path `/input/dpad` with a corresponding value
+    of `[0.1, 0.2]` (for the `x` and `y` component).
 
 ### `settings`
 
@@ -46,12 +46,12 @@ above.
 {
   "inputs": {
     "time_offset": -0.123,
-    "paths": [
-      {"/input/index_pinch/value": 0.5},
-      {"/input/grip/value": 0.5},
-      {"/input/thumbstick/x": 0.1},
-      {"/input/thumbstick/y": 0.2}
-    ]
+    "paths": {
+      "/input/index_pinch/value": 0.5,
+      "/input/grip/value": 0.5,
+      "/input/thumbstick/x": 0.1,
+      "/input/thumbstick/y": 0.2
+    }
   },
   "settings": {
     "tracking_mode": "hmd",

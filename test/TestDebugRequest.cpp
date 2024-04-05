@@ -18,25 +18,22 @@ struct TrackedDeviceInfo {
 
 auto GetStringProperty(const vr::TrackedDeviceIndex_t id, const vr::ETrackedDeviceProperty prop) -> std::string {
     if (const auto size = gOvrSystem->GetStringTrackedDeviceProperty(id, prop, nullptr, 0); size > 0) {
-        std::string outstr;
-        outstr.resize(size);
-        gOvrSystem->GetStringTrackedDeviceProperty(id, prop, outstr.data(), size);
-        return outstr;
+        std::array<char, vr::k_unMaxPropertyStringSize> value{};
+        gOvrSystem->GetStringTrackedDeviceProperty(id, prop, value.data(), value.size());
+        return std::string{value.data()};
     }
     return std::string{};
 }
 
 auto DebugRequestToDriver(const vr::TrackedDeviceIndex_t id, const std::string& payload) {
-    std::string response;
-    size_t size = 2048;
-    response.resize(size);
+    std::array<char, vr::k_unMaxDriverDebugResponseSize> buffer{};
     std::cout << "Sending Payload...." << std::endl;
     std::cout << "Request: " << payload << std::endl;
-    gOvrDebug->DriverDebugRequest(id, payload.c_str(), response.data(), size);
-    std::cout << "Response: " << nlohmann::json::parse(response) << std::endl;
+    gOvrDebug->DriverDebugRequest(id, payload.c_str(), buffer.data(), buffer.size());
+    std::cout << "Response: " << nlohmann::json::parse(buffer) << std::endl;
 }
 
-auto SendDebugPayload(const vr::TrackedDeviceIndex_t id, const bool secondValues) {
+auto SendSimpleDebugPayload(const vr::TrackedDeviceIndex_t id, const bool secondValues) {
     nlohmann::json full_payload;
 
     if (secondValues) {
@@ -45,12 +42,10 @@ auto SendDebugPayload(const vr::TrackedDeviceIndex_t id, const bool secondValues
         {
           "inputs": {
             "time_offset": -0.123,
-            "paths": [
-              {"/input/index_pinch/value": 0.75},
-              {"/input/grip/value": 0.75},
-              {"/input/thumbstick/x": 0.5},
-              {"/input/thumbstick/y": 0.5}
-            ]
+            "paths": {
+              "/input/index_pinch/value": 0.75,
+              "/input/grip/value": 0.75
+            }
           },
           "settings": {
             "tracking_mode": "hmd",
@@ -65,12 +60,10 @@ auto SendDebugPayload(const vr::TrackedDeviceIndex_t id, const bool secondValues
         {
           "inputs": {
             "time_offset": -0.321,
-            "paths": [
-              {"/input/index_pinch/value": 0.75},
-              {"/input/grip/value": 0.75},
-              {"/input/thumbstick/x": 0.5},
-              {"/input/thumbstick/y": 0.5}
-            ]
+            "paths": {
+              "/input/index_pinch/value": 0.75,
+              "/input/grip/value": 0.75
+            }
           },
           "settings": {
             "tracking_mode": "hmd",
@@ -82,7 +75,41 @@ auto SendDebugPayload(const vr::TrackedDeviceIndex_t id, const bool secondValues
     )");
     }
 
-    std::string payload = full_payload.dump();
+    const std::string payload = full_payload.dump();
+    DebugRequestToDriver(id, payload);
+}
+
+auto SendExtendedDebugPayload(const vr::TrackedDeviceIndex_t id) {
+    const nlohmann::json full_payload = nlohmann::json::parse(R"(
+        {
+          "inputs": {
+            "time_offset": -0.321,
+            "paths": {
+              "/input/index_pinch/value": 0.5,
+              "/input/grip/value": 0.5,
+              "/input/a/click": true,
+              "/input/b/click": true,
+              "/input/trigger/click": true,
+              "/input/trigger/value": 0.5,
+              "/input/trackpad/touch": true,
+              "/input/trackpad/x": 0.5,
+              "/input/trackpad/y": 0.5,
+              "/input/trackpad/force": 0.25,
+              "/input/thumbstick/touch": true,
+              "/input/thumbstick/x": -0.5,
+              "/input/thumbstick/y": -0.5
+            }
+          },
+          "settings": {
+            "tracking_mode": "hmd",
+            "desktop_tracker_offset": [1.0, 2.0, 3.0],
+            "enable_elbow_trackers": true,
+            "external_input_only": true
+          }
+        }
+    )");
+
+    const std::string payload = full_payload.dump();
     DebugRequestToDriver(id, payload);
 }
 
@@ -115,11 +142,11 @@ int main() {
 
     // Loop through the tracked devices to find out what we have access too
     for (vr::TrackedDeviceIndex_t i = 0; i < vr::k_unMaxTrackedDeviceCount; ++i) {
-        if (vr::TrackedDeviceClass device_class = gOvrSystem->GetTrackedDeviceClass(i);
+        if (const vr::TrackedDeviceClass device_class = gOvrSystem->GetTrackedDeviceClass(i);
             device_class != vr::TrackedDeviceClass_Invalid) {
-            std::string manifacturer = GetStringProperty(i, vr::Prop_ManufacturerName_String);
+            std::string manufacturer = GetStringProperty(i, vr::Prop_ManufacturerName_String);
             std::string model = GetStringProperty(i, vr::Prop_ModelNumber_String);
-            tracked_devices.emplace_back(TrackedDeviceInfo{i, device_class, std::move(manifacturer), std::move(model)});
+            tracked_devices.emplace_back(TrackedDeviceInfo{i, device_class, std::move(manufacturer), std::move(model)});
         }
     }
 
@@ -131,24 +158,32 @@ int main() {
         return -1;
     }
 
-    std::cout << "Please Select device desired send payload:\n";
-    std::cout << "  ID -------- Manifacturer -------- Model\n";
-    for (const auto& [device_index, device_class, manifacturer, model] : tracked_devices) {
-        std::cout << "  " << device_index << " -------- " << manifacturer << " -------- " << model << "\n";
+
+
+    std::cout << "Attached Devices" << std::endl;
+    std::cout << "ID | Device & Manufacturer" << std::endl;
+    for (const auto& [device_index, device_class, manufacturer, model] : tracked_devices) {
+        std::cout << std::format("{}: {} ({})", device_index, manufacturer, model) << std::endl;
     }
     std::cout << std::endl;
 
-    vr::TrackedDeviceIndex_t selected_device = 2;
+    const vr::TrackedDeviceIndex_t selected_device = 2;
     // std::cin >> selected_device;
 
-    // Take the selected device and send the payload
-    for (int i = 0; i < 4; ++i) {
-        SendDebugPayload(selected_device, i % 2 == 0);
-        std::this_thread::sleep_for(std::chrono::seconds(2));
+    if (tracked_devices[selected_device].model == "left_hand_ext") {
+        SendExtendedDebugPayload(selected_device);
+    } else {
+        // Take the selected device and send the payload
+        for (int i = 0; i < 4; ++i) {
+            SendSimpleDebugPayload(selected_device, i % 2 == 0);
+            std::this_thread::sleep_for(std::chrono::seconds(2));
+        }
+
+        // Send a broken payload to make sure error response is formatted correctly
+        SendBrokenPayload(selected_device);
     }
 
-    // Send a broken payload to make sure error response is formatted correctly
-    SendBrokenPayload(selected_device);
+
 
     // Re-enable the driver input after the requests
     EnableDriverInput(selected_device);

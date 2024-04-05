@@ -26,7 +26,7 @@ auto DebugRequestPayload::ParseInputs(const nlohmann::json& request) -> std::map
     std::map<InputPath, InputEntry> parsed_inputs;
 
     // Ensure that there is an entry in this json for inputs and it has values.
-    if (request.contains(inputs_json_key_)) {
+    if (request.contains(inputs_json_key_) && request[inputs_json_key_].is_object()) {
         // Check for a time offset within here as all other InputEntry's will use this.
         const auto& inputs_object = request[inputs_json_key_];
         auto time_offset = 0.0f;
@@ -35,14 +35,10 @@ auto DebugRequestPayload::ParseInputs(const nlohmann::json& request) -> std::map
         }
 
         // Check for the paths array and process the input paths accordingly.
-        if (inputs_object.contains(inputs_paths_json_key_) && inputs_object[inputs_paths_json_key_].is_array()) {
-            for(const auto& path_iter : inputs_object[inputs_paths_json_key_].items()) {
-                auto path_object = path_iter.value();
-                auto key = path_object.items().begin().key();
-                auto value = path_object.items().begin().value();
-
-                if (const auto parsed_optional = ParseInputPath(key, value, time_offset); parsed_optional.has_value()) {
-                    parsed_inputs.insert(parsed_optional.value());
+        if (inputs_object.contains(inputs_paths_json_key_) && inputs_object[inputs_paths_json_key_].is_object()) {
+            for (const auto& path : inputs_object[inputs_paths_json_key_].items()) {
+                if (const auto parsed = ParseInputPath(path.key(), path.value(), time_offset); parsed.has_value()) {
+                    parsed_inputs.insert(parsed.value());
                 }
             }
         }
@@ -87,8 +83,7 @@ auto DebugRequestPayload::ParseInputPath(std::string_view path_string, const nlo
             return std::pair{input_path, InputEntry{path_string, InputValue{value.get<float>()}, time_offset}};
         }
         break;
-    case InputComponent::NONE:
-        return std::nullopt;
+    case InputComponent::NONE: return std::nullopt;
     }
 
     // Failthrough for unsupported path
@@ -99,7 +94,7 @@ auto DebugRequestPayload::ParseInputPath(std::string_view path_string, const nlo
 auto DebugRequestPayload::ParseSettings(const nlohmann::json& request) -> std::vector<SettingsEntry> {
     std::vector<SettingsEntry> settings;
     if (request.contains(settings_json_key_) && !request[settings_json_key_].empty()) {
-        for(const auto& item : request[settings_json_key_].items()) {
+        for (const auto& item : request[settings_json_key_].items()) {
             std::optional<SettingsValue> setting_value;
 
             if (const auto& value = item.value(); value.is_boolean()) {
@@ -123,7 +118,10 @@ auto DebugRequestPayload::ParseSettings(const nlohmann::json& request) -> std::v
             if (setting_value.has_value()) {
                 settings.emplace_back(item.key(), setting_value.value());
             } else {
-                LOG_INFO("Settings Key's '{}' value is invalid. Must be a float or bool an array of floats with a size of 3 ([x,y,x])", item.key());
+                LOG_INFO(
+                    "Settings Key's '{}' value is invalid. Must be a float or bool an array of floats with a size of 3 ([x,y,x])",
+                    item.key()
+                );
             }
         }
     }
