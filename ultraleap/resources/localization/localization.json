@@ -17,7 +17,7 @@
     "ultraleap_left_elbow": "Left Elbow",
     "ultraleap_right_elbow": "Right Elbow",
 
-    "/input/pinch": "Pinch Gesture",
+    "/input/index_pinch": "Index Pinch",
     "/input/grip": "Grip",
 
     "/input/finger/thumb": "Thumb",

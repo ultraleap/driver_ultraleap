@@ -37,7 +37,7 @@ class LeapHandDriver final : public LeapTrackedDriver {
     VrBooleanInputComponent input_proximity_;
 
     // Standard hand profile.
-    VrScalarInputComponent input_pinch_;
+    VrScalarInputComponent input_index_pinch_;
     VrScalarInputComponent input_grip_;
 
     // Skeleton & finger curl values.
