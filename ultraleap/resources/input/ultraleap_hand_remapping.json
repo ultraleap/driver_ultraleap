@@ -9,10 +9,6 @@
       "simulate_HMD": true,
       "autoremappings": [
         {
-          "from": "/user/hand/right/pose/tip",
-          "to": "/user/hand/right/pose/aim"
-        },
-        {
           "from": "/user/hand/right/input/trigger",
           "to": "/user/hand/right/input/index_pinch"
         },

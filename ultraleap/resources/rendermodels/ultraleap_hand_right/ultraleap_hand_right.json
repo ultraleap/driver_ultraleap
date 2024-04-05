@@ -7,7 +7,7 @@
         "rotate_xyz": [0.0, 0.0, 0.0]
       }
     },
-    "aim": {
+    "tip": {
       "component_local": {
         "origin": [0.0, 0.0, 0.0],
         "rotate_xyz": [-60.0, 0.0, 0.0]
