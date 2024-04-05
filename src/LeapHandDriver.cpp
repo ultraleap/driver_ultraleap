@@ -94,7 +94,7 @@ auto LeapHandDriver::Activate(const uint32_t object_id) -> vr::EVRInitError {
 
         // Hand specific input paths.
         input_pinch_ = properties.CreateAbsoluteScalarInput("/input/pinch/value", vr::VRScalarUnits_NormalizedOneSided);
-        path_inputs_map_.insert({{InputSource::PINCH, InputComponent::VALUE}, &input_pinch_});
+        path_inputs_map_.insert({{InputSource::INDEX_PINCH, InputComponent::VALUE}, &input_pinch_});
 
         input_grip_ = properties.CreateAbsoluteScalarInput("/input/grip/value", vr::VRScalarUnits_NormalizedOneSided);
         path_inputs_map_.insert({{InputSource::GRIP, InputComponent::VALUE}, &input_grip_});
@@ -288,8 +288,8 @@ auto LeapHandDriver::ProcessDebugRequestInputs(const DebugRequestPayload& reques
         if (!path_inputs_map_.contains(key)) {
             const auto warning = std::format(
                 "Input path {} does not exist on controller id {}, ignoring",
-                this->id_,
-                DebugRequestPayload::InputPathToString(key)
+                DebugRequestPayload::InputPathToString(key),
+                this->id_
             );
             LOG_WARN("{}", warning);
             response[response_warnings_key_] += warning;

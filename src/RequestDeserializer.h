@@ -15,7 +15,7 @@ enum class InputSource {
     SYSTEM,
     PROXIMITY,
 
-    PINCH,
+    INDEX_PINCH,
     GRIP,
 
     THUMB_FINGER,
@@ -45,13 +45,22 @@ enum class InputComponent {
 
 const std::map<std::string, InputSource> kInputSourceMapping = {
     {"/input/system", InputSource::SYSTEM},
-    {"/input/index_pinch", InputSource::PINCH},
+    {"/proximity", InputSource::PROXIMITY},
+
+    {"/input/index_pinch", InputSource::INDEX_PINCH},
     {"/input/grip", InputSource::GRIP},
+
+    {"/input/a", InputSource::BUTTON_A},
+    {"/input/b", InputSource::BUTTON_B},
+    {"/input/trigger", InputSource::TRIGGER},
+    {"/input/trackpad", InputSource::TRACKPAD},
+    {"/input/thumbstick", InputSource::THUMBSTICK},
+
+    {"/input/finger/thumb", InputSource::THUMB_FINGER},
     {"/input/finger/index", InputSource::INDEX_FINGER},
     {"/input/finger/middle", InputSource::MIDDLE_FINGER},
     {"/input/finger/ring", InputSource::RING_FINGER},
     {"/input/finger/pinky", InputSource::PINKY_FINGER},
-    {"/proximity", InputSource::PROXIMITY},
 };
 
 const std::map<std::string, InputComponent> kInputComponentMapping = {
