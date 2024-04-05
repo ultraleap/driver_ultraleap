@@ -37,10 +37,6 @@
       "type": "pose",
       "binding_image_point": [65, 105]
     },
-    "/pose/handgrip": {
-      "type": "pose",
-      "binding_image_point": [65, 105]
-    },
 
     "/input/skeleton/left": {
       "type": "skeleton",

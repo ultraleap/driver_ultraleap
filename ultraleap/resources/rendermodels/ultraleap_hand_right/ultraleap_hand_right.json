@@ -1,6 +1,6 @@
 {
   "components": {
-    "debug": {
+    "raw": {
       "filename": "gnomon.obj",
       "component_local": {
         "origin": [0.0, 0.0, 0.0],
@@ -15,13 +15,7 @@
     },
     "grip": {
       "component_local": {
-        "origin": [0.0, 0.0, 0.10],
-        "rotate_xyz": [-30.0, 0.0, 0.0]
-      }
-    },
-    "handgrip": {
-      "component_local": {
-        "origin": [0.0, 0.0, 0.10],
+        "origin": [0.0, 0.0, 0.0],
         "rotate_xyz": [0.0, 80.0, 0.0]
       }
     }
