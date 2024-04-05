@@ -77,11 +77,11 @@ auto LeapHandDriver::Activate(const uint32_t object_id) -> vr::EVRInitError {
         // Setup properties that are different per hand.
         if (hand_type_ == eLeapHandType_Left) {
             properties.Set(vr::Prop_ControllerRoleHint_Int32, vr::TrackedControllerRole_LeftHand);
-            properties.Set(vr::Prop_ModelNumber_String, "left_hand");
+            properties.Set(vr::Prop_ModelNumber_String, extended ? "left_hand_ext" : "left_hand");
             properties.Set(vr::Prop_RenderModelName_String, "{ultraleap}/rendermodels/ultraleap_hand_left");
         } else {
             properties.Set(vr::Prop_ControllerRoleHint_Int32, vr::TrackedControllerRole_RightHand);
-            properties.Set(vr::Prop_ModelNumber_String, "right_hand");
+            properties.Set(vr::Prop_ModelNumber_String, extended ? "right_hand_ext" : "right_hand");
             properties.Set(vr::Prop_RenderModelName_String, "{ultraleap}/rendermodels/ultraleap_hand_right");
         }
 
