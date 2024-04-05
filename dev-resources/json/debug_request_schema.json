@@ -42,14 +42,13 @@
           "items": {
             "type": "object",
             "properties": {
-              "/input/pinch": {"type": "number"},
-              "/input/grip": {"type": "number"}
+              "/input/pinch/value": {"type": "number"},
+              "/input/grip/value": {"type": "number"}
             },
             "additionalProperties": {
               "anyOf": [
                 {"type": "boolean"},
-                {"type": "number"},
-                {"$ref": "#/$defs/vector2"}
+                {"type": "number"}
               ]
             }
           }
@@ -64,7 +63,8 @@
         "hmd_tracker_offset": {"$ref": "#/$defs/vector3"},
         "desktop_tracker_offset": {"$ref": "#/$defs/vector3"},
         "enable_elbow_trackers": {"type": "boolean"},
-        "external_input_only": {"type": "boolean"}
+        "external_input_only": {"type": "boolean"},
+        "extended_hand_profile": {"type": "boolean"}
       },
       "additionalProperties": {
         "anyOf": [

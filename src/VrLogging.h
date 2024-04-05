@@ -6,6 +6,9 @@
 #include <LeapC.h>
 
 #define LOG_INFO(...) VrLogging::Log(__VA_ARGS__)
+#define LOG_WARN(...) VrLogging::Log(__VA_ARGS__)
+#define LOG_ERROR(...) VrLogging::Log(__VA_ARGS__)
+
 #if defined(_DEBUG)
 #define LOG_DEBUG(...) VrLogging::Log(__VA_ARGS__)
 #else
