@@ -47,7 +47,7 @@ above.
   "inputs": {
     "time_offset": -0.123,
     "paths": [
-      {"/input/pinch/value": 0.5},
+      {"/input/index_pinch/value": 0.5},
       {"/input/grip/value": 0.5},
       {"/input/thumbstick/x": 0.1},
       {"/input/thumbstick/y": 0.2}

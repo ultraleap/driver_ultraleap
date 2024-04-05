@@ -46,9 +46,10 @@ auto SendDebugPayload(const vr::TrackedDeviceIndex_t id, const bool secondValues
           "inputs": {
             "time_offset": -0.123,
             "paths": [
-              {"/input/pinch": 0.75},
-              {"/input/grip": 0.75},
-              {"/input/dpad": [0.5, 0.5, 5.0]}
+              {"/input/index_pinch/value": 0.75},
+              {"/input/grip/value": 0.75},
+              {"/input/thumbstick/x": 0.5},
+              {"/input/thumbstick/y": 0.5}
             ]
           },
           "settings": {
@@ -65,9 +66,10 @@ auto SendDebugPayload(const vr::TrackedDeviceIndex_t id, const bool secondValues
           "inputs": {
             "time_offset": -0.321,
             "paths": [
-              {"/input/pinch": 0.25},
-              {"/input/grip": 0.25},
-              {"/input/dpad": [0.5, 0.5, 5.0]}
+              {"/input/index_pinch/value": 0.75},
+              {"/input/grip/value": 0.75},
+              {"/input/thumbstick/x": 0.5},
+              {"/input/thumbstick/y": 0.5}
             ]
           },
           "settings": {

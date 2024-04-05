@@ -59,7 +59,7 @@ auto DebugRequestPayload::ParseInputPath(std::string_view path_string, const nlo
     const auto [input_source, input_component] = input_path;
 
     if (input_source == InputSource::UNKNOWN) {
-        LOG_INFO("Path: {}, isn't a supported path. skipping...", path_string);
+        LOG_WARN("Path: {}, isn't a supported path. skipping...", path_string);
         return std::nullopt;
     }
 
@@ -92,7 +92,7 @@ auto DebugRequestPayload::ParseInputPath(std::string_view path_string, const nlo
     }
 
     // Failthrough for unsupported path
-    LOG_INFO("Incorrect value type given for path: '{}'", path_string);
+    LOG_WARN("Incorrect value type given for path: '{}'", path_string);
     return std::nullopt;
 }
 

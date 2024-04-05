@@ -86,4 +86,5 @@ if (BUILD_TEST_APPS)
         COMMAND ${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:test_debug_request> $<TARGET_RUNTIME_DLLS:test_debug_request>
         COMMAND_EXPAND_LISTS
     )
+    add_dependencies(test_debug_request driver_ultraleap)
 endif()
