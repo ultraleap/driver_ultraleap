@@ -19,6 +19,7 @@
 
     "/input/index_pinch": "Index Pinch",
     "/input/grip": "Grip",
+    "/pose/aim": "Pinch Aim",
 
     "/input/finger/thumb": "Thumb",
     "/input/finger/index": "Index Finger",
