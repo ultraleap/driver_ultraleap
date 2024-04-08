@@ -11,7 +11,7 @@
     "desktop_tracker_offset_x": 0.0,
     "desktop_tracker_offset_y": -0.2,
     "desktop_tracker_offset_z": -0.35,
-    "enable_elbow_trackers": true,
+    "enable_elbow_trackers": false,
     "external_input_only": false,
     "extended_hand_profile": false
   },
