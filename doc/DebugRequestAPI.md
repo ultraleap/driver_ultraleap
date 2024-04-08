@@ -17,14 +17,13 @@ This object contains the input data for the system. It has the following propert
 - `time_offset`: A floating-point number representing the time offset in seconds from now.
 
 - `paths`: An object containing a unique input path and its corresponding value:
-  - Example: `{"/input/pinch": 0.5}` indicates the path `/input/pinch` with a corresponding value of `0.5`.
-  - Example: `{"/input/dpad": [0.1, 0.2]}` indicates the path `/input/dpad` with a corresponding value
-    of `[0.1, 0.2]` (for the `x` and `y` component).
+    - Example: `{"/input/index_pinch/value": 0.5}` sets `index_pinch` to halfway.
+    - Example: `{"/input/thumbstick/x": 0.1}` sets the `thumbstick` X component to `0.1`
 
 ### `settings`
 
-This object defines the settings and trackers to be used in the system and these coraspond to the configuration settings
-above.
+This object defines the settings and trackers to be used in the system. These settings correspond to the settings
+available in the configuration (sometimes with a slightly altered form to allow entering vectors more eloquently).
 
 - `tracking_mode`: A string specifying the tracking mode. For example, `"hmd"`.
 
@@ -73,6 +72,7 @@ a [JSON Schema](../dev-resources/json/debug_response_schema.json).
 A string that indicates the result of the performed action.
 
 - `"success"` if the operation was successful.
+
 - `"error"` if the request failed.
 
 ### `errors`
