@@ -170,9 +170,6 @@ int main() {
     const vr::TrackedDeviceIndex_t selected_device = 2;
     // std::cin >> selected_device;
 
-    // Re-enable the driver input after the requests
-    EnableDriverInput(selected_device);
-
     if (tracked_devices[selected_device].model == "left_hand_ext") {
         SendExtendedDebugPayload(selected_device);
     } else {
@@ -187,7 +184,7 @@ int main() {
     }
 
     // Re-enable the driver input after the requests
-    //EnableDriverInput(selected_device);
+    EnableDriverInput(selected_device);
 
     std::cout << "Shutting Down..." << std::endl;
     vr::VR_Shutdown();
