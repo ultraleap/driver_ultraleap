@@ -1,7 +1,6 @@
 {
   "jsonid": "input_profile",
   "controller_type": "ultraleap_hand_extended",
-  "legacy_binding": "{ultraleap}/input/legacy_binding_ultraleap_hand.json",
   "remapping": "{ultraleap}/input/ultraleap_hand_extended_remapping.json",
   "input_bindingui_mode": "controller_handed",
   "input_bindingui_left": {
