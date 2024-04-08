@@ -1,6 +1,11 @@
 <p align="center">
-  <a href="https://ultraleap.com#gh-light-mode-only"><img height="33%" width="33%" style="margin-bottom: -60px" alt="Ultraleap" src="doc/UltraleapLogoColor.png" /></a>
-  <a href="https://ultraleap.com#gh-dark-mode-only"><img height="33%" width="33%" style="margin-bottom: -60px" alt="Ultraleap" src="doc/UltraleapLogoDarkMode.png" /></a>
+  <a href="https://ultraleap.com#gh-light-mode-only"><img width="250px" alt="Ultraleap" src="doc/UltraleapLogoColor.png" /></a>
+  <a href="https://ultraleap.com#gh-dark-mode-only"><img width="250px" alt="Ultraleap" src="doc/UltraleapLogoDarkMode.png" /></a>
+  <br />
+  <img height="32px" width="32px" alt="LMC" src="ultraleap/resources/icons/lmc_status_ready@2x.png" />
+  <img height="32px" width="32px" alt="SIR170" src="ultraleap/resources/icons/sir170_status_ready@2x.png" />
+  <img height="32px" width="32px" alt="3di" src="ultraleap/resources/icons/3di_status_ready@2x.png" />
+  <img height="32px" width="32px" alt="LMC2" src="ultraleap/resources/icons/lmc2_status_ready@2x.png" />
 </p>
 
 <span align="center">
@@ -9,16 +14,7 @@
 
 </span>
 
-<p align="center">
-<img height="32px" width="32px" alt="LMC" src="ultraleap/resources/icons/lmc_status_ready@2x.png" />
-<img height="32px" width="32px" alt="SIR170" src="ultraleap/resources/icons/sir170_status_ready@2x.png" />
-<img height="32px" width="32px" alt="3di" src="ultraleap/resources/icons/3di_status_ready@2x.png" />
-<img height="32px" width="32px" alt="LMC2" src="ultraleap/resources/icons/lmc2_status_ready@2x.png" />
-</p>
-
-<p align="center">
 This is the official Ultraleap driver for SteamVR, supporting using your hands as a first class input system.
-</p>
 
 ## Supported devices
 
@@ -57,4 +53,3 @@ To remove the driver:
 This driver allows supports [external input triggering via the OpenVR Debug Request API](doc/DebugRequestAPI.md). This
 allows other applications or support programs to drive the inputs through this driver, allowing for novel interactions
 and overlays.
-
