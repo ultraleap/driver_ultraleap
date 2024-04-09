@@ -50,7 +50,6 @@ auto SendSimpleDebugPayload(const vr::TrackedDeviceIndex_t id, const bool second
           "settings": {
             "tracking_mode": "hmd",
             "desktop_tracker_offset": [1.0, 2.0, 3.0],
-            "enable_elbow_trackers": true,
             "external_input_only": true
           }
         }
@@ -68,7 +67,6 @@ auto SendSimpleDebugPayload(const vr::TrackedDeviceIndex_t id, const bool second
           "settings": {
             "tracking_mode": "hmd",
             "desktop_tracker_offset": [1.0, 2.0, 3.0],
-            "enable_elbow_trackers": true,
             "external_input_only": true
           }
         }
@@ -103,7 +101,6 @@ auto SendExtendedDebugPayload(const vr::TrackedDeviceIndex_t id) {
           "settings": {
             "tracking_mode": "hmd",
             "desktop_tracker_offset": [1.0, 2.0, 3.0],
-            "enable_elbow_trackers": true,
             "external_input_only": true
           }
         }
@@ -116,6 +113,14 @@ auto SendExtendedDebugPayload(const vr::TrackedDeviceIndex_t id) {
 auto SendBrokenPayload(vr::TrackedDeviceIndex_t id) {
     const std::string payload = R"({"inputs"=[{"Greg": 0.25f}]})";
     DebugRequestToDriver(id, payload);
+}
+
+auto SendSettingsThatRequireRestart(vr::TrackedDeviceIndex_t id, const bool is_active) {
+    nlohmann::json payload;
+    const nlohmann::json settings = {{"extended_hand_profile", is_active}, {"enable_elbow_trackers", is_active}};
+    payload["settings"] = settings;
+
+    DebugRequestToDriver(id, payload.dump());
 }
 
 auto EnableDriverInput(vr::TrackedDeviceIndex_t id) {
@@ -167,6 +172,7 @@ int main() {
     }
     std::cout << std::endl;
 
+    // Currently hardcoded to apply to the left tracker
     const vr::TrackedDeviceIndex_t selected_device = 2;
     // std::cin >> selected_device;
 
@@ -182,6 +188,9 @@ int main() {
         // Send a broken payload to make sure error response is formatted correctly
         SendBrokenPayload(selected_device);
     }
+
+    // Tests 2 settings that require a restart (elbows and extended profile).
+    // SendSettingsThatRequireRestart(selected_device, false);
 
     // Re-enable the driver input after the requests
     EnableDriverInput(selected_device);

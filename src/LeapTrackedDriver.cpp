@@ -70,9 +70,11 @@ auto LeapTrackedDriver::ProcessDebugRequestSettings(const DebugRequestPayload& r
                     continue;
                 }
             }
-            LOG_INFO("Incorrect type or value passed in for key: 'tracking_mode'. Expected the strings 'hmd' or 'desktop'");
-            response[response_warnings_key_] += "Incorrect type or value passed in for key: 'tracking_mode'. Expected the strings "
-                                                "'hmd' or 'desktop'";
+            const auto warning = std::format(
+                "Incorrect type or value passed in for key: 'tracking_mode'. Expected the strings 'hmd' or 'desktop'."
+            );
+            LOG_WARN("{}", warning);
+            response[response_warnings_key_] += warning;
         } else if (setting.key_ == "hmd_tracker_offset") {
             UpdateSetting<VrVec3>(
                 [&](const VrVec3& val) { settings_->UpdateHmdTrackerOffset(val); },
@@ -101,9 +103,17 @@ auto LeapTrackedDriver::ProcessDebugRequestSettings(const DebugRequestPayload& r
                 setting.key_,
                 setting.value_
             );
+        } else if (setting.key_ == "extended_hand_profile") {
+            UpdateSetting<bool>(
+                [&](const bool& val) { settings_->UpdateExtendedHandProfile(val); },
+                response,
+                setting.key_,
+                setting.value_
+            );
         } else {
-            LOG_INFO("Failed to find setting with key: '{}', skipping...", setting.key_);
-            response[response_warnings_key_] += std::format("Failed to find setting with key: '{}'", setting.key_);
+            const auto warning = std::format("Failed to find setting with key: '{}'.", setting.key_);
+            LOG_WARN("{}", warning);
+            response[response_warnings_key_] += warning;
         }
     }
 }
