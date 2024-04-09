@@ -4,6 +4,7 @@
 #include <atomic>
 
 #include <LeapC.h>
+#include "VrUtils.h"
 
 class LeapDriverSettings {
   public:
@@ -17,14 +18,18 @@ class LeapDriverSettings {
     [[nodiscard]] auto ExternalInputOnly() const -> bool { return external_input_only_ ; }
     [[nodiscard]] auto ExtendedHandProfile() const -> bool { return extended_hand_profile_ ; }
 
-    auto UpdateTrackingMode(const eLeapTrackingMode value) -> void { tracking_mode_ = value; }
-    auto UpdateHmdTrackerOffset(const VrVec3& value) -> void { hmd_tracker_offset_ = value; }
-    auto UpdateDesktopTrackerOffset(const VrVec3& value) -> void { desktop_tracker_offset_ = value; }
-    auto UpdateEnableElbowTrackers(const bool value) -> void { enable_elbow_trackers_ = value; }
-    auto UpdateExternalInputOnly(const bool value) -> void { external_input_only_  = value; }
-    auto UpdateExtendedHandProfile(const bool value) -> void { extended_hand_profile_  = value; }
+    auto UpdateTrackingMode(eLeapTrackingMode value) -> void;
+    auto UpdateHmdTrackerOffset(const VrVec3& value) -> void;
+    auto UpdateDesktopTrackerOffset(const VrVec3& value) -> void;
+    auto UpdateEnableElbowTrackers(bool value) -> void;
+    auto UpdateExternalInputOnly(bool value) -> void;
+    auto UpdateExtendedHandProfile(bool value) -> void;
 
   private:
+    static auto IsEqual(const VrVec3& lhs, const VrVec3& rhs) -> bool;
+
+    bool is_restarting = false;
+    const char* restart_text = "Pending changes to the settings require a restart to apply.";
     std::atomic<eLeapTrackingMode> tracking_mode_;
     std::atomic<VrVec3> hmd_tracker_offset_{};
     std::atomic<VrVec3> desktop_tracker_offset_{};
