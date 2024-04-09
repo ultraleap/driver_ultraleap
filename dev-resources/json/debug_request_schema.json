@@ -42,7 +42,7 @@
           "items": {
             "type": "object",
             "properties": {
-              "/input/pinch/value": {"type": "number"},
+              "/input/index_pinch/value": {"type": "number"},
               "/input/grip/value": {"type": "number"}
             },
             "additionalProperties": {
