@@ -32,12 +32,15 @@ available in the configuration (sometimes with a slightly altered form to allow 
   Hand-Mounted Display (HMD) tracker or desktop tracker (in meters). For example: `[1.0, 2.0, 3.0]`.
 
 - `enable_elbow_trackers`: A boolean indicating whether elbow trackers are enabled. `true` indicates enabled and `false`
-  indicates disabled.
+  indicates disabled.[^1]
 
 - `external_input_only`: A boolean indicating whether only external inputs should be used. When `true`, only external
   inputs are used (other than for finger curl and skeleton bones).
 
-- `extended_hand_profile`:  A boolean indicating whether the extended hand-profile should be enabled.
+- `extended_hand_profile`:  A boolean indicating whether the extended hand-profile should be enabled.[^1]
+
+[^1]: This Setting requires a restart to take effect. If this is changed programatically, this will automatically
+request a restart from the user.
 
 ### Example
 
@@ -54,8 +57,16 @@ available in the configuration (sometimes with a slightly altered form to allow 
   },
   "settings": {
     "tracking_mode": "hmd",
-    "hmd_tracker_offset": [1.0, 2.0, 3.0],
-    "desktop_tracker_offset": [1.0, 2.0, 3.0],
+    "hmd_tracker_offset": [
+      1.0,
+      2.0,
+      3.0
+    ],
+    "desktop_tracker_offset": [
+      1.0,
+      2.0,
+      3.0
+    ],
     "enable_elbow_trackers": true,
     "external_input_only": false
   }
