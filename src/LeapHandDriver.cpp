@@ -245,13 +245,6 @@ auto LeapHandDriver::UpdateFromLeapFrame(const LEAP_TRACKING_EVENT* frame) -> vo
         input_ring_finger_.Update(hand.GetRingFingerCurl(), time_offset);
         input_pinky_finger_.Update(hand.GetPinkyFingerCurl(), time_offset);
 
-        // Hack to trigger extended profile via system trigger
-        if (hand.GetPinchStrength() > 0.8f) {
-            const auto properties = VrDeviceProperties::FromDeviceId(id_);
-            properties.Set(vr::Prop_ControllerType_String, "ultraleap_hand_extended");
-            properties.Set(vr::Prop_InputProfilePath_String, "{ultraleap}/input/ultraleap_hand_extended_profile.json");
-        }
-
         // If external input only isn't set then also update the interaction based components of the profile
         if (!settings_->ExternalInputOnly()) {
             input_proximity_.Update(true, time_offset);
