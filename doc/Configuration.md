@@ -13,24 +13,24 @@ so you should only redefine the ones you actively want changed.
 | Key                     | Description                                        | Type/Values      | Default |
 |-------------------------|----------------------------------------------------|------------------|---------|
 | `tracker_mode`          | Sets the requested tracking mode                   | `hmd`, `desktop` | `hmd`   |
-| `hmd_offset_x`          | X-axis tracker offset for HMD mode                 | _meters_         | `0.0`   |
-| `hmd_offset_y`          | Y-axis tracker offset for HMD mode                 | _meters_         | `0.0`   |
-| `hmd_offset_z`          | Z-axis tracker offset for HMD mode                 | _meters_         | `-0.08` |
+| `hmd_offset_x`          | X-axis tracker offset for HMD mode[^1]             | _meters_         | `0.0`   |
+| `hmd_offset_y`          | Y-axis tracker offset for HMD mode[^1]             | _meters_         | `0.0`   |
+| `hmd_offset_z`          | Z-axis tracker offset for HMD mode[^1]             | _meters_         | `-0.08` |
 | `desktop_offset_x`      | X-axis tracker offset for desktop mode             | _meters_         | `0.0`   |
 | `desktop_offset_y`      | Y-axis tracker offset for desktop mode             | _meters_         | `-0.2`  |
 | `desktop_offset_z`      | Z-axis tracker offset for desktop mode             | _meters_         | `-0.35` |
-| `enable_elbow_trackers` | Enable elbow trackers[^1]                          | `true`/`false`   | `true`  |
-| `external_input_only`   | Disable driver input (for external input)[^2]      | `true`/`false`   | `false` |
+| `enable_elbow_trackers` | Enable elbow trackers[^2]                          | `true`/`false`   | `true`  |
+| `external_input_only`   | Disable driver input (for external input)[^3]      | `true`/`false`   | `false` |
 | `extended_hand_profile` | Extended hand-profile support (for external input) | `true`/`false`   | `false` |
 
-[^1]: Enabling this feature adds two completely separate trackers in addition to the hand trackers purely for the elbow
+[^1]: HMD offsets follow
+the [OpenXR View space convention](https://openxr-tutorial.com/windows/opengl/_images/ViewSpace.png).
+
+[^2]: Enabling this feature adds two completely separate trackers in addition to the hand trackers purely for the elbow
 positions (one for each arm).
 
-[^2]: This setting blocks all inputs from the internal implementation of the driver. This is particularly useful if you
+[^3]: This setting blocks all inputs from the internal implementation of the driver. This is particularly useful if you
 want to use the `DebugRequest` API to drive inputs and prevent them from getting overridden.
-
-> **NOTE:** HMD offsets follow
-> the [OpenXR View space convention](https://openxr-tutorial.com/windows/opengl/_images/ViewSpace.png).
 
 ## Example
 
