@@ -19,9 +19,15 @@ so you should only redefine the ones you actively want changed.
 | `desktop_offset_x`      | X-axis tracker offset for desktop mode             | _meters_         | `0.0`   |
 | `desktop_offset_y`      | Y-axis tracker offset for desktop mode             | _meters_         | `-0.2`  |
 | `desktop_offset_z`      | Z-axis tracker offset for desktop mode             | _meters_         | `-0.35` |
-| `enable_elbow_trackers` | Enable elbow trackers                              | `true`/`false`   | `true`  |
-| `external_input_only`   | Disable driver input (for external input)          | `true`/`false`   | `false` |
+| `enable_elbow_trackers` | Enable elbow trackers[^1]                          | `true`/`false`   | `true`  |
+| `external_input_only`   | Disable driver input (for external input)[^2]      | `true`/`false`   | `false` |
 | `extended_hand_profile` | Extended hand-profile support (for external input) | `true`/`false`   | `false` |
+
+[^1]: Enabling this feature adds two completely separate trackers in addition to the hand trackers purely for the elbow
+positions (one for each arm).
+
+[^2]: This setting blocks all inputs from the internal implementation of the driver. This is particularly useful if you
+want to use the `DebugRequest` API to drive inputs and prevent them from getting overridden.
 
 > **NOTE:** HMD offsets follow
 > the [OpenXR View space convention](https://openxr-tutorial.com/windows/opengl/_images/ViewSpace.png).
