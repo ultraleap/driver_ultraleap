@@ -51,7 +51,14 @@ target_link_libraries(driver_ultraleap
         glm::glm
         nlohmann_json::nlohmann_json
 )
-set_target_properties(driver_ultraleap PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/ultraleap/bin/win64)
+
+# Force all compilers to output to binary folder without additional output (like Windows adds "Debug" and "Release" folders)
+set(driver_binary_dir ${CMAKE_BINARY_DIR}/ultraleap/bin/win64)
+set_target_properties(driver_ultraleap PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${driver_binary_dir})
+foreach(output_config ${CMAKE_CONFIGURATION_TYPES})
+    string(TOUPPER ${output_config} output_config)
+    set_target_properties(driver_ultraleap PROPERTIES RUNTIME_OUTPUT_DIRECTORY_${output_config} ${driver_binary_dir})
+endforeach()
 
 # Copy the required DLL dependencies.
 add_custom_command(
