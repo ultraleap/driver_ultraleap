@@ -1,0 +1,9 @@
+[submodule "3rdparty/OpenVR"]
+	path = 3rdparty/OpenVR
+	url = https://github.com/ValveSoftware/openvr.git
+[submodule "3rdparty/GLM"]
+	path = 3rdparty/GLM
+	url = https://github.com/g-truc/glm.git
+[submodule "3rdparty/json"]
+	path = 3rdparty/json
+	url = https://github.com/nlohmann/json.git

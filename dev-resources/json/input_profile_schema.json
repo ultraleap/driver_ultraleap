@@ -1,0 +1,196 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/ultraleap/driver_ultraleap/dev-resources/json/input_profile_schema.json",
+
+  "title": "SteamVR Input Profile",
+
+  "$defs": {
+    "resource_path": {
+      "type": "string",
+      "pattern": "^\\{.+\\}.+$"
+    },
+    "bindingui": {
+      "type": "object",
+      "properties": {
+        "image": {"$ref": "#/$defs/resource_path"},
+        "transform": {"type": "string"}
+      }
+    },
+    "binding_image_point": {
+      "type": "array",
+      "items": {
+        "type": "number",
+        "minItems": 2,
+        "maxItems": 2
+      }
+    },
+    "input_visibility": {
+      "enum": [
+        "InputValueVisibility_AvailableButHidden",
+        "InputValueVisibility_None",
+        "InputValueVisibility_Public",
+        "InputValueVisibility_SteamVRInternal"
+      ]
+    }
+  },
+
+  "type": "object",
+  "properties": {
+    "jsonid": {"const": "input_profile"},
+    "controller_type": {"type": "string"},
+    "legacy_binding": {"$ref": "#/$defs/resource_path"},
+    "remapping": {"$ref": "#/$defs/resource_path"},
+    "input_bindingui_mode": {"enum": ["controller_handed", "hmd", "single_device"]},
+    "input_bindingui_left": {"$ref": "#/$defs/bindingui"},
+    "input_bindingui_right": {"$ref": "#/$defs/bindingui"},
+    "input_source": {
+      "type": "object",
+      "additionalProperties": false,
+      "patternProperties": {
+        "/pose/.+": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "type": {"const": "pose"},
+            "binding_image_point": {"$ref": "#/$defs/binding_image_point"}
+          },
+          "required": [
+            "type",
+            "binding_image_point"
+          ]
+        },
+        "/input/pinch": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "type": {"const": "pinch"},
+            "binding_image_point": {"$ref": "#/$defs/binding_image_point"},
+            "order": {"type": "integer"},
+            "value_source": {"type": "string", "pattern": "/input/.+"},
+            "capsense_source": {"type": "string", "pattern": "/input/finger/.+"},
+            "force_source": {"type": "string", "pattern": "/input/.+"}
+          },
+          "required": [
+            "type",
+            "binding_image_point"
+          ]
+        },
+        "/input/finger/.+": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "type": {"const": "trigger"},
+            "binding_image_point": {"$ref": "#/$defs/binding_image_point"},
+            "order": {"type": "integer"},
+            "click": {"type": "boolean"},
+            "value": {"type": "boolean"},
+            "touch": {"type": "boolean"},
+            "force": {"type": "boolean"},
+            "input_activity_path": {"type": "string"},
+            "input_activity_threshold": {"type": "number"},
+            "visibility": {"$ref": "#/$defs/input_visibility"}
+          },
+          "required": [
+            "type",
+            "binding_image_point"
+          ]
+        },
+        "/input/skeleton/(left|right)": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "type": {"const": "skeleton"},
+            "skeleton": {"enum": ["/skeleton/hand/left", "/skeleton/hand/right"]},
+            "side": {"enum": ["left", "right"]},
+            "binding_image_point": {"$ref": "#/$defs/binding_image_point"}
+          },
+          "required": [
+            "type",
+            "skeleton",
+            "side",
+            "binding_image_point"
+          ]
+        },
+        "/input/.+": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "type": {"enum": ["joystick", "button", "trigger", "trackpad"]},
+            "binding_image_point": {"$ref": "#/$defs/binding_image_point"},
+            "order": {"type": "integer"},
+            "click": {"type": "boolean"},
+            "value": {"type": "boolean"},
+            "touch": {"type": "boolean"},
+            "force": {"type": "boolean"},
+            "input_activity_path": {"type": "string"},
+            "input_activity_threshold": {"type": "number"},
+            "visibility": {"$ref": "#/$defs/input_visibility"}
+          },
+          "required": [
+            "type",
+            "binding_image_point"
+          ]
+        },
+        "/output/.+": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "type": {"const": "vibration"},
+            "binding_image_point": {"$ref": "#/$defs/binding_image_point"}
+          },
+          "required": [
+            "type",
+            "binding_image_point"
+          ]
+        }
+      },
+      "required": [
+        "/pose/raw"
+      ]
+    },
+    "mirror_mappings": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "prefixItems": "string",
+        "minItems": 2,
+        "maxItems": 2
+      }
+    },
+    "simulation_settings": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "hmd_profile": {"type": "string"},
+        "left_modelnumber": {"type": "string"},
+        "right_modelnumber": {"type": "string"},
+        "left_serialnumber": {"type": "string"},
+        "right_serialnumber": {"type": "string"},
+        "left_rendermodel": {"$ref": "#/$defs/resource_path"},
+        "right_rendermodel": {"$ref": "#/$defs/resource_path"},
+        "left_registered_device_type": {"type": "string"},
+        "right_registered_device_type": {"type": "string"},
+        "tracking_system_name": {"type": "string"},
+        "manufacturer_name": {"type": "string"},
+        "legacy_buttons": {"type": "array", "items": {"type": "number"}},
+        "legacy_axis": {"type": "array", "items": {"type": "number"}}
+      }
+    },
+    "default_bindings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "app_key": {"type": "string"},
+          "binding_url": {"type": "string"}
+        }
+      }
+    }
+  },
+  "required": [
+    "jsonid",
+    "controller_type",
+    "input_source"
+  ]
+}

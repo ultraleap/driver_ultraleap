@@ -1,0 +1,28 @@
+{
+  "to_controller_type": "ultraleap_hand",
+  "layouts": [
+    {
+      "from_controller_type": "knuckles",
+      "priority": 100,
+      "simulate_controller_type": true,
+      "simulate_render_model": true,
+      "simulate_HMD": true,
+      "autoremappings": [
+        {
+          "from": "/user/hand/right/input/trigger",
+          "to": "/user/hand/right/input/index_pinch"
+        },
+        {
+          "from": "/user/hand/right/input/grip",
+          "to": "/user/hand/right/input/grip",
+          "parameters": {
+            "click_activate_threshold": "0.8",
+            "click_deactivate_threshold": "0.7",
+            "touch_activate_threshold": "0.2",
+            "touch_deactivate_threshold": "0.1"
+          }
+        }
+      ]
+    }
+  ]
+}

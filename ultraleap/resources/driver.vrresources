@@ -1,0 +1,87 @@
+{
+  "jsonid": "vrresources",
+  "statusicons": {
+    "lmc": {
+      "Prop_NamedIconPathDeviceOff_String": "{ultraleap}/icons/lmc_status_off.png",
+      "Prop_NamedIconPathDeviceReady_String": "{ultraleap}/icons/lmc_status_ready.png",
+      "Prop_NamedIconPathDeviceReadyAlert_String": "{ultraleap}/icons/lmc_status_ready_alert.png",
+      "Prop_NamedIconPathDeviceNotReady_String": "{ultraleap}/icons/lmc_status_error.png",
+      "Prop_NamedIconPathDeviceStandby_String": "{ultraleap}/icons/lmc_status_standby.png",
+      "Prop_NamedIconPathDeviceStandbyAlert_String": "{ultraleap}/icons/lmc_status_standby_alert.png"
+    },
+    "lmc2": {
+      "Prop_NamedIconPathDeviceOff_String": "{ultraleap}/icons/lmc2_status_off.png",
+      "Prop_NamedIconPathDeviceReady_String": "{ultraleap}/icons/lmc2_status_ready.png",
+      "Prop_NamedIconPathDeviceReadyAlert_String": "{ultraleap}/icons/lmc2_status_ready_alert.png",
+      "Prop_NamedIconPathDeviceNotReady_String": "{ultraleap}/icons/lmc2_status_error.png",
+      "Prop_NamedIconPathDeviceStandby_String": "{ultraleap}/icons/lmc2_status_standby.png",
+      "Prop_NamedIconPathDeviceStandbyAlert_String": "{ultraleap}/icons/lmc2_status_standby_alert.png"
+    },
+    "sir170": {
+      "Prop_NamedIconPathDeviceOff_String": "{ultraleap}/icons/sir170_status_off.png",
+      "Prop_NamedIconPathDeviceReady_String": "{ultraleap}/icons/sir170_status_ready.png",
+      "Prop_NamedIconPathDeviceReadyAlert_String": "{ultraleap}/icons/sir170_status_ready_alert.png",
+      "Prop_NamedIconPathDeviceNotReady_String": "{ultraleap}/icons/sir170_status_error.png",
+      "Prop_NamedIconPathDeviceStandby_String": "{ultraleap}/icons/sir170_status_standby.png",
+      "Prop_NamedIconPathDeviceStandbyAlert_String": "{ultraleap}/icons/sir170_status_standby_alert.png"
+    },
+    "3di": {
+      "Prop_NamedIconPathDeviceOff_String": "{ultraleap}/icons/3di_status_off.png",
+      "Prop_NamedIconPathDeviceReady_String": "{ultraleap}/icons/3di_status_ready.png",
+      "Prop_NamedIconPathDeviceReadyAlert_String": "{ultraleap}/icons/3di_status_ready_alert.png",
+      "Prop_NamedIconPathDeviceNotReady_String": "{ultraleap}/icons/3di_status_error.png",
+      "Prop_NamedIconPathDeviceStandby_String": "{ultraleap}/icons/3di_status_standby.png",
+      "Prop_NamedIconPathDeviceStandbyAlert_String": "{ultraleap}/icons/3di_status_standby_alert.png"
+    },
+    "left_hand": {
+      "Prop_NamedIconPathDeviceOff_String": "{ultraleap}/icons/left_hand_status_off.png",
+      "Prop_NamedIconPathDeviceReady_String": "{ultraleap}/icons/left_hand_status_ready.png",
+      "Prop_NamedIconPathDeviceReadyAlert_String": "{ultraleap}/icons/left_hand_status_ready_alert.png",
+      "Prop_NamedIconPathDeviceNotReady_String": "{ultraleap}/icons/left_hand_status_error.png",
+      "Prop_NamedIconPathDeviceStandby_String": "{ultraleap}/icons/left_hand_status_standby.png",
+      "Prop_NamedIconPathDeviceStandbyAlert_String": "{ultraleap}/icons/left_hand_status_standby_alert.png",
+      "Prop_NamedIconPathDeviceSearching_String": "{ultraleap}/icons/left_hand_status_standby.png",
+      "Prop_NamedIconPathDeviceSearchingAlert_String": "{ultraleap}/icons/left_hand_status_standby_alert.png"
+    },
+    "right_hand": {
+      "Prop_NamedIconPathDeviceOff_String": "{ultraleap}/icons/right_hand_status_off.png",
+      "Prop_NamedIconPathDeviceReady_String": "{ultraleap}/icons/right_hand_status_ready.png",
+      "Prop_NamedIconPathDeviceReadyAlert_String": "{ultraleap}/icons/right_hand_status_ready_alert.png",
+      "Prop_NamedIconPathDeviceNotReady_String": "{ultraleap}/icons/right_hand_status_error.png",
+      "Prop_NamedIconPathDeviceStandby_String": "{ultraleap}/icons/right_hand_status_standby.png",
+      "Prop_NamedIconPathDeviceStandbyAlert_String": "{ultraleap}/icons/right_hand_status_standby_alert.png",
+      "Prop_NamedIconPathDeviceSearching_String": "{ultraleap}/icons/right_hand_status_standby.png",
+      "Prop_NamedIconPathDeviceSearchingAlert_String": "{ultraleap}/icons/right_hand_status_standby_alert.png"
+    },
+    "left_hand_ext": {
+      "Prop_NamedIconPathDeviceOff_String": "{ultraleap}/icons/left_hand_ext_status_off.png",
+      "Prop_NamedIconPathDeviceReady_String": "{ultraleap}/icons/left_hand_ext_status_ready.png",
+      "Prop_NamedIconPathDeviceReadyAlert_String": "{ultraleap}/icons/left_hand_ext_status_ready_alert.png",
+      "Prop_NamedIconPathDeviceNotReady_String": "{ultraleap}/icons/left_hand_ext_status_error.png",
+      "Prop_NamedIconPathDeviceStandby_String": "{ultraleap}/icons/left_hand_ext_status_standby.png",
+      "Prop_NamedIconPathDeviceStandbyAlert_String": "{ultraleap}/icons/left_hand_ext_status_standby_alert.png",
+      "Prop_NamedIconPathDeviceSearching_String": "{ultraleap}/icons/left_hand_ext_status_standby.png",
+      "Prop_NamedIconPathDeviceSearchingAlert_String": "{ultraleap}/icons/left_hand_ext_status_standby_alert.png"
+    },
+    "right_hand_ext": {
+      "Prop_NamedIconPathDeviceOff_String": "{ultraleap}/icons/right_hand_ext_status_off.png",
+      "Prop_NamedIconPathDeviceReady_String": "{ultraleap}/icons/right_hand_ext_status_ready.png",
+      "Prop_NamedIconPathDeviceReadyAlert_String": "{ultraleap}/icons/right_hand_ext_status_ready_alert.png",
+      "Prop_NamedIconPathDeviceNotReady_String": "{ultraleap}/icons/right_hand_ext_status_error.png",
+      "Prop_NamedIconPathDeviceStandby_String": "{ultraleap}/icons/right_hand_ext_status_standby.png",
+      "Prop_NamedIconPathDeviceStandbyAlert_String": "{ultraleap}/icons/right_hand_ext_status_standby_alert.png",
+      "Prop_NamedIconPathDeviceSearching_String": "{ultraleap}/icons/right_hand_ext_status_standby.png",
+      "Prop_NamedIconPathDeviceSearchingAlert_String": "{ultraleap}/icons/right_hand_ext_status_standby_alert.png"
+    },
+    "elbow_tracker": {
+      "Prop_NamedIconPathDeviceOff_String": "{ultraleap}/icons/elbow_status_off.png",
+      "Prop_NamedIconPathDeviceReady_String": "{ultraleap}/icons/elbow_status_ready.png",
+      "Prop_NamedIconPathDeviceReadyAlert_String": "{ultraleap}/icons/elbow_status_ready_alert.png",
+      "Prop_NamedIconPathDeviceNotReady_String": "{ultraleap}/icons/elbow_status_error.png",
+      "Prop_NamedIconPathDeviceStandby_String": "{ultraleap}/icons/elbow_status_standby.png",
+      "Prop_NamedIconPathDeviceStandbyAlert_String": "{ultraleap}/icons/elbow_status_standby_alert.png",
+      "Prop_NamedIconPathDeviceSearching_String": "{ultraleap}/icons/elbow_status_standby.png",
+      "Prop_NamedIconPathDeviceSearchingAlert_String": "{ultraleap}/icons/elbow_status_standby_alert.png"
+    }
+  }
+}

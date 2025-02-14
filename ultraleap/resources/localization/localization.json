@@ -1,0 +1,30 @@
+[
+  {
+    "language_tag": "en_US",
+
+    "lmc": "Leap Motion Controller",
+    "lmc2": "Leap Motion Controller 2",
+    "sir170": "Ultraleap StereoIR 170",
+    "3di": "Ultraleap 3Di",
+
+    "ultraleap_hand": "Ultraleap Tracked Hand",
+    "ultraleap_hand_extended": "Ultraleap Tracked Hand (Extended Mode)",
+    "ultraleap_elbow": "Ultraleap Tracked Elbow",
+
+    "left_hand": "Left Hand",
+    "right_hand": "Right Hand",
+
+    "ultraleap_left_elbow": "Left Elbow",
+    "ultraleap_right_elbow": "Right Elbow",
+
+    "/input/index_pinch": "Index Pinch",
+    "/input/grip": "Grip",
+    "/pose/aim": "Pinch Aim",
+
+    "/input/finger/thumb": "Thumb",
+    "/input/finger/index": "Index Finger",
+    "/input/finger/middle": "Middle Finger",
+    "/input/finger/ring": "Ring Finger",
+    "/input/finger/pinky": "Pinky Finger"
+  }
+]
